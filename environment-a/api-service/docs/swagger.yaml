@@ -1,0 +1,613 @@
+basePath: /api/v1
+definitions:
+  dto.BreadcrumbResponse:
+    properties:
+      breadcrumb:
+        items:
+          $ref: '#/definitions/dto.DirectoryDTO'
+        type: array
+      directory_id:
+        type: string
+      status:
+        type: string
+    type: object
+  dto.CreateDirectoryRequest:
+    properties:
+      name:
+        maxLength: 255
+        type: string
+      parent_id:
+        type: string
+    required:
+    - name
+    type: object
+  dto.DirectoryDTO:
+    properties:
+      created_at:
+        type: string
+      depth:
+        type: integer
+      id:
+        type: string
+      name:
+        type: string
+      parent_id:
+        type: string
+    type: object
+  dto.DirectoryResponse:
+    properties:
+      directory:
+        $ref: '#/definitions/dto.DirectoryDTO'
+      status:
+        type: string
+    type: object
+  dto.DirectoryTreeResponse:
+    properties:
+      directories:
+        items:
+          $ref: '#/definitions/dto.DirectoryDTO'
+        type: array
+      root_id:
+        type: string
+      status:
+        type: string
+    type: object
+  dto.ErrorResponse:
+    properties:
+      error:
+        example: unauthorized
+        type: string
+      status:
+        example: error
+        type: string
+    type: object
+  dto.FileDTO:
+    properties:
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      directory_id:
+        type: string
+      id:
+        type: string
+      manifest_id:
+        type: string
+      mime_type:
+        type: string
+      name:
+        type: string
+      size_bytes:
+        type: integer
+    type: object
+  dto.FileDetailResponse:
+    properties:
+      file:
+        $ref: '#/definitions/dto.FileDTO'
+      status:
+        type: string
+    type: object
+  dto.FileListResponse:
+    properties:
+      directory_id:
+        type: string
+      files:
+        items:
+          $ref: '#/definitions/dto.FileDTO'
+        type: array
+      status:
+        type: string
+    type: object
+  dto.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  dto.LoginResponse:
+    properties:
+      access_token:
+        type: string
+      expires_at:
+        type: string
+      status:
+        type: string
+      user:
+        $ref: '#/definitions/dto.UserDTO'
+    type: object
+  dto.MeResponse:
+    properties:
+      status:
+        type: string
+      user:
+        $ref: '#/definitions/dto.UserDTO'
+    type: object
+  dto.OKResponse:
+    properties:
+      status:
+        example: ok
+        type: string
+    type: object
+  dto.SoftDeleteResponse:
+    properties:
+      deleted_at:
+        type: string
+      file_id:
+        type: string
+      status:
+        type: string
+    type: object
+  dto.UploadCommitResultDTO:
+    properties:
+      chunk_count:
+        type: integer
+      dedup_ratio:
+        type: number
+      file_hash:
+        type: string
+      immutable:
+        type: boolean
+      manifest_id:
+        type: string
+      new_chunk_count:
+        type: integer
+      reuse_chunk_count:
+        type: integer
+      total_size_bytes:
+        type: integer
+    type: object
+  dto.UploadResponse:
+    properties:
+      file:
+        $ref: '#/definitions/dto.FileDTO'
+      status:
+        type: string
+      upload_commit_result:
+        $ref: '#/definitions/dto.UploadCommitResultDTO'
+    type: object
+  dto.UserDTO:
+    properties:
+      email:
+        type: string
+      full_name:
+        type: string
+      id:
+        type: string
+    type: object
+info:
+  contact: {}
+  description: API service for authentication, directory hierarchy, and immutable
+    file metadata.
+  title: PUI API Service
+  version: "1.0"
+paths:
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Create access session token from email and password
+      parameters:
+      - description: Login payload
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/dto.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.LoginResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Login
+      tags:
+      - auth
+  /auth/logout:
+    post:
+      description: Revoke current access session
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.OKResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Logout
+      tags:
+      - auth
+  /auth/me:
+    get:
+      description: Return authenticated user profile
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.MeResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Current user
+      tags:
+      - auth
+  /directories:
+    post:
+      consumes:
+      - application/json
+      description: Create root or nested directory in user namespace
+      parameters:
+      - description: Create directory payload
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateDirectoryRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.DirectoryResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create directory
+      tags:
+      - directories
+  /directories/{id}/breadcrumb:
+    get:
+      description: Resolve breadcrumb path for given directory
+      parameters:
+      - description: Directory UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.BreadcrumbResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Directory breadcrumb
+      tags:
+      - directories
+  /directories/{id}/files:
+    get:
+      description: List files by directory with optional include_deleted=true
+      parameters:
+      - description: Directory UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Include soft-deleted files
+        in: query
+        name: include_deleted
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.FileListResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Directory files
+      tags:
+      - directories
+  /directories/tree:
+    get:
+      description: List root directories or subtree with root_id query
+      parameters:
+      - description: Root directory UUID
+        in: query
+        name: root_id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.DirectoryTreeResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Directory tree
+      tags:
+      - directories
+  /files:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Stream multipart file upload to vault-core and persist metadata
+      parameters:
+      - description: Directory UUID
+        in: formData
+        name: directory_id
+        required: true
+        type: string
+      - description: File payload
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.UploadResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "413":
+          description: Request Entity Too Large
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "502":
+          description: Bad Gateway
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Upload file
+      tags:
+      - files
+  /files/{id}:
+    delete:
+      description: Mark file as deleted without removing physical payload
+      parameters:
+      - description: File UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SoftDeleteResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Soft delete file
+      tags:
+      - files
+    get:
+      description: Get file metadata by ID (including soft-deleted files)
+      parameters:
+      - description: File UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.FileDetailResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: File detail
+      tags:
+      - files
+  /files/{id}/download:
+    get:
+      description: Stream file payload from vault-core by file ID
+      parameters:
+      - description: File UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: File stream
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "502":
+          description: Bad Gateway
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Download file
+      tags:
+      - files
+  /health:
+    get:
+      description: Public liveness probe for API service
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Health check
+      tags:
+      - system
+  /status:
+    get:
+      description: Reports database and vault-core availability
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Dependency status
+      tags:
+      - system
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

@@ -1,0 +1,25 @@
+# Git metadata
+.git
+.gitignore
+.dockerignore
+
+# Local env overrides
+.env
+.env.*
+!.env.example
+
+# Dependencies and build outputs
+node_modules
+dist
+.vite
+coverage
+*.tsbuildinfo
+
+# Logs and local editor artifacts
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.DS_Store
+.vscode
+.idea

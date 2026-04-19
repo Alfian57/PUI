@@ -1,0 +1,105 @@
+services:
+  web-client:
+    build:
+      context: ./environment-a/web-client
+    container_name: pui-web-client
+    depends_on:
+      - api-service
+    environment:
+      VITE_API_BASE_URL: ${VITE_API_BASE_URL}
+      VITE_ENVIRONMENT_NAME: ${VITE_ENVIRONMENT_NAME}
+    networks:
+      - public_net
+    ports:
+      - "${WEB_PORT:-5173}:5173"
+    volumes:
+      - ./environment-a/web-client:/app
+      - /app/node_modules
+    restart: unless-stopped
+
+  api-service:
+    build:
+      context: ./environment-a/api-service
+    container_name: pui-api-service
+    depends_on:
+      postgres:
+        condition: service_healthy
+      vault-core:
+        condition: service_started
+    environment:
+      APP_ENV: environment-a
+      HTTP_ADDR: ${API_HTTP_ADDR}
+      ALLOWED_ORIGIN: ${API_ALLOWED_ORIGIN}
+      DATABASE_URL: ${API_DATABASE_URL}
+      VAULT_UDS_PATH: ${VAULT_UDS_PATH}
+      MIGRATIONS_PATH: ${API_MIGRATIONS_PATH}
+      MAX_UPLOAD_SIZE_BYTES: ${MAX_UPLOAD_SIZE_BYTES}
+      RATE_LIMIT_PER_MINUTE: ${RATE_LIMIT_PER_MINUTE}
+      SESSION_TTL_MINUTES: ${SESSION_TTL_MINUTES}
+    networks:
+      - public_net
+      - database_net
+    ports:
+      - "${API_PORT:-8080}:8080"
+    user: "10001:20000"
+    volumes:
+      - ./shared/uds:/var/run/pui/uds
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: pui-postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - database_net
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  vault-core:
+    build:
+      context: ./environment-b/vault-core
+    container_name: pui-vault-core
+    environment:
+      APP_ENV: environment-b
+      UDS_PATH: ${VAULT_UDS_PATH}
+      BADGER_PATH: ${BADGER_PATH}
+      CHUNK_ROOT: ${CHUNK_ROOT}
+      FASTCDC_MIN_CHUNK_SIZE: ${FASTCDC_MIN_CHUNK_SIZE}
+      FASTCDC_AVG_CHUNK_SIZE: ${FASTCDC_AVG_CHUNK_SIZE}
+      FASTCDC_MAX_CHUNK_SIZE: ${FASTCDC_MAX_CHUNK_SIZE}
+      UDS_OWNER_UID: ${UDS_OWNER_UID:-10002}
+      UDS_OWNER_GID: ${UDS_OWNER_GID:-20000}
+      UDS_ALLOWED_UIDS: ${UDS_ALLOWED_UIDS:-10001}
+    command:
+      [
+        "sh",
+        "-c",
+        "mkdir -p /var/run/pui/uds /var/lib/pui/badger /var/lib/pui/chunks &&
+          chown 10002:20000 /var/run/pui/uds && chown -R 10002:20000
+          /var/lib/pui/badger /var/lib/pui/chunks && chmod 0750 /var/run/pui/uds
+          /var/lib/pui/badger /var/lib/pui/chunks && exec su-exec 10002:20000
+          vault-core",
+      ]
+    network_mode: "none"
+    volumes:
+      - ./shared/uds:/var/run/pui/uds
+      - ./data/vault/badger:/var/lib/pui/badger
+      - ./data/vault/chunks:/var/lib/pui/chunks
+    restart: unless-stopped
+
+networks:
+  public_net:
+    driver: bridge
+  database_net:
+    driver: bridge
+    internal: true

@@ -1,0 +1,20 @@
+# Git metadata
+.git
+.gitignore
+.dockerignore
+
+# Local env overrides
+.env
+.env.*
+!.env.example
+
+# Build/test outputs
+bin
+tmp
+coverage.out
+*.test
+
+# Local editor artifacts
+.DS_Store
+.vscode
+.idea
