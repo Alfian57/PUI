@@ -65,3 +65,23 @@ func toUploadCommitResultDTO(result vaultclient.UploadCommitResult) dto.UploadCo
 		ReuseChunkCount: result.ReuseChunkCount,
 	}
 }
+
+func toActivityLogDTO(record domain.ActivityLogRecord) dto.ActivityLogDTO {
+	return dto.ActivityLogDTO{
+		ID:           record.ID,
+		UserID:       record.UserID,
+		Action:       record.Action,
+		ResourceType: record.ResourceType,
+		ResourceID:   record.ResourceID,
+		CreatedAt:    record.CreatedAt,
+	}
+}
+
+func toActivityLogDTOs(records []domain.ActivityLogRecord) []dto.ActivityLogDTO {
+	items := make([]dto.ActivityLogDTO, 0, len(records))
+	for _, record := range records {
+		items = append(items, toActivityLogDTO(record))
+	}
+
+	return items
+}

@@ -12,6 +12,11 @@ import (
 	"github.com/alfiang/pui/environment-a/api-service/internal/vaultclient"
 )
 
+const (
+	defaultFileSearchLimit = 20
+	maxFileSearchLimit     = 200
+)
+
 type VaultFileClient interface {
 	Upload(ctx context.Context, fileName string, reader io.Reader) (vaultclient.UploadCommitResult, error)
 	DownloadObject(ctx context.Context, manifestID string) (io.ReadCloser, int64, error)
@@ -68,6 +73,14 @@ func (s *FileService) Upload(ctx context.Context, user domain.AuthUser, director
 	fileName = strings.TrimSpace(fileName)
 	if fileName == "" {
 		fileName = "upload.bin"
+	}
+
+	exists, err := s.filesRepo.ExistsActiveByDirectoryAndName(ctx, directoryID, fileName)
+	if err != nil {
+		return UploadOutcome{}, err
+	}
+	if exists {
+		return UploadOutcome{}, fmt.Errorf("%w: nama file sudah ada pada direktori", domain.ErrConflict)
 	}
 
 	mimeType = strings.TrimSpace(mimeType)
@@ -141,4 +154,67 @@ func (s *FileService) SoftDelete(ctx context.Context, user domain.AuthUser, file
 	}
 
 	return deletedAt, nil
+}
+
+func (s *FileService) Search(
+	ctx context.Context,
+	user domain.AuthUser,
+	query string,
+	directoryID string,
+	includeDeleted bool,
+	limit int,
+	offset int,
+) ([]domain.FileRecord, int64, int, int, error) {
+	query = strings.TrimSpace(query)
+	directoryID = strings.TrimSpace(directoryID)
+
+	if query == "" {
+		return nil, 0, 0, 0, fmt.Errorf("%w: query wajib diisi", domain.ErrInvalidInput)
+	}
+
+	if len(query) < 2 {
+		return nil, 0, 0, 0, fmt.Errorf("%w: query minimal 2 karakter", domain.ErrInvalidInput)
+	}
+
+	if len(query) > 255 {
+		return nil, 0, 0, 0, fmt.Errorf("%w: query terlalu panjang", domain.ErrInvalidInput)
+	}
+
+	if directoryID != "" {
+		if !IsUUID(directoryID) {
+			return nil, 0, 0, 0, fmt.Errorf("%w: directory_id tidak valid", domain.ErrInvalidInput)
+		}
+
+		owned, err := s.directoryRepo.IsOwnedByUser(ctx, directoryID, user.UserID)
+		if err != nil {
+			return nil, 0, 0, 0, err
+		}
+		if !owned {
+			return nil, 0, 0, 0, domain.ErrNotFound
+		}
+	}
+
+	if limit == 0 {
+		limit = defaultFileSearchLimit
+	}
+	if limit < 1 || limit > maxFileSearchLimit {
+		return nil, 0, 0, 0, fmt.Errorf("%w: limit harus antara 1 dan %d", domain.ErrInvalidInput, maxFileSearchLimit)
+	}
+
+	if offset < 0 {
+		return nil, 0, 0, 0, fmt.Errorf("%w: offset tidak boleh negatif", domain.ErrInvalidInput)
+	}
+
+	files, total, err := s.filesRepo.SearchByUser(ctx, user.UserID, domain.FileSearchFilter{
+		DirectoryID:    directoryID,
+		Query:          query,
+		IncludeDeleted: includeDeleted,
+		Limit:          limit,
+		Offset:         offset,
+	})
+	if err != nil {
+		return nil, 0, 0, 0, err
+	}
+
+	return files, total, limit, offset, nil
 }

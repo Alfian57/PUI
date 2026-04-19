@@ -45,3 +45,5 @@ data/vault/chunks/*
 
 shared/uds/*
 !shared/uds/.gitkeep
+!shared/uds/go.mod
+!shared/uds/types.go

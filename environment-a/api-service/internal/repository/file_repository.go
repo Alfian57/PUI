@@ -103,3 +103,63 @@ func (r *FileRepository) SoftDelete(ctx context.Context, fileID, userID string) 
 
 	return deletedAt, nil
 }
+
+func (r *FileRepository) ExistsActiveByDirectoryAndName(ctx context.Context, directoryID, name string) (bool, error) {
+	var exists bool
+	err := r.db.WithContext(ctx).Raw(
+		`SELECT EXISTS (
+			SELECT 1
+			FROM files
+			WHERE directory_id = ?::uuid
+			  AND deleted_at IS NULL
+			  AND lower(name) = lower(?)
+		)`,
+		directoryID,
+		name,
+	).Scan(&exists).Error
+	if err != nil {
+		return false, fmt.Errorf("check duplicate active filename: %w", err)
+	}
+
+	return exists, nil
+}
+
+func (r *FileRepository) SearchByUser(ctx context.Context, userID string, filter domain.FileSearchFilter) ([]domain.FileRecord, int64, error) {
+	where := ` WHERE d.user_id = ?::uuid`
+	args := []any{userID}
+
+	if strings.TrimSpace(filter.DirectoryID) != "" {
+		where += ` AND f.directory_id = ?::uuid`
+		args = append(args, filter.DirectoryID)
+	}
+
+	if !filter.IncludeDeleted {
+		where += ` AND f.deleted_at IS NULL`
+	}
+
+	if strings.TrimSpace(filter.Query) != "" {
+		pattern := "%" + strings.TrimSpace(filter.Query) + "%"
+		where += ` AND (f.name ILIKE ? OR f.manifest_id ILIKE ? OR f.mime_type ILIKE ?)`
+		args = append(args, pattern, pattern, pattern)
+	}
+
+	var total int64
+	countQuery := `SELECT COUNT(*)
+		FROM files f
+		JOIN directories d ON d.id = f.directory_id` + where
+	if err := r.db.WithContext(ctx).Raw(countQuery, args...).Scan(&total).Error; err != nil {
+		return nil, 0, fmt.Errorf("count searched files: %w", err)
+	}
+
+	listQuery := `SELECT f.id::text, f.directory_id::text, f.name, f.size_bytes, f.mime_type, f.manifest_id, f.created_at, f.deleted_at
+		FROM files f
+		JOIN directories d ON d.id = f.directory_id` + where + ` ORDER BY f.created_at DESC LIMIT ? OFFSET ?`
+	listArgs := append(append([]any{}, args...), filter.Limit, filter.Offset)
+
+	files := make([]domain.FileRecord, 0, filter.Limit)
+	if err := r.db.WithContext(ctx).Raw(listQuery, listArgs...).Scan(&files).Error; err != nil {
+		return nil, 0, fmt.Errorf("search files: %w", err)
+	}
+
+	return files, total, nil
+}

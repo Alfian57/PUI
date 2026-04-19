@@ -20,6 +20,8 @@ func statusFromError(err error) int {
 		return http.StatusConflict
 	case errors.Is(err, domain.ErrNotFound):
 		return http.StatusNotFound
+	case errors.Is(err, domain.ErrInvalidInput):
+		return http.StatusBadRequest
 	case errors.Is(err, domain.ErrUploadTooBig):
 		return http.StatusRequestEntityTooLarge
 	default:

@@ -13,6 +13,71 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// handleSearchFiles godoc
+// @Summary Search files
+// @Description Search file metadata by query in user namespace with optional filters and pagination
+// @Tags files
+// @Security BearerAuth
+// @Produce json
+// @Param q query string true "Search keyword (min 2 chars)"
+// @Param directory_id query string false "Directory UUID"
+// @Param include_deleted query bool false "Include soft-deleted files"
+// @Param limit query int false "Page size (1-200, default 20)"
+// @Param offset query int false "Offset (default 0)"
+// @Success 200 {object} dto.FileSearchResponse
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 401 {object} dto.ErrorResponse
+// @Failure 404 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /files/search [get]
+func (a *API) handleSearchFiles(c *gin.Context) {
+	user, ok := a.authUser(c)
+	if !ok {
+		return
+	}
+
+	query := strings.TrimSpace(c.Query("q"))
+	directoryID := strings.TrimSpace(c.Query("directory_id"))
+	includeDeleted := parseBoolQuery(c.Query("include_deleted"))
+
+	limit, err := parseIntQuery(c.Query("limit"), 0)
+	if err != nil {
+		writeError(c, http.StatusBadRequest, fmt.Errorf("limit harus berupa angka"))
+		return
+	}
+
+	offset, err := parseIntQuery(c.Query("offset"), 0)
+	if err != nil {
+		writeError(c, http.StatusBadRequest, fmt.Errorf("offset harus berupa angka"))
+		return
+	}
+
+	files, total, normalizedLimit, normalizedOffset, err := a.fileService.Search(
+		c.Request.Context(),
+		user,
+		query,
+		directoryID,
+		includeDeleted,
+		limit,
+		offset,
+	)
+	if err != nil {
+		writeError(c, statusFromError(err), err)
+		return
+	}
+
+	c.JSON(http.StatusOK, dto.FileSearchResponse{
+		Status:         "ok",
+		Query:          query,
+		DirectoryID:    directoryID,
+		IncludeDeleted: includeDeleted,
+		Total:          total,
+		Limit:          normalizedLimit,
+		Offset:         normalizedOffset,
+		Files:          toFileDTOs(files),
+	})
+}
+
 // handleUploadFile godoc
 // @Summary Upload file
 // @Description Stream multipart file upload to vault-core and persist metadata
@@ -26,6 +91,7 @@ import (
 // @Failure 400 {object} dto.ErrorResponse
 // @Failure 401 {object} dto.ErrorResponse
 // @Failure 404 {object} dto.ErrorResponse
+// @Failure 409 {object} dto.ErrorResponse
 // @Failure 413 {object} dto.ErrorResponse
 // @Failure 500 {object} dto.ErrorResponse
 // @Failure 502 {object} dto.ErrorResponse

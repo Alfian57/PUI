@@ -25,11 +25,13 @@ Base path: `/api/v1`
 
 - `POST /auth/logout`
 - `GET /auth/me`
+- `GET /activity-logs`
 - `POST /directories`
 - `GET /directories/tree`
 - `GET /directories/:id/files`
 - `GET /directories/:id/breadcrumb`
 - `POST /files`
+- `GET /files/search`
 - `GET /files/:id/download`
 - `GET /files/:id`
 - `DELETE /files/:id`

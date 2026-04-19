@@ -30,6 +30,17 @@ type FileListResponse struct {
 	Files       []FileDTO `json:"files"`
 }
 
+type FileSearchResponse struct {
+	Status         string    `json:"status"`
+	Query          string    `json:"query"`
+	DirectoryID    string    `json:"directory_id,omitempty"`
+	IncludeDeleted bool      `json:"include_deleted"`
+	Total          int64     `json:"total"`
+	Limit          int       `json:"limit"`
+	Offset         int       `json:"offset"`
+	Files          []FileDTO `json:"files"`
+}
+
 type FileDetailResponse struct {
 	Status string  `json:"status"`
 	File   FileDTO `json:"file"`

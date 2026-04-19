@@ -31,6 +31,7 @@ func NewRouter(cfg config.Config, api *API, authService *service.AuthService) *g
 		{
 			authorized.POST("/auth/logout", api.handleLogout)
 			authorized.GET("/auth/me", api.handleMe)
+			authorized.GET("/activity-logs", api.handleActivityLogs)
 
 			authorized.POST("/directories", api.handleCreateDirectory)
 			authorized.GET("/directories/tree", api.handleDirectoryTree)
@@ -38,6 +39,7 @@ func NewRouter(cfg config.Config, api *API, authService *service.AuthService) *g
 			authorized.GET("/directories/:id/breadcrumb", api.handleDirectoryBreadcrumb)
 
 			authorized.POST("/files", api.handleUploadFile)
+			authorized.GET("/files/search", api.handleSearchFiles)
 			authorized.GET("/files/:id/download", api.handleDownloadFile)
 			authorized.GET("/files/:id", api.handleFileDetail)
 			authorized.DELETE("/files/:id", api.handleSoftDeleteFile)

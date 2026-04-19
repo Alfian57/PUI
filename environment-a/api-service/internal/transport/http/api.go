@@ -16,6 +16,7 @@ import (
 type API struct {
 	cfg              config.Config
 	authService      *service.AuthService
+	activityService  *service.ActivityService
 	directoryService *service.DirectoryService
 	fileService      *service.FileService
 	systemService    *service.SystemService
@@ -25,6 +26,7 @@ type API struct {
 func NewAPI(
 	cfg config.Config,
 	authService *service.AuthService,
+	activityService *service.ActivityService,
 	directoryService *service.DirectoryService,
 	fileService *service.FileService,
 	systemService *service.SystemService,
@@ -32,6 +34,7 @@ func NewAPI(
 	return &API{
 		cfg:              cfg,
 		authService:      authService,
+		activityService:  activityService,
 		directoryService: directoryService,
 		fileService:      fileService,
 		systemService:    systemService,

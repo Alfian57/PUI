@@ -12,3 +12,11 @@ type FileRecord struct {
 	CreatedAt   time.Time  `json:"created_at"`
 	DeletedAt   *time.Time `json:"deleted_at,omitempty"`
 }
+
+type FileSearchFilter struct {
+	DirectoryID    string
+	Query          string
+	IncludeDeleted bool
+	Limit          int
+	Offset         int
+}

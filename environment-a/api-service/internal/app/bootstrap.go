@@ -41,11 +41,12 @@ func Build(ctx context.Context, cfg config.Config) (*App, error) {
 	activityRepo := repository.NewActivityRepository(gormDB)
 
 	authService := service.NewAuthService(authRepo, activityRepo, cfg.SessionTTLMinutes)
+	activityService := service.NewActivityService(activityRepo)
 	directoryService := service.NewDirectoryService(directoryRepo, activityRepo)
 	fileService := service.NewFileService(fileRepo, directoryRepo, activityRepo, vault)
 	systemService := service.NewSystemService(sqlDB, vault, cfg.AppEnv)
 
-	api := httptransport.NewAPI(cfg, authService, directoryService, fileService, systemService)
+	api := httptransport.NewAPI(cfg, authService, activityService, directoryService, fileService, systemService)
 	router := httptransport.NewRouter(cfg, api, authService)
 
 	return &App{

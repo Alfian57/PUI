@@ -1,5 +1,35 @@
 basePath: /api/v1
 definitions:
+  dto.ActivityLogDTO:
+    properties:
+      action:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      resource_id:
+        type: string
+      resource_type:
+        type: string
+      user_id:
+        type: string
+    type: object
+  dto.ActivityLogListResponse:
+    properties:
+      activity_logs:
+        items:
+          $ref: '#/definitions/dto.ActivityLogDTO'
+        type: array
+      limit:
+        type: integer
+      offset:
+        type: integer
+      status:
+        type: string
+      total:
+        type: integer
+    type: object
   dto.BreadcrumbResponse:
     properties:
       breadcrumb:
@@ -98,6 +128,27 @@ definitions:
       status:
         type: string
     type: object
+  dto.FileSearchResponse:
+    properties:
+      directory_id:
+        type: string
+      files:
+        items:
+          $ref: '#/definitions/dto.FileDTO'
+        type: array
+      include_deleted:
+        type: boolean
+      limit:
+        type: integer
+      offset:
+        type: integer
+      query:
+        type: string
+      status:
+        type: string
+      total:
+        type: integer
+    type: object
   dto.LoginRequest:
     properties:
       email:
@@ -185,6 +236,50 @@ info:
   title: PUI API Service
   version: "1.0"
 paths:
+  /activity-logs:
+    get:
+      description: List activity logs for current user with optional filters and pagination
+      parameters:
+      - description: Filter by action
+        in: query
+        name: action
+        type: string
+      - description: Filter by resource type
+        in: query
+        name: resource_type
+        type: string
+      - description: Page size (1-200, default 20)
+        in: query
+        name: limit
+        type: integer
+      - description: Offset (default 0)
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ActivityLogListResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Activity logs
+      tags:
+      - activity
   /auth/login:
     post:
       consumes:
@@ -446,6 +541,10 @@ paths:
           description: Not Found
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
         "413":
           description: Request Entity Too Large
           schema:
@@ -575,6 +674,60 @@ paths:
       security:
       - BearerAuth: []
       summary: Download file
+      tags:
+      - files
+  /files/search:
+    get:
+      description: Search file metadata by query in user namespace with optional filters
+        and pagination
+      parameters:
+      - description: Search keyword (min 2 chars)
+        in: query
+        name: q
+        required: true
+        type: string
+      - description: Directory UUID
+        in: query
+        name: directory_id
+        type: string
+      - description: Include soft-deleted files
+        in: query
+        name: include_deleted
+        type: boolean
+      - description: Page size (1-200, default 20)
+        in: query
+        name: limit
+        type: integer
+      - description: Offset (default 0)
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.FileSearchResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Search files
       tags:
       - files
   /health:
