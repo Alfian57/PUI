@@ -42,7 +42,7 @@ func (r *AuthRepository) FindUserByCredentials(ctx context.Context, email, passw
 func (r *AuthRepository) CreateSession(ctx context.Context, userID, tokenHash string, expiresAt time.Time) (string, error) {
 	var sessionID string
 	err := r.db.WithContext(ctx).Raw(
-		`INSERT INTO access_sessions (user_id, refresh_token_hash, expires_at)
+		`INSERT INTO access_sessions (user_id, access_token_hash, expires_at)
 		 VALUES (?, ?, ?)
 		 RETURNING id::text`,
 		userID,
@@ -66,7 +66,7 @@ func (r *AuthRepository) FindSessionUserByTokenHash(ctx context.Context, tokenHa
 		`SELECT s.id::text AS session_id, u.id::text AS user_id, u.full_name, u.email
 		 FROM access_sessions s
 		 JOIN users u ON u.id = s.user_id
-		 WHERE s.refresh_token_hash = ?
+		 WHERE s.access_token_hash = ?
 		   AND s.revoked_at IS NULL
 		   AND s.expires_at > NOW()`,
 		tokenHash,

@@ -11,7 +11,7 @@ import (
 
 // handleLogin godoc
 // @Summary Login
-// @Description Create access session token from email and password
+// @Description Create bearer access token for the active session from email and password
 // @Tags auth
 // @Accept json
 // @Produce json

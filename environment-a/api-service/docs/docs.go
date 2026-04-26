@@ -86,7 +86,7 @@ const docTemplate = `{
         },
         "/auth/login": {
             "post": {
-                "description": "Create access session token from email and password",
+                "description": "Create bearer access token for the active session from email and password",
                 "consumes": [
                     "application/json"
                 ],

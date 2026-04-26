@@ -21,7 +21,7 @@ Base path: `/api/v1`
 - `GET /swagger/*any`
 - `POST /auth/login`
 
-### Butuh Auth Bearer Token
+### Butuh `Authorization: Bearer <access_token>`
 
 - `POST /auth/logout`
 - `GET /auth/me`
@@ -50,7 +50,7 @@ Contoh env: [.env.example](.env.example)
 | MIGRATIONS_PATH | db/migrations | lokasi file migration |
 | MAX_UPLOAD_SIZE_BYTES | 536870912 | batas upload |
 | RATE_LIMIT_PER_MINUTE | 120 | rate limit request |
-| SESSION_TTL_MINUTES | 1440 | masa aktif token/session |
+| SESSION_TTL_MINUTES | 1440 | masa aktif bearer access token untuk sesi login |
 
 ## Menjalankan Service
 
