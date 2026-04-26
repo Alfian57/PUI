@@ -38,9 +38,9 @@ Contoh env: [.env.example](.env.example)
 | Variable | Default/Contoh | Keterangan |
 |---|---|---|
 | APP_ENV | environment-b | nama environment |
-| UDS_PATH | /var/run/pui/uds/vault-core.sock | path unix socket |
-| BADGER_PATH | /var/lib/pui/badger | lokasi data badger |
-| CHUNK_ROOT | /var/lib/pui/chunks | root penyimpanan chunk |
+| UDS_PATH | ../../shared/uds/vault-core.sock | path unix socket lokal |
+| BADGER_PATH | ../../data/vault/badger | lokasi data badger lokal |
+| CHUNK_ROOT | ../../data/vault/chunks | root penyimpanan chunk lokal |
 | FASTCDC_MIN_CHUNK_SIZE | 65536 | ukuran minimum chunk |
 | FASTCDC_AVG_CHUNK_SIZE | 262144 | ukuran target rata-rata chunk |
 | FASTCDC_MAX_CHUNK_SIZE | 1048576 | ukuran maksimum chunk |
@@ -62,6 +62,12 @@ make compose-up
 
 ```bash
 cd environment-b/vault-core
+make run
+```
+
+Atau manual tanpa Makefile:
+
+```bash
 go run ./cmd/vault-core
 ```
 
@@ -71,19 +77,43 @@ Atau dari root:
 make run-vault
 ```
 
+## Workflow Make Lokal
+
+Dari folder `environment-b/vault-core`:
+
+```bash
+make help
+make doctor
+make run
+make build
+make ci
+```
+
+Catatan:
+- Makefile lokal membaca secret/config dari `environment-b/vault-core/.env`.
+- runtime `vault-core` lokal juga akan load `.env` service secara otomatis.
+- root `.env` dipakai untuk docker-compose, bukan untuk `make` lokal service ini.
+- gunakan `.env.example` sebagai template local-safe path yang writable oleh user.
+
 ## Quality Check
+
+Dari folder service:
+
+```bash
+make ci
+```
+
+Atau manual:
+
+```bash
+go vet ./...
+go test ./...
+```
 
 Dari root project:
 
 ```bash
 make ci-go
-```
-
-Atau manual dari folder service:
-
-```bash
-go vet ./...
-go test ./...
 ```
 
 ## Operasional Data

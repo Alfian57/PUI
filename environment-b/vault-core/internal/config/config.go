@@ -5,6 +5,8 @@ import (
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/joho/godotenv"
 )
 
 type Config struct {
@@ -21,6 +23,8 @@ type Config struct {
 }
 
 func Load() (Config, error) {
+	_ = godotenv.Load()
+
 	minChunkSize, err := intFromEnv("FASTCDC_MIN_CHUNK_SIZE", 65536)
 	if err != nil {
 		return Config{}, err
