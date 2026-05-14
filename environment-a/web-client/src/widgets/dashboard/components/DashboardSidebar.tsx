@@ -35,7 +35,7 @@ export function DashboardSidebar({
                             </div>
                             <div>
                                 <p className="font-display text-xl font-semibold text-brand-ink">HashBox</p>
-                                <p className="text-xs text-brand-steel">{role === "admin" ? "Analitik aplikasi" : "File pribadi"}</p>
+                                <p className="text-xs text-brand-steel">{role === "admin" ? "Analitik aplikasi" : "Berkas pribadi"}</p>
                             </div>
                         </div>
                         {onClose ? (
@@ -71,7 +71,7 @@ export function DashboardSidebar({
                     ) : (
                         <>
                             <SidebarLink to="/app/files" icon={<HardDrive className="h-4 w-4" aria-hidden="true" />} onClick={onClose}>
-                                File Saya
+                                Berkas Saya
                             </SidebarLink>
                             <SidebarLink to="/app/starred" icon={<Star className="h-4 w-4" aria-hidden="true" />} onClick={onClose}>
                                 Berbintang

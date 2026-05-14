@@ -8,12 +8,12 @@ import (
 )
 
 // handleAdminAnalytics godoc
-// @Summary Admin analytics
-// @Description Return aggregate, privacy-safe application analytics for admin users
+// @Summary Analitik admin
+// @Description Menampilkan analitik aplikasi agregat dan aman privasi untuk admin
 // @Tags admin
 // @Security BearerAuth
 // @Produce json
-// @Param range query string false "Analytics range: 7d, 30d, or 90d"
+// @Param range query string false "Rentang analitik: 7d, 30d, atau 90d"
 // @Success 200 {object} dto.AdminAnalyticsResponse
 // @Failure 400 {object} dto.ErrorResponse
 // @Failure 401 {object} dto.ErrorResponse

@@ -11,14 +11,14 @@ import (
 )
 
 // handleActivityLogs godoc
-// @Summary Activity logs
-// @Description List activity logs for current user with optional filters and pagination
-// @Tags activity
+// @Summary Riwayat aktivitas
+// @Description Menampilkan riwayat aktivitas pengguna saat ini dengan filter dan pagination opsional
+// @Tags aktivitas
 // @Security BearerAuth
 // @Produce json
-// @Param action query string false "Filter by action"
-// @Param resource_type query string false "Filter by resource type"
-// @Param limit query int false "Page size (1-200, default 20)"
+// @Param action query string false "Filter berdasarkan aksi"
+// @Param resource_type query string false "Filter berdasarkan tipe resource"
+// @Param limit query int false "Ukuran halaman (1-200, default 20)"
 // @Param offset query int false "Offset (default 0)"
 // @Success 200 {object} dto.ActivityLogListResponse
 // @Failure 400 {object} dto.ErrorResponse

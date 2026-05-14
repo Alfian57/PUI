@@ -35,7 +35,7 @@ export function StarredPage(): JSX.Element {
                 <div>
                     <h1 className="font-display text-3xl font-semibold text-brand-ink">Berbintang</h1>
                     <p className="mt-1 text-sm text-brand-steel">
-                        Akses cepat untuk folder dan file yang sering Anda buka.
+                        Akses cepat untuk direktori dan berkas yang sering Anda buka.
                     </p>
                 </div>
                 <p className="rounded-2xl bg-white px-4 py-2 text-sm font-semibold text-brand-steel shadow-soft">
@@ -48,7 +48,7 @@ export function StarredPage(): JSX.Element {
                     <EmptyState
                         icon={<Star className="h-7 w-7" aria-hidden="true" />}
                         title="Belum ada item berbintang"
-                        description="Beri bintang pada folder atau file penting agar muncul di halaman ini."
+                        description="Beri bintang pada direktori atau berkas penting agar muncul di halaman ini."
                     />
                 ) : (
                     <WorkspaceItemsView

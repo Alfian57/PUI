@@ -18,14 +18,14 @@ export function Breadcrumb({ directoryID, onNavigate }: BreadcrumbProps): JSX.El
     const pathItems = items ?? [];
 
     return (
-        <nav className="flex min-w-0 items-center gap-1 overflow-x-auto text-sm text-brand-steel" aria-label="Lokasi folder">
+        <nav className="flex min-w-0 items-center gap-1 overflow-x-auto text-sm text-brand-steel" aria-label="Lokasi direktori">
             <button
                 type="button"
                 onClick={() => onNavigate(null)}
                 className="inline-flex shrink-0 items-center gap-2 rounded-2xl border border-brand-steel/15 bg-white px-3 py-2 font-semibold text-brand-ink shadow-soft transition hover:border-brand-amber/45 hover:bg-brand-sky focus:outline-none focus:ring-2 focus:ring-brand-amber/40"
             >
                 <Home className="h-4 w-4" aria-hidden="true" />
-                File Saya
+                Berkas Saya
             </button>
             {pathItems.map((item) => (
                 <span key={item.id} className="flex shrink-0 items-center gap-1 whitespace-nowrap">

@@ -14,6 +14,7 @@ type Config struct {
 	AllowedOrigin      string
 	DatabaseURL        string
 	VaultUDSPath       string
+	VaultChunkRoot     string
 	MigrationsPath     string
 	MaxUploadSizeBytes int64
 	RateLimitPerMinute int
@@ -28,6 +29,7 @@ func Load() (Config, error) {
 	viper.SetDefault("HTTP_ADDR", ":8080")
 	viper.SetDefault("ALLOWED_ORIGIN", "http://localhost:5173")
 	viper.SetDefault("VAULT_UDS_PATH", "/var/run/pui/uds/vault-core.sock")
+	viper.SetDefault("VAULT_CHUNK_ROOT", "/var/lib/pui/chunks")
 	viper.SetDefault("MAX_UPLOAD_SIZE_BYTES", int64(536870912))
 	viper.SetDefault("RATE_LIMIT_PER_MINUTE", 120)
 	viper.SetDefault("SESSION_TTL_MINUTES", 1440)
@@ -41,6 +43,7 @@ func Load() (Config, error) {
 		AllowedOrigin:      viper.GetString("ALLOWED_ORIGIN"),
 		DatabaseURL:        viper.GetString("DATABASE_URL"),
 		VaultUDSPath:       viper.GetString("VAULT_UDS_PATH"),
+		VaultChunkRoot:     filepath.Clean(viper.GetString("VAULT_CHUNK_ROOT")),
 		MigrationsPath:     migrationsPath,
 		MaxUploadSizeBytes: viper.GetInt64("MAX_UPLOAD_SIZE_BYTES"),
 		RateLimitPerMinute: viper.GetInt("RATE_LIMIT_PER_MINUTE"),

@@ -9,13 +9,13 @@ import (
 )
 
 // handleCreateDirectory godoc
-// @Summary Create directory
-// @Description Create root or nested directory in user namespace
-// @Tags directories
+// @Summary Buat direktori
+// @Description Membuat direktori root atau direktori bertingkat di ruang pengguna
+// @Tags direktori
 // @Security BearerAuth
 // @Accept json
 // @Produce json
-// @Param payload body dto.CreateDirectoryRequest true "Create directory payload"
+// @Param payload body dto.CreateDirectoryRequest true "Payload pembuatan direktori"
 // @Success 201 {object} dto.DirectoryResponse
 // @Failure 400 {object} dto.ErrorResponse
 // @Failure 401 {object} dto.ErrorResponse
@@ -47,12 +47,12 @@ func (a *API) handleCreateDirectory(c *gin.Context) {
 }
 
 // handleDirectoryTree godoc
-// @Summary Directory tree
-// @Description List root directories or subtree with root_id query
-// @Tags directories
+// @Summary Pohon direktori
+// @Description Menampilkan direktori root atau subtree berdasarkan root_id
+// @Tags direktori
 // @Security BearerAuth
 // @Produce json
-// @Param root_id query string false "Root directory UUID"
+// @Param root_id query string false "UUID direktori root"
 // @Success 200 {object} dto.DirectoryTreeResponse
 // @Failure 400 {object} dto.ErrorResponse
 // @Failure 401 {object} dto.ErrorResponse
@@ -79,13 +79,13 @@ func (a *API) handleDirectoryTree(c *gin.Context) {
 }
 
 // handleDirectoryFiles godoc
-// @Summary Directory files
-// @Description List files by directory with optional include_deleted=true
-// @Tags directories
+// @Summary Berkas direktori
+// @Description Menampilkan berkas pada direktori dengan opsi include_deleted=true
+// @Tags direktori
 // @Security BearerAuth
 // @Produce json
-// @Param id path string true "Directory UUID"
-// @Param include_deleted query bool false "Include soft-deleted files"
+// @Param id path string true "UUID direktori"
+// @Param include_deleted query bool false "Sertakan berkas yang sudah soft delete"
 // @Success 200 {object} dto.FileListResponse
 // @Failure 400 {object} dto.ErrorResponse
 // @Failure 401 {object} dto.ErrorResponse
@@ -113,12 +113,12 @@ func (a *API) handleDirectoryFiles(c *gin.Context) {
 }
 
 // handleDirectoryBreadcrumb godoc
-// @Summary Directory breadcrumb
-// @Description Resolve breadcrumb path for given directory
-// @Tags directories
+// @Summary Breadcrumb direktori
+// @Description Menyusun path breadcrumb untuk direktori tertentu
+// @Tags direktori
 // @Security BearerAuth
 // @Produce json
-// @Param id path string true "Directory UUID"
+// @Param id path string true "UUID direktori"
 // @Success 200 {object} dto.BreadcrumbResponse
 // @Failure 400 {object} dto.ErrorResponse
 // @Failure 401 {object} dto.ErrorResponse
@@ -146,12 +146,12 @@ func (a *API) handleDirectoryBreadcrumb(c *gin.Context) {
 }
 
 // handleSoftDeleteDirectory godoc
-// @Summary Move directory to trash
-// @Description Soft-delete a directory subtree and move it to trash
-// @Tags directories
+// @Summary Pindahkan direktori ke Sampah
+// @Description Melakukan soft delete pada subtree direktori dan memindahkannya ke Sampah
+// @Tags direktori
 // @Security BearerAuth
 // @Produce json
-// @Param id path string true "Directory UUID"
+// @Param id path string true "UUID direktori"
 // @Success 200 {object} dto.DirectoryMutationResponse
 // @Failure 400 {object} dto.ErrorResponse
 // @Failure 401 {object} dto.ErrorResponse
@@ -175,12 +175,12 @@ func (a *API) handleSoftDeleteDirectory(c *gin.Context) {
 }
 
 // handleRestoreDirectory godoc
-// @Summary Restore directory from trash
-// @Description Restore a previously deleted directory subtree
-// @Tags directories
+// @Summary Pulihkan direktori dari Sampah
+// @Description Memulihkan subtree direktori yang sebelumnya dihapus secara logis
+// @Tags direktori
 // @Security BearerAuth
 // @Produce json
-// @Param id path string true "Directory UUID"
+// @Param id path string true "UUID direktori"
 // @Success 200 {object} dto.DirectoryMutationResponse
 // @Failure 400 {object} dto.ErrorResponse
 // @Failure 401 {object} dto.ErrorResponse
@@ -204,12 +204,12 @@ func (a *API) handleRestoreDirectory(c *gin.Context) {
 }
 
 // handlePermanentDeleteDirectory godoc
-// @Summary Permanently delete directory
-// @Description Permanently remove a directory subtree from trash metadata
-// @Tags directories
+// @Summary Hapus permanen metadata direktori
+// @Description Menghapus permanen metadata subtree direktori dari Sampah
+// @Tags direktori
 // @Security BearerAuth
 // @Produce json
-// @Param id path string true "Directory UUID"
+// @Param id path string true "UUID direktori"
 // @Success 200 {object} dto.OKResponse
 // @Failure 400 {object} dto.ErrorResponse
 // @Failure 401 {object} dto.ErrorResponse
@@ -232,12 +232,12 @@ func (a *API) handlePermanentDeleteDirectory(c *gin.Context) {
 }
 
 // handleStarDirectory godoc
-// @Summary Star directory
-// @Description Mark a directory as starred
-// @Tags directories
+// @Summary Tandai bintang direktori
+// @Description Menandai direktori sebagai berbintang
+// @Tags direktori
 // @Security BearerAuth
 // @Produce json
-// @Param id path string true "Directory UUID"
+// @Param id path string true "UUID direktori"
 // @Success 200 {object} dto.DirectoryMutationResponse
 // @Failure 400 {object} dto.ErrorResponse
 // @Failure 401 {object} dto.ErrorResponse
@@ -249,12 +249,12 @@ func (a *API) handleStarDirectory(c *gin.Context) {
 }
 
 // handleUnstarDirectory godoc
-// @Summary Unstar directory
-// @Description Remove starred marker from a directory
-// @Tags directories
+// @Summary Hapus bintang direktori
+// @Description Menghapus penanda bintang dari direktori
+// @Tags direktori
 // @Security BearerAuth
 // @Produce json
-// @Param id path string true "Directory UUID"
+// @Param id path string true "UUID direktori"
 // @Success 200 {object} dto.DirectoryMutationResponse
 // @Failure 400 {object} dto.ErrorResponse
 // @Failure 401 {object} dto.ErrorResponse
@@ -282,8 +282,8 @@ func (a *API) handleSetStarredDirectory(c *gin.Context, starred bool) {
 }
 
 // handleTrash godoc
-// @Summary Trash
-// @Description List user's deleted files and directory trash roots
+// @Summary Sampah
+// @Description Menampilkan berkas dan root direktori yang dihapus secara logis oleh pengguna
 // @Tags workspace
 // @Security BearerAuth
 // @Produce json
@@ -316,8 +316,8 @@ func (a *API) handleTrash(c *gin.Context) {
 }
 
 // handleStarred godoc
-// @Summary Starred items
-// @Description List user's starred files and directories
+// @Summary Item berbintang
+// @Description Menampilkan berkas dan direktori berbintang milik pengguna
 // @Tags workspace
 // @Security BearerAuth
 // @Produce json

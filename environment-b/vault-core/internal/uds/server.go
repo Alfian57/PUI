@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"log"
 	"net"
 	"net/http"
@@ -57,7 +56,6 @@ func NewHandler(cfg config.Config, db *badger.DB) http.Handler {
 	mux.HandleFunc("/internal/v1/uploads", h.handleUpload)
 	mux.HandleFunc("/internal/v1/manifests/", h.handleManifest)
 	mux.HandleFunc("/internal/v1/chunks/", h.handleChunkStatus)
-	mux.HandleFunc("/internal/v1/objects/", h.handleObject)
 
 	return h.withPeerCredentialAuth(mux)
 }
@@ -246,62 +244,8 @@ func (h handler) handleChunkStatus(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h handler) handleObject(w http.ResponseWriter, r *http.Request) {
-	tail := strings.TrimPrefix(r.URL.Path, "/internal/v1/objects/")
-	tail = strings.Trim(tail, "/")
-	parts := strings.Split(tail, "/")
-	if len(parts) != 2 {
-		http.NotFound(w, r)
-		return
-	}
-
-	manifestID := strings.TrimSpace(parts[0])
-	action := strings.TrimSpace(parts[1])
-
-	if action != "download" {
-		http.NotFound(w, r)
-		return
-	}
-
-	if r.Method != http.MethodGet {
-		if isDestructiveMethod(r.Method) {
-			writeForbiddenOperation(w, r.Method, r.URL.Path)
-			return
-		}
-
-		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
-	h.handleObjectDownload(w, r, manifestID)
-}
-
-func (h handler) handleObjectDownload(w http.ResponseWriter, r *http.Request, manifestID string) {
-	tempFile, manifest, err := h.store.OpenObjectForDownload(r.Context(), manifestID)
-	if err != nil {
-		writeJSON(w, statusCodeFromError(err), map[string]any{
-			"status":      "error",
-			"manifest_id": manifestID,
-			"error":       err.Error(),
-		})
-		return
-	}
-	defer func() {
-		_ = os.Remove(tempFile.Name())
-		_ = tempFile.Close()
-	}()
-
-	w.Header().Set("Content-Type", "application/octet-stream")
-	w.Header().Set("Content-Length", fmt.Sprintf("%d", manifest.TotalSizeBytes))
-	w.Header().Set("X-PUI-Manifest-ID", manifest.ManifestID)
-
-	if _, err := io.Copy(w, tempFile); err != nil {
-		return
-	}
-}
-
 func statusCodeFromError(err error) int {
-	if errors.Is(err, cas.ErrInvalidHash) {
+	if errors.Is(err, cas.ErrInvalidHash) || errors.Is(err, cas.ErrInvalidUpload) {
 		return http.StatusBadRequest
 	}
 

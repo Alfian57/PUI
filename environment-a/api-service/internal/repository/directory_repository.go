@@ -29,9 +29,9 @@ func (r *DirectoryRepository) Create(ctx context.Context, userID, name, parentID
 		}
 
 		err = tx.Raw(
-			`INSERT INTO directories (user_id, name)
+			`INSERT INTO directories (id_pengguna, nama)
 			 VALUES (?, ?)
-			 RETURNING id::text, name, created_at, deleted_at, starred_at`,
+			 RETURNING id_direktori::text AS id, nama AS name, dibuat_pada AS created_at, dihapus_pada AS deleted_at, dibintang_pada AS starred_at`,
 			userID,
 			name,
 		).Scan(&out).Error
@@ -41,7 +41,7 @@ func (r *DirectoryRepository) Create(ctx context.Context, userID, name, parentID
 
 		if parentID == "" {
 			err = tx.Exec(
-				`INSERT INTO directory_closure (ancestor_id, descendant_id, depth) VALUES (?::uuid, ?::uuid, 0)`,
+				`INSERT INTO directory_closure (id_induk, id_turunan, kedalaman) VALUES (?::uuid, ?::uuid, 0)`,
 				out.ID,
 				out.ID,
 			).Error
@@ -54,10 +54,10 @@ func (r *DirectoryRepository) Create(ctx context.Context, userID, name, parentID
 		}
 
 		err = tx.Exec(
-			`INSERT INTO directory_closure (ancestor_id, descendant_id, depth)
-			 SELECT ancestor_id, ?::uuid, depth + 1
+			`INSERT INTO directory_closure (id_induk, id_turunan, kedalaman)
+			 SELECT id_induk, ?::uuid, kedalaman + 1
 			 FROM directory_closure
-			 WHERE descendant_id = ?::uuid
+			 WHERE id_turunan = ?::uuid
 			 UNION ALL
 			 SELECT ?::uuid, ?::uuid, 0`,
 			out.ID,
@@ -89,12 +89,12 @@ func (r *DirectoryRepository) checkDuplicate(ctx context.Context, tx *gorm.DB, u
 			`SELECT EXISTS (
 				SELECT 1
 				FROM directories d
-				WHERE d.user_id = ?
-				  AND d.deleted_at IS NULL
-				  AND lower(d.name) = lower(?)
+				WHERE d.id_pengguna = ?
+				  AND d.dihapus_pada IS NULL
+				  AND lower(d.nama) = lower(?)
 				  AND NOT EXISTS (
 					SELECT 1 FROM directory_closure dc
-					WHERE dc.descendant_id = d.id AND dc.depth = 1
+					WHERE dc.id_turunan = d.id_direktori AND dc.kedalaman = 1
 				  )
 			)`,
 			userID,
@@ -109,7 +109,7 @@ func (r *DirectoryRepository) checkDuplicate(ctx context.Context, tx *gorm.DB, u
 
 	var parentOwned bool
 	err := tx.WithContext(ctx).Raw(
-		`SELECT EXISTS (SELECT 1 FROM directories WHERE id = ? AND user_id = ? AND deleted_at IS NULL)`,
+		`SELECT EXISTS (SELECT 1 FROM directories WHERE id_direktori = ? AND id_pengguna = ? AND dihapus_pada IS NULL)`,
 		parentID,
 		userID,
 	).Scan(&parentOwned).Error
@@ -124,12 +124,12 @@ func (r *DirectoryRepository) checkDuplicate(ctx context.Context, tx *gorm.DB, u
 		`SELECT EXISTS (
 			SELECT 1
 			FROM directory_closure dc
-			JOIN directories d ON d.id = dc.descendant_id
-			WHERE dc.ancestor_id = ?
-			  AND dc.depth = 1
-			  AND d.user_id = ?
-			  AND d.deleted_at IS NULL
-			  AND lower(d.name) = lower(?)
+			JOIN directories d ON d.id_direktori = dc.id_turunan
+			WHERE dc.id_induk = ?
+			  AND dc.kedalaman = 1
+			  AND d.id_pengguna = ?
+			  AND d.dihapus_pada IS NULL
+			  AND lower(d.nama) = lower(?)
 		)`,
 		parentID,
 		userID,
@@ -146,15 +146,15 @@ func (r *DirectoryRepository) Tree(ctx context.Context, userID, rootID string) (
 	directories := make([]domain.DirectoryRecord, 0, 64)
 	if strings.TrimSpace(rootID) == "" {
 		err := r.db.WithContext(ctx).Raw(
-			`SELECT d.id::text, d.name, 0 AS depth, NULL::text AS parent_id, d.created_at, d.deleted_at, d.starred_at
+			`SELECT d.id_direktori::text AS id, d.nama AS name, 0 AS depth, NULL::text AS parent_id, d.dibuat_pada AS created_at, d.dihapus_pada AS deleted_at, d.dibintang_pada AS starred_at
 			 FROM directories d
-			 WHERE d.user_id = ?
-			   AND d.deleted_at IS NULL
+			 WHERE d.id_pengguna = ?
+			   AND d.dihapus_pada IS NULL
 			   AND NOT EXISTS (
 				SELECT 1 FROM directory_closure dc
-				WHERE dc.descendant_id = d.id AND dc.depth = 1
+				WHERE dc.id_turunan = d.id_direktori AND dc.kedalaman = 1
 			   )
-			 ORDER BY d.name`,
+			 ORDER BY d.nama`,
 			userID,
 		).Scan(&directories).Error
 		if err != nil {
@@ -165,19 +165,19 @@ func (r *DirectoryRepository) Tree(ctx context.Context, userID, rootID string) (
 	}
 
 	err := r.db.WithContext(ctx).Raw(
-		`SELECT d.id::text, d.name, dc.depth, parent.ancestor_id::text AS parent_id, d.created_at, d.deleted_at, d.starred_at
+		`SELECT d.id_direktori::text AS id, d.nama AS name, dc.kedalaman AS depth, parent.id_induk::text AS parent_id, d.dibuat_pada AS created_at, d.dihapus_pada AS deleted_at, d.dibintang_pada AS starred_at
 		 FROM directory_closure dc
-		 JOIN directories d ON d.id = dc.descendant_id
+		 JOIN directories d ON d.id_direktori = dc.id_turunan
 		 LEFT JOIN LATERAL (
-			SELECT dc2.ancestor_id
+			SELECT dc2.id_induk
 			FROM directory_closure dc2
-			WHERE dc2.descendant_id = d.id AND dc2.depth = 1
+			WHERE dc2.id_turunan = d.id_direktori AND dc2.kedalaman = 1
 			LIMIT 1
 		 ) parent ON true
-		 WHERE dc.ancestor_id = ?::uuid
-		   AND d.user_id = ?
-		   AND d.deleted_at IS NULL
-		 ORDER BY dc.depth, d.name`,
+		 WHERE dc.id_induk = ?::uuid
+		   AND d.id_pengguna = ?
+		   AND d.dihapus_pada IS NULL
+		 ORDER BY dc.kedalaman, d.nama`,
 		rootID,
 		userID,
 	).Scan(&directories).Error
@@ -191,12 +191,12 @@ func (r *DirectoryRepository) Tree(ctx context.Context, userID, rootID string) (
 func (r *DirectoryRepository) Breadcrumb(ctx context.Context, userID, directoryID string) ([]domain.DirectoryRecord, error) {
 	items := make([]domain.DirectoryRecord, 0, 16)
 	err := r.db.WithContext(ctx).Raw(
-		`SELECT d.id::text, d.name, dc.depth, NULL::text AS parent_id, d.created_at, d.deleted_at, d.starred_at
+		`SELECT d.id_direktori::text AS id, d.nama AS name, dc.kedalaman AS depth, NULL::text AS parent_id, d.dibuat_pada AS created_at, d.dihapus_pada AS deleted_at, d.dibintang_pada AS starred_at
 		 FROM directory_closure dc
-		 JOIN directories d ON d.id = dc.ancestor_id
-		 JOIN directories target ON target.id = dc.descendant_id
-		 WHERE dc.descendant_id = ?::uuid AND target.user_id = ? AND target.deleted_at IS NULL AND d.deleted_at IS NULL
-		 ORDER BY dc.depth DESC`,
+		 JOIN directories d ON d.id_direktori = dc.id_induk
+		 JOIN directories target ON target.id_direktori = dc.id_turunan
+		 WHERE dc.id_turunan = ?::uuid AND target.id_pengguna = ? AND target.dihapus_pada IS NULL AND d.dihapus_pada IS NULL
+		 ORDER BY dc.kedalaman DESC`,
 		directoryID,
 		userID,
 	).Scan(&items).Error
@@ -214,7 +214,7 @@ func (r *DirectoryRepository) Breadcrumb(ctx context.Context, userID, directoryI
 func (r *DirectoryRepository) IsOwnedByUser(ctx context.Context, directoryID, userID string) (bool, error) {
 	var owned bool
 	err := r.db.WithContext(ctx).Raw(
-		`SELECT EXISTS (SELECT 1 FROM directories WHERE id = ?::uuid AND user_id = ?::uuid AND deleted_at IS NULL)`,
+		`SELECT EXISTS (SELECT 1 FROM directories WHERE id_direktori = ?::uuid AND id_pengguna = ?::uuid AND dihapus_pada IS NULL)`,
 		directoryID,
 		userID,
 	).Scan(&owned).Error
@@ -229,15 +229,15 @@ func (r *DirectoryRepository) SoftDeleteSubtree(ctx context.Context, directoryID
 	var out domain.DirectoryRecord
 	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		err := tx.Raw(
-			`SELECT d.id::text, d.name, 0 AS depth, parent.ancestor_id::text AS parent_id, d.created_at, d.deleted_at, d.starred_at
+			`SELECT d.id_direktori::text AS id, d.nama AS name, 0 AS depth, parent.id_induk::text AS parent_id, d.dibuat_pada AS created_at, d.dihapus_pada AS deleted_at, d.dibintang_pada AS starred_at
 			 FROM directories d
 			 LEFT JOIN LATERAL (
-				SELECT dc.ancestor_id
+				SELECT dc.id_induk
 				FROM directory_closure dc
-				WHERE dc.descendant_id = d.id AND dc.depth = 1
+				WHERE dc.id_turunan = d.id_direktori AND dc.kedalaman = 1
 				LIMIT 1
 			 ) parent ON true
-			 WHERE d.id = ?::uuid AND d.user_id = ?::uuid AND d.deleted_at IS NULL`,
+			 WHERE d.id_direktori = ?::uuid AND d.id_pengguna = ?::uuid AND d.dihapus_pada IS NULL`,
 			directoryID,
 			userID,
 		).Scan(&out).Error
@@ -250,9 +250,9 @@ func (r *DirectoryRepository) SoftDeleteSubtree(ctx context.Context, directoryID
 
 		err = tx.Exec(
 			`UPDATE files f
-			 SET deleted_at = COALESCE(f.deleted_at, NOW())
-			 WHERE f.directory_id IN (
-				SELECT descendant_id FROM directory_closure WHERE ancestor_id = ?::uuid
+			 SET dihapus_pada = COALESCE(f.dihapus_pada, NOW())
+			 WHERE f.id_direktori IN (
+				SELECT id_turunan FROM directory_closure WHERE id_induk = ?::uuid
 			 )`,
 			directoryID,
 		).Error
@@ -262,11 +262,11 @@ func (r *DirectoryRepository) SoftDeleteSubtree(ctx context.Context, directoryID
 
 		err = tx.Exec(
 			`UPDATE directories d
-			 SET deleted_at = COALESCE(d.deleted_at, NOW())
-			 WHERE d.id IN (
-				SELECT descendant_id FROM directory_closure WHERE ancestor_id = ?::uuid
+			 SET dihapus_pada = COALESCE(d.dihapus_pada, NOW())
+			 WHERE d.id_direktori IN (
+				SELECT id_turunan FROM directory_closure WHERE id_induk = ?::uuid
 			 )
-			 AND d.user_id = ?::uuid`,
+			 AND d.id_pengguna = ?::uuid`,
 			directoryID,
 			userID,
 		).Error
@@ -275,15 +275,15 @@ func (r *DirectoryRepository) SoftDeleteSubtree(ctx context.Context, directoryID
 		}
 
 		return tx.Raw(
-			`SELECT d.id::text, d.name, 0 AS depth, parent.ancestor_id::text AS parent_id, d.created_at, d.deleted_at, d.starred_at
+			`SELECT d.id_direktori::text AS id, d.nama AS name, 0 AS depth, parent.id_induk::text AS parent_id, d.dibuat_pada AS created_at, d.dihapus_pada AS deleted_at, d.dibintang_pada AS starred_at
 			 FROM directories d
 			 LEFT JOIN LATERAL (
-				SELECT dc.ancestor_id
+				SELECT dc.id_induk
 				FROM directory_closure dc
-				WHERE dc.descendant_id = d.id AND dc.depth = 1
+				WHERE dc.id_turunan = d.id_direktori AND dc.kedalaman = 1
 				LIMIT 1
 			 ) parent ON true
-			 WHERE d.id = ?::uuid AND d.user_id = ?::uuid`,
+			 WHERE d.id_direktori = ?::uuid AND d.id_pengguna = ?::uuid`,
 			directoryID,
 			userID,
 		).Scan(&out).Error
@@ -302,7 +302,7 @@ func (r *DirectoryRepository) RestoreSubtree(ctx context.Context, directoryID, u
 		if err := tx.Raw(
 			`SELECT EXISTS (
 				SELECT 1 FROM directories
-				WHERE id = ?::uuid AND user_id = ?::uuid AND deleted_at IS NOT NULL
+				WHERE id_direktori = ?::uuid AND id_pengguna = ?::uuid AND dihapus_pada IS NOT NULL
 			)`,
 			directoryID,
 			userID,
@@ -315,11 +315,11 @@ func (r *DirectoryRepository) RestoreSubtree(ctx context.Context, directoryID, u
 
 		err := tx.Exec(
 			`UPDATE directories d
-			 SET deleted_at = NULL
-			 WHERE d.id IN (
-				SELECT descendant_id FROM directory_closure WHERE ancestor_id = ?::uuid
+			 SET dihapus_pada = NULL
+			 WHERE d.id_direktori IN (
+				SELECT id_turunan FROM directory_closure WHERE id_induk = ?::uuid
 			 )
-			 AND d.user_id = ?::uuid`,
+			 AND d.id_pengguna = ?::uuid`,
 			directoryID,
 			userID,
 		).Error
@@ -329,14 +329,14 @@ func (r *DirectoryRepository) RestoreSubtree(ctx context.Context, directoryID, u
 
 		err = tx.Exec(
 			`UPDATE files f
-			 SET deleted_at = NULL
-			 WHERE f.directory_id IN (
-				SELECT descendant_id FROM directory_closure WHERE ancestor_id = ?::uuid
+			 SET dihapus_pada = NULL
+			 WHERE f.id_direktori IN (
+				SELECT id_turunan FROM directory_closure WHERE id_induk = ?::uuid
 			 )
 			 AND EXISTS (
 				SELECT 1
 				FROM directories d
-				WHERE d.id = f.directory_id AND d.user_id = ?::uuid
+				WHERE d.id_direktori = f.id_direktori AND d.id_pengguna = ?::uuid
 			 )`,
 			directoryID,
 			userID,
@@ -346,15 +346,15 @@ func (r *DirectoryRepository) RestoreSubtree(ctx context.Context, directoryID, u
 		}
 
 		return tx.Raw(
-			`SELECT d.id::text, d.name, 0 AS depth, parent.ancestor_id::text AS parent_id, d.created_at, d.deleted_at, d.starred_at
+			`SELECT d.id_direktori::text AS id, d.nama AS name, 0 AS depth, parent.id_induk::text AS parent_id, d.dibuat_pada AS created_at, d.dihapus_pada AS deleted_at, d.dibintang_pada AS starred_at
 			 FROM directories d
 			 LEFT JOIN LATERAL (
-				SELECT dc.ancestor_id
+				SELECT dc.id_induk
 				FROM directory_closure dc
-				WHERE dc.descendant_id = d.id AND dc.depth = 1
+				WHERE dc.id_turunan = d.id_direktori AND dc.kedalaman = 1
 				LIMIT 1
 			 ) parent ON true
-			 WHERE d.id = ?::uuid AND d.user_id = ?::uuid`,
+			 WHERE d.id_direktori = ?::uuid AND d.id_pengguna = ?::uuid`,
 			directoryID,
 			userID,
 		).Scan(&out).Error
@@ -372,7 +372,7 @@ func (r *DirectoryRepository) RestoreSubtree(ctx context.Context, directoryID, u
 func (r *DirectoryRepository) PermanentDeleteSubtree(ctx context.Context, directoryID, userID string) error {
 	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		var owned bool
-		err := tx.Raw(`SELECT EXISTS (SELECT 1 FROM directories WHERE id = ?::uuid AND user_id = ?::uuid AND deleted_at IS NOT NULL)`, directoryID, userID).Scan(&owned).Error
+		err := tx.Raw(`SELECT EXISTS (SELECT 1 FROM directories WHERE id_direktori = ?::uuid AND id_pengguna = ?::uuid AND dihapus_pada IS NOT NULL)`, directoryID, userID).Scan(&owned).Error
 		if err != nil {
 			return fmt.Errorf("check deleted directory ownership: %w", err)
 		}
@@ -381,20 +381,20 @@ func (r *DirectoryRepository) PermanentDeleteSubtree(ctx context.Context, direct
 		}
 
 		subtreeIDs := make([]string, 0, 16)
-		if err := tx.Raw(`SELECT descendant_id::text FROM directory_closure WHERE ancestor_id = ?::uuid`, directoryID).Scan(&subtreeIDs).Error; err != nil {
+		if err := tx.Raw(`SELECT id_turunan::text FROM directory_closure WHERE id_induk = ?::uuid`, directoryID).Scan(&subtreeIDs).Error; err != nil {
 			return fmt.Errorf("query subtree ids: %w", err)
 		}
 		if len(subtreeIDs) == 0 {
 			return domain.ErrNotFound
 		}
 
-		if err := tx.Exec(`DELETE FROM files WHERE directory_id IN ?`, subtreeIDs).Error; err != nil {
+		if err := tx.Exec(`DELETE FROM files WHERE id_direktori IN ?`, subtreeIDs).Error; err != nil {
 			return fmt.Errorf("permanent delete subtree files: %w", err)
 		}
-		if err := tx.Exec(`DELETE FROM directory_closure WHERE ancestor_id IN ? OR descendant_id IN ?`, subtreeIDs, subtreeIDs).Error; err != nil {
+		if err := tx.Exec(`DELETE FROM directory_closure WHERE id_induk IN ? OR id_turunan IN ?`, subtreeIDs, subtreeIDs).Error; err != nil {
 			return fmt.Errorf("permanent delete closure: %w", err)
 		}
-		if err := tx.Exec(`DELETE FROM directories WHERE id IN ? AND user_id = ?::uuid`, subtreeIDs, userID).Error; err != nil {
+		if err := tx.Exec(`DELETE FROM directories WHERE id_direktori IN ? AND id_pengguna = ?::uuid`, subtreeIDs, userID).Error; err != nil {
 			return fmt.Errorf("permanent delete directories: %w", err)
 		}
 
@@ -411,9 +411,9 @@ func (r *DirectoryRepository) SetStarred(ctx context.Context, directoryID, userI
 	err := r.db.WithContext(ctx).Raw(
 		fmt.Sprintf(
 			`UPDATE directories
-			 SET starred_at = %s
-			 WHERE id = ?::uuid AND user_id = ?::uuid AND deleted_at IS NULL
-			 RETURNING id::text, name, 0 AS depth, NULL::text AS parent_id, created_at, deleted_at, starred_at`,
+			 SET dibintang_pada = %s
+			 WHERE id_direktori = ?::uuid AND id_pengguna = ?::uuid AND dihapus_pada IS NULL
+			 RETURNING id_direktori::text AS id, nama AS name, 0 AS depth, NULL::text AS parent_id, dibuat_pada AS created_at, dihapus_pada AS deleted_at, dibintang_pada AS starred_at`,
 			value,
 		),
 		directoryID,
@@ -432,25 +432,25 @@ func (r *DirectoryRepository) SetStarred(ctx context.Context, directoryID, userI
 func (r *DirectoryRepository) ListTrashRoots(ctx context.Context, userID string) ([]domain.DirectoryRecord, error) {
 	items := make([]domain.DirectoryRecord, 0, 16)
 	err := r.db.WithContext(ctx).Raw(
-		`SELECT d.id::text, d.name, 0 AS depth, parent.ancestor_id::text AS parent_id, d.created_at, d.deleted_at, d.starred_at
+		`SELECT d.id_direktori::text AS id, d.nama AS name, 0 AS depth, parent.id_induk::text AS parent_id, d.dibuat_pada AS created_at, d.dihapus_pada AS deleted_at, d.dibintang_pada AS starred_at
 		 FROM directories d
 		 LEFT JOIN LATERAL (
-			SELECT dc.ancestor_id
+			SELECT dc.id_induk
 			FROM directory_closure dc
-			WHERE dc.descendant_id = d.id AND dc.depth = 1
+			WHERE dc.id_turunan = d.id_direktori AND dc.kedalaman = 1
 			LIMIT 1
 		 ) parent ON true
-		 WHERE d.user_id = ?::uuid
-		   AND d.deleted_at IS NOT NULL
+		 WHERE d.id_pengguna = ?::uuid
+		   AND d.dihapus_pada IS NOT NULL
 		   AND NOT EXISTS (
 			SELECT 1
 			FROM directory_closure dc
-			JOIN directories a ON a.id = dc.ancestor_id
-			WHERE dc.descendant_id = d.id
-			  AND dc.depth > 0
-			  AND a.deleted_at IS NOT NULL
+			JOIN directories a ON a.id_direktori = dc.id_induk
+			WHERE dc.id_turunan = d.id_direktori
+			  AND dc.kedalaman > 0
+			  AND a.dihapus_pada IS NOT NULL
 		   )
-		 ORDER BY d.deleted_at DESC, d.name`,
+		 ORDER BY d.dihapus_pada DESC, d.nama`,
 		userID,
 	).Scan(&items).Error
 	if err != nil {
@@ -463,18 +463,18 @@ func (r *DirectoryRepository) ListTrashRoots(ctx context.Context, userID string)
 func (r *DirectoryRepository) ListStarred(ctx context.Context, userID string) ([]domain.DirectoryRecord, error) {
 	items := make([]domain.DirectoryRecord, 0, 16)
 	err := r.db.WithContext(ctx).Raw(
-		`SELECT d.id::text, d.name, 0 AS depth, parent.ancestor_id::text AS parent_id, d.created_at, d.deleted_at, d.starred_at
+		`SELECT d.id_direktori::text AS id, d.nama AS name, 0 AS depth, parent.id_induk::text AS parent_id, d.dibuat_pada AS created_at, d.dihapus_pada AS deleted_at, d.dibintang_pada AS starred_at
 		 FROM directories d
 		 LEFT JOIN LATERAL (
-			SELECT dc.ancestor_id
+			SELECT dc.id_induk
 			FROM directory_closure dc
-			WHERE dc.descendant_id = d.id AND dc.depth = 1
+			WHERE dc.id_turunan = d.id_direktori AND dc.kedalaman = 1
 			LIMIT 1
 		 ) parent ON true
-		 WHERE d.user_id = ?::uuid
-		   AND d.deleted_at IS NULL
-		   AND d.starred_at IS NOT NULL
-		 ORDER BY d.starred_at DESC, d.name`,
+		 WHERE d.id_pengguna = ?::uuid
+		   AND d.dihapus_pada IS NULL
+		   AND d.dibintang_pada IS NOT NULL
+		 ORDER BY d.dibintang_pada DESC, d.nama`,
 		userID,
 	).Scan(&items).Error
 	if err != nil {

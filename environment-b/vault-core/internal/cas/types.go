@@ -6,8 +6,9 @@ import (
 )
 
 var (
-	ErrNotFound    = errors.New("not found")
-	ErrInvalidHash = errors.New("invalid hash")
+	ErrNotFound      = errors.New("not found")
+	ErrInvalidHash   = errors.New("invalid hash")
+	ErrInvalidUpload = errors.New("invalid upload")
 )
 
 type ManifestRecord struct {

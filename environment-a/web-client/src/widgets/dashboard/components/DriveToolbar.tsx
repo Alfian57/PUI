@@ -87,7 +87,7 @@ export function DriveToolbar({
                             icon={<Home className="h-4 w-4" aria-hidden="true" />}
                             onClick={() => onNavigate(null)}
                         >
-                            File Saya
+                            Berkas Saya
                         </Button>
                     ) : null}
                     {sortOption && onSortChange ? (
@@ -152,14 +152,14 @@ export function DriveToolbar({
                         icon={<FolderPlus className="h-4 w-4" aria-hidden="true" />}
                         onClick={onCreateFolder}
                     >
-                        Folder
+                        Direktori
                     </Button>
                     <Button
                         icon={<UploadCloud className="h-4 w-4" aria-hidden="true" />}
                         onClick={() => inputRef.current?.click()}
                         disabled={uploadDisabled}
                     >
-                        Upload
+                        Unggah
                     </Button>
                     <ViewToggle value={viewMode} onChange={onViewModeChange} />
                     <input ref={inputRef} type="file" className="hidden" onChange={(event) => void handleFileChange(event)} />
@@ -171,7 +171,7 @@ export function DriveToolbar({
                     <div className="h-2 overflow-hidden rounded-full bg-brand-steel/15">
                         <div className="h-full rounded-full bg-brand-ink transition-all" style={{ width: `${uploadProgress}%` }} />
                     </div>
-                    <p className="mt-1 text-xs text-brand-steel">Upload {uploadProgress}%</p>
+                    <p className="mt-1 text-xs text-brand-steel">Unggah {uploadProgress}%</p>
                 </div>
             ) : null}
 

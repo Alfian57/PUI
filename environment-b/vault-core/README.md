@@ -9,7 +9,7 @@ Service ini berjalan di jaringan non-publik dan menerima request internal melalu
 - Melakukan chunking menggunakan FastCDC
 - Menyimpan chunk deduplicated ke storage lokal
 - Menyimpan metadata manifest/chunk ke BadgerDB
-- Menyediakan proses download object berdasarkan manifest ID
+- Menyediakan pembacaan manifest objek untuk proses rekonstruksi oleh API Service
 - Menolak operasi destruktif (immutable policy)
 
 ## Stack
@@ -27,7 +27,6 @@ Base internal path:
 - `POST /internal/v1/uploads`
 - `GET /internal/v1/manifests/{manifest_id}`
 - `GET /internal/v1/chunks/{chunk_hash}/status`
-- `GET /internal/v1/objects/{manifest_id}/download`
 
 Catatan: handler memblokir method destruktif (`DELETE`, `PUT`, `PATCH`).
 

@@ -21,11 +21,11 @@ export function FileInspector({ file, lastUploadResult, loading }: FileInspector
 
     return (
         <section className="rounded-3xl border border-brand-steel/15 bg-white/90 p-5 shadow-soft backdrop-blur">
-            <p className="font-display text-[11px] uppercase tracking-[0.24em] text-brand-steel">Detail File</p>
-            <h3 className="mt-1 font-display text-xl font-semibold text-brand-ink">Informasi File</h3>
+            <p className="font-display text-[11px] uppercase tracking-[0.24em] text-brand-steel">Detail Berkas</p>
+            <h3 className="mt-1 font-display text-xl font-semibold text-brand-ink">Informasi Berkas</h3>
 
             {loading ? <p className="mt-4 text-sm text-brand-steel/80">Memuat detail...</p> : null}
-            {!loading && !file ? <p className="mt-4 text-sm text-brand-steel/80">Pilih file untuk melihat detail.</p> : null}
+            {!loading && !file ? <p className="mt-4 text-sm text-brand-steel/80">Pilih berkas untuk melihat detail.</p> : null}
 
             {file ? (
                 <dl className="mt-4 space-y-3 text-sm text-brand-steel">
@@ -34,7 +34,7 @@ export function FileInspector({ file, lastUploadResult, loading }: FileInspector
                         <dd>{file.name}</dd>
                     </div>
                     <div>
-                        <dt className="font-medium text-brand-ink">Jenis File</dt>
+                        <dt className="font-medium text-brand-ink">Jenis Berkas</dt>
                         <dd>{file.mime_type}</dd>
                     </div>
                     <div>
@@ -66,7 +66,7 @@ export function FileInspector({ file, lastUploadResult, loading }: FileInspector
                                 <dd className="font-mono text-xs break-all">{manifest.file_hash}</dd>
                             </div>
                             <div>
-                                <dt className="font-medium text-brand-ink">Jumlah Bagian File</dt>
+                                <dt className="font-medium text-brand-ink">Jumlah Bagian Berkas</dt>
                                 <dd>{manifest.chunk_count} bagian</dd>
                             </div>
                         </>
@@ -78,9 +78,9 @@ export function FileInspector({ file, lastUploadResult, loading }: FileInspector
 
             {lastUploadResult ? (
                 <section className="mt-5 rounded-xl border border-brand-amber/40 bg-brand-amber/10 p-3">
-                    <p className="text-xs uppercase tracking-[0.22em] text-brand-steel">Hasil Upload Terakhir</p>
+                    <p className="text-xs uppercase tracking-[0.22em] text-brand-steel">Hasil Unggah Terakhir</p>
                     <p className="mt-2 text-sm text-brand-ink">
-                        Efisiensi {(lastUploadResult.dedup_ratio * 100).toFixed(2)}% dengan {lastUploadResult.chunk_count} bagian file.
+                        Efisiensi {(lastUploadResult.dedup_ratio * 100).toFixed(2)}% dengan {lastUploadResult.chunk_count} bagian berkas.
                     </p>
                     <p className="mt-1 text-xs font-mono text-brand-steel/90">{lastUploadResult.file_hash}</p>
                 </section>

@@ -61,7 +61,7 @@ export function AdminTopbar({ user, onMenuClick, onLogout }: AdminTopbarProps): 
                                 className="mt-2 flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-medium text-brand-steel transition hover:bg-brand-sky hover:text-brand-ink focus:outline-none focus:ring-2 focus:ring-brand-amber/70"
                             >
                                 <UserCircle className="h-4 w-4" aria-hidden="true" />
-                                Profile
+                                Profil
                             </Link>
                             <button
                                 type="button"

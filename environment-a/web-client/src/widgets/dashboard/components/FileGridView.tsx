@@ -40,8 +40,8 @@ export function FileGridView({
             <div className="rounded-3xl bg-white shadow-soft">
                 <EmptyState
                     icon={<FileText className="h-7 w-7" aria-hidden="true" />}
-                    title="Belum ada file"
-                    description="Upload file pertama ke folder ini agar dapat dikelola dari HashBox."
+                    title="Belum ada berkas"
+                    description="Unggah berkas pertama ke direktori ini agar dapat dikelola dari HashBox."
                 />
             </div>
         );

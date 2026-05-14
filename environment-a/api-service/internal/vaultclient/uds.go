@@ -193,28 +193,3 @@ func (c *Client) GetChunkStatus(ctx context.Context, chunkHash string) (ChunkSta
 
 	return payload, nil
 }
-
-func (c *Client) DownloadObject(ctx context.Context, manifestID string) (io.ReadCloser, int64, error) {
-	requestURL := fmt.Sprintf("http://unix/internal/v1/objects/%s/download", url.PathEscape(manifestID))
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, requestURL, nil)
-	if err != nil {
-		return nil, 0, fmt.Errorf("build object download request: %w", err)
-	}
-
-	resp, err := c.httpClient.Do(req)
-	if err != nil {
-		return nil, 0, fmt.Errorf("call vault object download over uds %s: %w", c.socketPath, err)
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		message, readErr := io.ReadAll(io.LimitReader(resp.Body, 8*1024))
-		_ = resp.Body.Close()
-		if readErr != nil {
-			return nil, 0, fmt.Errorf("vault object download returned status %d", resp.StatusCode)
-		}
-
-		return nil, 0, fmt.Errorf("vault object download returned status %d: %s", resp.StatusCode, strings.TrimSpace(string(message)))
-	}
-
-	return resp.Body, resp.ContentLength, nil
-}

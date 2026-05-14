@@ -56,15 +56,15 @@ export function LoginCard({
                     <div className="absolute inset-x-7 bottom-7">
                         <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/12 px-3 py-1.5 text-xs font-medium text-white backdrop-blur">
                             <ShieldCheck className="h-4 w-4" aria-hidden="true" />
-                            Penyimpanan file aman
+                            Penyimpanan berkas aman
                         </div>
                         <h2 className="mt-4 max-w-md font-display text-3xl font-semibold leading-tight text-white">
-                            Simpan file penting dalam ruang kerja yang mudah dipantau.
+                            Simpan berkas penting dalam ruang kerja yang mudah dipantau.
                         </h2>
                         <div className="mt-5 grid grid-cols-3 gap-3 text-white">
                             <div className="rounded-2xl border border-white/15 bg-white/12 p-3 backdrop-blur">
                                 <FolderLock className="h-5 w-5" aria-hidden="true" />
-                                <p className="mt-3 text-xs font-medium">File tersimpan</p>
+                                <p className="mt-3 text-xs font-medium">Berkas tersimpan</p>
                             </div>
                             <div className="rounded-2xl border border-white/15 bg-white/12 p-3 backdrop-blur">
                                 <Fingerprint className="h-5 w-5" aria-hidden="true" />
@@ -111,7 +111,7 @@ export function LoginCard({
                             Masuk ke HashBox
                         </h1>
                         <p className="mt-2 text-sm leading-6 text-brand-steel">
-                            Kelola file penting Anda dengan ruang penyimpanan yang rapi, aman, dan mudah ditelusuri kembali.
+                            Kelola berkas penting Anda dengan ruang penyimpanan yang rapi, aman, dan mudah ditelusuri kembali.
                         </p>
                         {helperMessage ? (
                             <p className="mt-3 rounded-2xl border border-brand-steel/10 bg-white px-4 py-2.5 text-sm font-medium text-brand-steel">

@@ -69,7 +69,7 @@ export function AdminAnalyticsPage(): JSX.Element {
                 <div>
                     <h1 className="font-display text-3xl font-semibold text-brand-ink">Analitik HashBox</h1>
                     <p className="mt-1 max-w-2xl text-sm leading-6 text-brand-steel">
-                        Ringkasan penggunaan aplikasi secara agregat tanpa membuka identitas pengguna, nama file, atau struktur folder pribadi.
+                        Ringkasan penggunaan aplikasi secara agregat tanpa membuka identitas pengguna, nama berkas, atau struktur direktori pribadi.
                     </p>
                 </div>
                 <div className="flex rounded-2xl bg-white p-1 shadow-soft">
@@ -112,8 +112,8 @@ function AdminAnalyticsContent({ analytics }: { analytics: AdminAnalytics }): JS
     }));
 
     const actionTotals = useMemo(() => ([
-        { label: "Upload", value: summary.uploads_in_range },
-        { label: "Download", value: summary.downloads_in_range },
+        { label: "Unggah", value: summary.uploads_in_range },
+        { label: "Unduh", value: summary.downloads_in_range },
         { label: "Hapus", value: summary.deleted_items_in_range },
         { label: "Pulihkan", value: summary.restored_items_in_range },
         { label: "Bintang", value: summary.starred_actions_in_range }
@@ -123,7 +123,7 @@ function AdminAnalyticsContent({ analytics }: { analytics: AdminAnalytics }): JS
         <>
             <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
                 <MetricCard label="Pengguna" value={String(summary.total_users)} helper={`${summary.active_users} aktif`} icon={<UsersRound className="h-5 w-5" />} />
-                <MetricCard label="Item aktif" value={String(totalActiveItems)} helper={`${summary.active_files} file, ${summary.active_folders} folder`} icon={<HardDrive className="h-5 w-5" />} />
+                <MetricCard label="Item aktif" value={String(totalActiveItems)} helper={`${summary.active_files} berkas, ${summary.active_folders} direktori`} icon={<HardDrive className="h-5 w-5" />} />
                 <MetricCard label="Penyimpanan aktif" value={formatBytes(summary.active_storage_bytes)} helper={`${formatBytes(summary.trash_storage_bytes)} di Sampah`} icon={<Database className="h-5 w-5" />} />
                 <MetricCard label="Efisiensi" value={`${(summary.dedup_ratio * 100).toFixed(2)}%`} helper={`${summary.reuse_chunks} chunk digunakan ulang`} icon={<Sparkles className="h-5 w-5" />} />
             </section>
@@ -136,8 +136,8 @@ function AdminAnalyticsContent({ analytics }: { analytics: AdminAnalytics }): JS
                             <XAxis dataKey="date" tick={{ fontSize: 12, fill: CHART.steel }} tickFormatter={shortDate} />
                             <YAxis tick={{ fontSize: 12, fill: CHART.steel }} allowDecimals={false} />
                             <Tooltip labelFormatter={(value) => `Tanggal ${value}`} />
-                            <Area type="monotone" dataKey="uploads" name="Upload" stroke={CHART.ink} fill={CHART.ink} fillOpacity={0.14} />
-                            <Area type="monotone" dataKey="downloads" name="Download" stroke={CHART.success} fill={CHART.success} fillOpacity={0.14} />
+                            <Area type="monotone" dataKey="uploads" name="Unggah" stroke={CHART.ink} fill={CHART.ink} fillOpacity={0.14} />
+                            <Area type="monotone" dataKey="downloads" name="Unduh" stroke={CHART.success} fill={CHART.success} fillOpacity={0.14} />
                             <Area type="monotone" dataKey="deletes" name="Hapus" stroke={CHART.coral} fill={CHART.coral} fillOpacity={0.12} />
                         </AreaChart>
                     </ResponsiveContainer>
@@ -157,7 +157,7 @@ function AdminAnalyticsContent({ analytics }: { analytics: AdminAnalytics }): JS
             </section>
 
             <section className="grid gap-6 xl:grid-cols-3">
-                <ChartPanel title="Tipe File" description="Komposisi file aktif berdasarkan kategori MIME.">
+                <ChartPanel title="Tipe Berkas" description="Komposisi berkas aktif berdasarkan kategori MIME.">
                     {fileTypePie.length > 0 ? (
                         <ResponsiveContainer width="100%" height={280}>
                             <PieChart>
@@ -172,34 +172,34 @@ function AdminAnalyticsContent({ analytics }: { analytics: AdminAnalytics }): JS
                     ) : <EmptyChartText />}
                 </ChartPanel>
 
-                <ChartPanel title="Ukuran File" description="Distribusi ukuran file aktif.">
+                <ChartPanel title="Ukuran Berkas" description="Distribusi ukuran berkas aktif.">
                     <ResponsiveContainer width="100%" height={280}>
                         <BarChart data={analytics.size_buckets}>
                             <CartesianGrid strokeDasharray="3 3" stroke={CHART.line} />
                             <XAxis dataKey="bucket" tick={{ fontSize: 12, fill: CHART.steel }} />
                             <YAxis tick={{ fontSize: 12, fill: CHART.steel }} allowDecimals={false} />
                             <Tooltip />
-                            <Bar dataKey="count" name="File" fill={CHART.amber} radius={[12, 12, 0, 0]} />
+                            <Bar dataKey="count" name="Berkas" fill={CHART.amber} radius={[12, 12, 0, 0]} />
                         </BarChart>
                     </ResponsiveContainer>
                 </ChartPanel>
 
-                <ChartPanel title="Kedalaman Folder" description="Sebaran tingkat folder aktif secara agregat.">
+                <ChartPanel title="Kedalaman Direktori" description="Sebaran tingkat direktori aktif secara agregat.">
                     <ResponsiveContainer width="100%" height={280}>
                         <BarChart data={analytics.depths}>
                             <CartesianGrid strokeDasharray="3 3" stroke={CHART.line} />
                             <XAxis dataKey="depth" tick={{ fontSize: 12, fill: CHART.steel }} />
                             <YAxis tick={{ fontSize: 12, fill: CHART.steel }} allowDecimals={false} />
                             <Tooltip />
-                            <Bar dataKey="count" name="Folder" fill={CHART.success} radius={[12, 12, 0, 0]} />
+                            <Bar dataKey="count" name="Direktori" fill={CHART.success} radius={[12, 12, 0, 0]} />
                         </BarChart>
                     </ResponsiveContainer>
                 </ChartPanel>
             </section>
 
             <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
-                <CompactStat label="Upload" value={summary.uploads_in_range} icon={<UploadCloud className="h-4 w-4" />} />
-                <CompactStat label="Download" value={summary.downloads_in_range} icon={<Download className="h-4 w-4" />} />
+                <CompactStat label="Unggah" value={summary.uploads_in_range} icon={<UploadCloud className="h-4 w-4" />} />
+                <CompactStat label="Unduh" value={summary.downloads_in_range} icon={<Download className="h-4 w-4" />} />
                 <CompactStat label="Dihapus" value={summary.deleted_items_in_range} icon={<Trash2 className="h-4 w-4" />} />
                 <CompactStat label="Dipulihkan" value={summary.restored_items_in_range} icon={<RotateCcw className="h-4 w-4" />} />
                 <CompactStat label="Login" value={analytics.activity.reduce((sum, item) => sum + item.logins, 0)} icon={<Activity className="h-4 w-4" />} />
@@ -224,38 +224,38 @@ export function AdminStoragePage(): JSX.Element {
         <div className="space-y-6">
             <AdminPageHeader
                 title="Penyimpanan"
-                description="Pantau kapasitas aktif, Sampah, chunk deduplikasi, dan komposisi file secara agregat."
+                description="Pantau kapasitas aktif, Sampah, chunk deduplikasi, dan komposisi berkas secara agregat."
                 range={range}
                 onRangeChange={setRange}
             />
             {analytics ? (
                 <>
                     <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-                        <MetricCard label="Storage aktif" value={formatBytes(analytics.summary.active_storage_bytes)} helper={`${analytics.summary.active_files} file aktif`} icon={<Database className="h-5 w-5" />} />
+                        <MetricCard label="Storage aktif" value={formatBytes(analytics.summary.active_storage_bytes)} helper={`${analytics.summary.active_files} berkas aktif`} icon={<Database className="h-5 w-5" />} />
                         <MetricCard label="Storage Sampah" value={formatBytes(analytics.summary.trash_storage_bytes)} helper={`${analytics.summary.trash_files + analytics.summary.trash_folders} item`} icon={<Trash2 className="h-5 w-5" />} />
                         <MetricCard label="Chunk reuse" value={String(analytics.summary.reuse_chunks)} helper={`${analytics.summary.total_chunks} total chunk`} icon={<Sparkles className="h-5 w-5" />} />
                         <MetricCard label="Efisiensi" value={`${(analytics.summary.dedup_ratio * 100).toFixed(2)}%`} helper="Rasio chunk yang digunakan ulang" icon={<HardDrive className="h-5 w-5" />} />
                     </section>
                     <section className="grid gap-6 xl:grid-cols-2">
-                        <ChartPanel title="Tipe File" description="Komposisi file aktif berdasarkan kategori MIME.">
+                        <ChartPanel title="Tipe Berkas" description="Komposisi berkas aktif berdasarkan kategori MIME.">
                             <ResponsiveContainer width="100%" height={320}>
                                 <BarChart data={analytics.file_types}>
                                     <CartesianGrid strokeDasharray="3 3" stroke={CHART.line} />
                                     <XAxis dataKey="type" tick={{ fontSize: 12, fill: CHART.steel }} />
                                     <YAxis tick={{ fontSize: 12, fill: CHART.steel }} allowDecimals={false} />
                                     <Tooltip />
-                                    <Bar dataKey="count" name="File" fill={CHART.ink} radius={[12, 12, 0, 0]} />
+                                    <Bar dataKey="count" name="Berkas" fill={CHART.ink} radius={[12, 12, 0, 0]} />
                                 </BarChart>
                             </ResponsiveContainer>
                         </ChartPanel>
-                        <ChartPanel title="Ukuran File" description="Distribusi ukuran file aktif.">
+                        <ChartPanel title="Ukuran Berkas" description="Distribusi ukuran berkas aktif.">
                             <ResponsiveContainer width="100%" height={320}>
                                 <BarChart data={analytics.size_buckets}>
                                     <CartesianGrid strokeDasharray="3 3" stroke={CHART.line} />
                                     <XAxis dataKey="bucket" tick={{ fontSize: 12, fill: CHART.steel }} />
                                     <YAxis tick={{ fontSize: 12, fill: CHART.steel }} allowDecimals={false} />
                                     <Tooltip />
-                                    <Bar dataKey="count" name="File" fill={CHART.amber} radius={[12, 12, 0, 0]} />
+                                    <Bar dataKey="count" name="Berkas" fill={CHART.amber} radius={[12, 12, 0, 0]} />
                                 </BarChart>
                             </ResponsiveContainer>
                         </ChartPanel>
@@ -292,15 +292,15 @@ export function AdminActivityAnalyticsPage(): JSX.Element {
                                 <YAxis tick={{ fontSize: 12, fill: CHART.steel }} allowDecimals={false} />
                                 <Tooltip />
                                 <Area type="monotone" dataKey="logins" name="Login" stroke={CHART.blueprint} fill={CHART.blueprint} fillOpacity={0.12} />
-                                <Area type="monotone" dataKey="uploads" name="Upload" stroke={CHART.ink} fill={CHART.ink} fillOpacity={0.14} />
-                                <Area type="monotone" dataKey="downloads" name="Download" stroke={CHART.success} fill={CHART.success} fillOpacity={0.14} />
+                                <Area type="monotone" dataKey="uploads" name="Unggah" stroke={CHART.ink} fill={CHART.ink} fillOpacity={0.14} />
+                                <Area type="monotone" dataKey="downloads" name="Unduh" stroke={CHART.success} fill={CHART.success} fillOpacity={0.14} />
                                 <Area type="monotone" dataKey="deletes" name="Hapus" stroke={CHART.coral} fill={CHART.coral} fillOpacity={0.12} />
                             </AreaChart>
                         </ResponsiveContainer>
                     </ChartPanel>
                     <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
-                        <CompactStat label="Upload" value={analytics.summary.uploads_in_range} icon={<UploadCloud className="h-4 w-4" />} />
-                        <CompactStat label="Download" value={analytics.summary.downloads_in_range} icon={<Download className="h-4 w-4" />} />
+                        <CompactStat label="Unggah" value={analytics.summary.uploads_in_range} icon={<UploadCloud className="h-4 w-4" />} />
+                        <CompactStat label="Unduh" value={analytics.summary.downloads_in_range} icon={<Download className="h-4 w-4" />} />
                         <CompactStat label="Dihapus" value={analytics.summary.deleted_items_in_range} icon={<Trash2 className="h-4 w-4" />} />
                         <CompactStat label="Dipulihkan" value={analytics.summary.restored_items_in_range} icon={<RotateCcw className="h-4 w-4" />} />
                         <CompactStat label="Login" value={analytics.activity.reduce((sum, item) => sum + item.logins, 0)} icon={<Activity className="h-4 w-4" />} />
@@ -331,7 +331,7 @@ export function AdminSystemPage(): JSX.Element {
                     <MetricCard label="Aplikasi" value={statusLabel(system.status)} helper={`Diperiksa ${formatDate(system.checked_at)}`} icon={<Server className="h-5 w-5" />} />
                     <MetricCard label="Database" value={statusLabel(system.database)} helper="Metadata dan sesi pengguna" icon={<Database className="h-5 w-5" />} />
                     <MetricCard label="Vault Core" value={statusLabel(system.vault_core)} helper="Penyimpanan immutable" icon={<HardDrive className="h-5 w-5" />} />
-                    <MetricCard label="Batas upload" value={formatBytes(system.max_upload_size_bytes)} helper={`${system.rate_limit_per_minute} permintaan per menit`} icon={<UploadCloud className="h-5 w-5" />} />
+                    <MetricCard label="Batas unggah" value={formatBytes(system.max_upload_size_bytes)} helper={`${system.rate_limit_per_minute} permintaan per menit`} icon={<UploadCloud className="h-5 w-5" />} />
                 </section>
             ) : systemQuery.isLoading ? <AdminAnalyticsSkeleton /> : <ErrorPanel />}
         </div>
@@ -369,7 +369,7 @@ export function AdminReportsPage(): JSX.Element {
                     <h2 className="mt-4 font-display text-xl font-semibold text-brand-ink">Laporan PDF</h2>
                     <p className="mt-2 text-sm leading-6 text-brand-steel">Ringkasan siap baca untuk lampiran, demo, atau dokumentasi evaluasi.</p>
                     <Button className="mt-5" disabled={Boolean(downloading)} onClick={() => void handleDownload("pdf")}>
-                        {downloading === "pdf" ? "Membuat..." : "Download PDF"}
+                        {downloading === "pdf" ? "Membuat..." : "Unduh PDF"}
                     </Button>
                 </article>
                 <article className="rounded-[1.75rem] border border-brand-steel/10 bg-white p-6 shadow-soft">
@@ -377,7 +377,7 @@ export function AdminReportsPage(): JSX.Element {
                     <h2 className="mt-4 font-display text-xl font-semibold text-brand-ink">Laporan CSV</h2>
                     <p className="mt-2 text-sm leading-6 text-brand-steel">Data tabular untuk pengecekan ulang dan pengolahan sederhana.</p>
                     <Button className="mt-5" variant="secondary" disabled={Boolean(downloading)} onClick={() => void handleDownload("csv")}>
-                        {downloading === "csv" ? "Membuat..." : "Download CSV"}
+                        {downloading === "csv" ? "Membuat..." : "Unduh CSV"}
                     </Button>
                 </article>
             </section>

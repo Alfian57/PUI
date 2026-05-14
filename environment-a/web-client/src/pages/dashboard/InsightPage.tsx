@@ -63,7 +63,7 @@ export function InsightPage(): JSX.Element {
                 <div>
                     <h1 className="font-display text-3xl font-semibold text-brand-ink">Insight</h1>
                     <p className="mt-1 max-w-2xl text-sm leading-6 text-brand-steel">
-                        Ringkasan penyimpanan pribadi, efisiensi deduplikasi, dan aktivitas file Anda.
+                        Ringkasan penyimpanan pribadi, efisiensi deduplikasi, dan aktivitas berkas Anda.
                     </p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
@@ -96,8 +96,8 @@ function InsightContent({ insight }: { insight: UserInsight }): JSX.Element {
     const totalTrash = summary.trash_files + summary.trash_folders;
     const totalStarred = summary.starred_files + summary.starred_folders;
     const actionTotals = useMemo(() => ([
-        { label: "Upload", value: summary.uploads_in_range },
-        { label: "Download", value: summary.downloads_in_range },
+        { label: "Unggah", value: summary.uploads_in_range },
+        { label: "Unduh", value: summary.downloads_in_range },
         { label: "Reuse chunk", value: summary.reuse_chunks },
         { label: "Chunk baru", value: summary.new_chunks }
     ]), [summary]);
@@ -105,22 +105,22 @@ function InsightContent({ insight }: { insight: UserInsight }): JSX.Element {
     return (
         <>
             <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-                <MetricCard label="Item aktif" value={String(totalItems)} helper={`${summary.active_files} file, ${summary.active_folders} folder`} icon={<FileText className="h-5 w-5" />} />
+                <MetricCard label="Item aktif" value={String(totalItems)} helper={`${summary.active_files} berkas, ${summary.active_folders} direktori`} icon={<FileText className="h-5 w-5" />} />
                 <MetricCard label="Penyimpanan" value={formatBytes(summary.active_storage_bytes)} helper={`${formatBytes(summary.trash_storage_bytes)} berada di Sampah`} icon={<Database className="h-5 w-5" />} />
                 <MetricCard label="Efisiensi" value={`${(summary.dedup_ratio * 100).toFixed(2)}%`} helper={`${summary.reuse_chunks} dari ${summary.total_chunks} chunk digunakan ulang`} icon={<Sparkles className="h-5 w-5" />} />
                 <MetricCard label="Prioritas" value={String(totalStarred)} helper={`${totalTrash} item berada di Sampah`} icon={<Trash2 className="h-5 w-5" />} />
             </section>
 
             <section className="grid gap-6 xl:grid-cols-[minmax(0,1.5fr)_minmax(20rem,0.9fr)]">
-                <ChartPanel title="Aktivitas Anda" description={`Pergerakan file selama ${rangeLabel(insight.range)} terakhir.`}>
+                <ChartPanel title="Aktivitas Anda" description={`Pergerakan berkas selama ${rangeLabel(insight.range)} terakhir.`}>
                     <ResponsiveContainer width="100%" height={320}>
                         <AreaChart data={insight.activity}>
                             <CartesianGrid strokeDasharray="3 3" stroke={CHART.line} />
                             <XAxis dataKey="date" tick={{ fontSize: 12, fill: CHART.steel }} tickFormatter={shortDate} />
                             <YAxis tick={{ fontSize: 12, fill: CHART.steel }} allowDecimals={false} />
                             <Tooltip />
-                            <Area type="monotone" dataKey="uploads" name="Upload" stroke={CHART.ink} fill={CHART.ink} fillOpacity={0.14} />
-                            <Area type="monotone" dataKey="downloads" name="Download" stroke={CHART.success} fill={CHART.success} fillOpacity={0.14} />
+                            <Area type="monotone" dataKey="uploads" name="Unggah" stroke={CHART.ink} fill={CHART.ink} fillOpacity={0.14} />
+                            <Area type="monotone" dataKey="downloads" name="Unduh" stroke={CHART.success} fill={CHART.success} fillOpacity={0.14} />
                             <Area type="monotone" dataKey="deletes" name="Hapus" stroke={CHART.coral} fill={CHART.coral} fillOpacity={0.12} />
                         </AreaChart>
                     </ResponsiveContainer>
@@ -140,19 +140,19 @@ function InsightContent({ insight }: { insight: UserInsight }): JSX.Element {
             </section>
 
             <section className="grid gap-6 xl:grid-cols-3">
-                <ListPanel title="File terbesar" empty="Belum ada file aktif.">
+                <ListPanel title="Berkas terbesar" empty="Belum ada berkas aktif.">
                     {insight.largest_files.map((file) => (
-                        <ListItem key={file.id} icon={<FileText className="h-4 w-4" />} title={file.name} meta={`${formatBytes(file.size_bytes)} · ${file.mime_type || "file"}`} />
+                        <ListItem key={file.id} icon={<FileText className="h-4 w-4" />} title={file.name} meta={`${formatBytes(file.size_bytes)} · ${file.mime_type || "berkas"}`} />
                     ))}
                 </ListPanel>
                 <ListPanel title="Sampah paling lama" empty="Sampah masih kosong.">
                     {insight.trash_items.map((item) => (
-                        <ListItem key={`${item.kind}-${item.id}`} icon={<Trash2 className="h-4 w-4" />} title={item.name} meta={`${item.kind === "folder" ? "Folder" : "File"} · ${formatDate(item.deleted_at)}`} />
+                        <ListItem key={`${item.kind}-${item.id}`} icon={<Trash2 className="h-4 w-4" />} title={item.name} meta={`${item.kind === "folder" ? "Direktori" : "Berkas"} · ${formatDate(item.deleted_at)}`} />
                     ))}
                 </ListPanel>
-                <ListPanel title="Tipe file" empty="Belum ada komposisi tipe file.">
+                <ListPanel title="Tipe berkas" empty="Belum ada komposisi tipe berkas.">
                     {insight.file_types.map((item) => (
-                        <ListItem key={item.type} icon={<BarChart3 className="h-4 w-4" />} title={item.type} meta={`${item.count} file · ${formatBytes(item.total_bytes)}`} />
+                        <ListItem key={item.type} icon={<BarChart3 className="h-4 w-4" />} title={item.type} meta={`${item.count} berkas · ${formatBytes(item.total_bytes)}`} />
                     ))}
                 </ListPanel>
             </section>

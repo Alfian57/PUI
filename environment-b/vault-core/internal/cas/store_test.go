@@ -105,6 +105,76 @@ func TestProcessUploadReusesExistingChunks(t *testing.T) {
 	}
 }
 
+func TestProcessUploadPartiallyChangedFileReusesUnchangedChunks(t *testing.T) {
+	t.Parallel()
+
+	store := newTestStore(t)
+	ctx := context.Background()
+
+	original := make([]byte, 256*1024)
+	for i := range original {
+		original[i] = byte((i*31 + i/7) % 251)
+	}
+
+	first, err := store.ProcessUpload(ctx, "backup-v1.bin", bytes.NewReader(original))
+	if err != nil {
+		t.Fatalf("first upload: %v", err)
+	}
+	if first.ChunkCount < 2 {
+		t.Fatalf("expected multiple chunks for partial-change test, got %d", first.ChunkCount)
+	}
+
+	changed := append([]byte(nil), original...)
+	for i := len(changed) - 1024; i < len(changed); i++ {
+		changed[i] ^= 0x5a
+	}
+
+	second, err := store.ProcessUpload(ctx, "backup-v2.bin", bytes.NewReader(changed))
+	if err != nil {
+		t.Fatalf("second upload: %v", err)
+	}
+
+	if second.NewChunkCount == 0 {
+		t.Fatalf("expected changed upload to write at least one new chunk")
+	}
+	if second.ReuseChunkCount == 0 {
+		t.Fatalf("expected changed upload to reuse unchanged chunks")
+	}
+	if second.ReuseChunkCount >= second.ChunkCount {
+		t.Fatalf("expected changed upload to be partial reuse, got reused=%d total=%d", second.ReuseChunkCount, second.ChunkCount)
+	}
+}
+
+func TestProcessUploadRejectsEmptyFileWithoutCommittingManifest(t *testing.T) {
+	t.Parallel()
+
+	store := newTestStore(t)
+	ctx := context.Background()
+
+	if _, err := store.ProcessUpload(ctx, "empty.bin", bytes.NewReader(nil)); !errors.Is(err, ErrInvalidUpload) {
+		t.Fatalf("expected ErrInvalidUpload, got %v", err)
+	}
+
+	manifestCount := 0
+	err := store.db.View(func(txn *badger.Txn) error {
+		it := txn.NewIterator(badger.DefaultIteratorOptions)
+		defer it.Close()
+
+		prefix := []byte(manifestPrefix)
+		for it.Seek(prefix); it.ValidForPrefix(prefix); it.Next() {
+			manifestCount++
+		}
+
+		return nil
+	})
+	if err != nil {
+		t.Fatalf("count manifests: %v", err)
+	}
+	if manifestCount != 0 {
+		t.Fatalf("expected 0 committed manifests, got %d", manifestCount)
+	}
+}
+
 func TestCleanupExpiredUploadSessions(t *testing.T) {
 	t.Parallel()
 

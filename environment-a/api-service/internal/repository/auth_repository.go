@@ -21,7 +21,7 @@ func NewAuthRepository(db *gorm.DB) *AuthRepository {
 func (r *AuthRepository) FindUserByCredentials(ctx context.Context, email, password string) (domain.AuthUser, error) {
 	var user domain.AuthUser
 	err := r.db.WithContext(ctx).Raw(
-		`SELECT id::text AS user_id, full_name, email, role
+		`SELECT id_pengguna::text AS user_id, nama AS full_name, email, peran AS role
 		 FROM users
 		 WHERE email = ?
 		   AND password_hash = crypt(?, password_hash)`,
@@ -63,9 +63,9 @@ func (r *AuthRepository) CreateSession(ctx context.Context, userID, tokenHash st
 func (r *AuthRepository) CreateUser(ctx context.Context, fullName, email, password string) (domain.AuthUser, error) {
 	var user domain.AuthUser
 	err := r.db.WithContext(ctx).Raw(
-		`INSERT INTO users (full_name, email, password_hash, role)
+		`INSERT INTO users (nama, email, password_hash, peran)
 		 VALUES (?, ?, crypt(?, gen_salt('bf')), 'user')
-		 RETURNING id::text AS user_id, full_name, email, role`,
+		 RETURNING id_pengguna::text AS user_id, nama AS full_name, email, peran AS role`,
 		fullName,
 		email,
 		password,
@@ -84,9 +84,9 @@ func (r *AuthRepository) CreateUser(ctx context.Context, fullName, email, passwo
 func (r *AuthRepository) FindSessionUserByTokenHash(ctx context.Context, tokenHash string) (domain.AuthUser, error) {
 	var user domain.AuthUser
 	err := r.db.WithContext(ctx).Raw(
-		`SELECT s.id::text AS session_id, u.id::text AS user_id, u.full_name, u.email, u.role
+		`SELECT s.id::text AS session_id, u.id_pengguna::text AS user_id, u.nama AS full_name, u.email, u.peran AS role
 		 FROM access_sessions s
-		 JOIN users u ON u.id = s.user_id
+		 JOIN users u ON u.id_pengguna = s.user_id
 		 WHERE s.access_token_hash = ?
 		   AND s.revoked_at IS NULL
 		   AND s.expires_at > NOW()`,
@@ -136,7 +136,7 @@ func (r *AuthRepository) EmailExistsForOtherUser(ctx context.Context, email, use
 		`SELECT COUNT(1)
 		 FROM users
 		 WHERE email = ?
-		   AND id <> ?`,
+		   AND id_pengguna <> ?`,
 		email,
 		userID,
 	).Scan(&count).Error
@@ -152,7 +152,7 @@ func (r *AuthRepository) VerifyUserPassword(ctx context.Context, userID, passwor
 	err := r.db.WithContext(ctx).Raw(
 		`SELECT COUNT(1)
 		 FROM users
-		 WHERE id = ?
+		 WHERE id_pengguna = ?
 		   AND password_hash = crypt(?, password_hash)`,
 		userID,
 		password,
@@ -170,9 +170,9 @@ func (r *AuthRepository) UpdateUserProfile(ctx context.Context, userID, fullName
 	if newPassword != "" {
 		err = r.db.WithContext(ctx).Raw(
 			`UPDATE users
-			 SET full_name = ?, email = ?, password_hash = crypt(?, gen_salt('bf'))
-			 WHERE id = ?
-			 RETURNING id::text AS user_id, full_name, email, role`,
+			 SET nama = ?, email = ?, password_hash = crypt(?, gen_salt('bf'))
+			 WHERE id_pengguna = ?
+			 RETURNING id_pengguna::text AS user_id, nama AS full_name, email, peran AS role`,
 			fullName,
 			email,
 			newPassword,
@@ -181,9 +181,9 @@ func (r *AuthRepository) UpdateUserProfile(ctx context.Context, userID, fullName
 	} else {
 		err = r.db.WithContext(ctx).Raw(
 			`UPDATE users
-			 SET full_name = ?, email = ?
-			 WHERE id = ?
-			 RETURNING id::text AS user_id, full_name, email, role`,
+			 SET nama = ?, email = ?
+			 WHERE id_pengguna = ?
+			 RETURNING id_pengguna::text AS user_id, nama AS full_name, email, peran AS role`,
 			fullName,
 			email,
 			userID,

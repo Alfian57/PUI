@@ -56,12 +56,12 @@ export function RegisterCard({ onSubmit, loading, errorMessage }: RegisterCardPr
                             Akun pengguna baru
                         </div>
                         <h2 className="mt-4 max-w-md font-display text-3xl font-semibold leading-tight text-white">
-                            Mulai ruang kerja file pribadi yang rapi sejak hari pertama.
+                            Mulai ruang kerja berkas pribadi yang rapi sejak hari pertama.
                         </h2>
                         <div className="mt-5 grid grid-cols-3 gap-3 text-white">
                             <div className="rounded-2xl border border-white/15 bg-white/12 p-3 backdrop-blur">
                                 <FolderLock className="h-5 w-5" aria-hidden="true" />
-                                <p className="mt-3 text-xs font-medium">Folder pribadi</p>
+                                <p className="mt-3 text-xs font-medium">Direktori pribadi</p>
                             </div>
                             <div className="rounded-2xl border border-white/15 bg-white/12 p-3 backdrop-blur">
                                 <Fingerprint className="h-5 w-5" aria-hidden="true" />
@@ -129,7 +129,7 @@ export function RegisterCard({ onSubmit, loading, errorMessage }: RegisterCardPr
                                     disabled={disabled}
                                     required
                                 />
-                                <span className="mt-1.5 block text-xs text-brand-steel">Nama ini akan tampil di profile akun Anda.</span>
+                                <span className="mt-1.5 block text-xs text-brand-steel">Nama ini akan tampil di profil akun Anda.</span>
                             </label>
 
                             <label className="block">

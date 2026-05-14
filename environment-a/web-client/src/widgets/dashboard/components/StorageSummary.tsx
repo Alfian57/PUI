@@ -13,12 +13,12 @@ export function StorageSummary({ totalFiles, totalBytes, dedup, folderCount }: S
     return (
         <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             <SummaryItem
-                label="File"
+                label="Berkas"
                 value={String(totalFiles)}
                 icon={<FileArchive className="h-5 w-5" aria-hidden="true" />}
             />
             <SummaryItem
-                label="Folder"
+                label="Direktori"
                 value={String(folderCount)}
                 icon={<FolderOpen className="h-5 w-5" aria-hidden="true" />}
             />
@@ -72,7 +72,7 @@ function SummaryItem({ label, value, icon }: SummaryItemProps): JSX.Element {
             </div>
             {showEfficiencyInfo && infoOpen ? (
                 <div className="absolute right-4 top-16 z-20 w-72 rounded-2xl border border-brand-steel/10 bg-white p-4 text-sm leading-6 text-brand-steel shadow-deck">
-                    Efisiensi menunjukkan seberapa banyak ruang penyimpanan yang berhasil dihemat saat HashBox menemukan bagian file yang sudah pernah tersimpan sebelumnya.
+                    Efisiensi menunjukkan seberapa banyak ruang penyimpanan yang berhasil dihemat saat HashBox menemukan bagian berkas yang sudah pernah tersimpan sebelumnya.
                 </div>
             ) : null}
         </article>

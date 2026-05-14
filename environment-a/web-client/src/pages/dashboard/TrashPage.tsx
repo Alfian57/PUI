@@ -47,7 +47,7 @@ export function TrashPage(): JSX.Element {
                     <EmptyState
                         icon={<Trash2 className="h-7 w-7" aria-hidden="true" />}
                         title="Sampah kosong"
-                        description="Folder atau file yang dihapus akan muncul di sini sebelum dihapus permanen."
+                        description="Direktori atau berkas yang dihapus akan muncul di sini sebelum dihapus permanen."
                     />
                 ) : (
                     <WorkspaceItemsView

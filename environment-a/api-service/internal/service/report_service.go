@@ -55,8 +55,8 @@ func buildUserInsightCSV(insight domain.UserInsight) (ReportFile, error) {
 	writeCSVSection(writer, "Ringkasan")
 	_ = writer.Write([]string{"Metrik", "Nilai"})
 	summary := insight.Summary
-	_ = writer.Write([]string{"File aktif", intString(summary.ActiveFiles)})
-	_ = writer.Write([]string{"Folder aktif", intString(summary.ActiveFolders)})
+	_ = writer.Write([]string{"Berkas aktif", intString(summary.ActiveFiles)})
+	_ = writer.Write([]string{"Direktori aktif", intString(summary.ActiveFolders)})
 	_ = writer.Write([]string{"Penyimpanan aktif (byte)", intString(summary.ActiveStorageBytes)})
 	_ = writer.Write([]string{"Penyimpanan sampah (byte)", intString(summary.TrashStorageBytes)})
 	_ = writer.Write([]string{"Total chunk", intString(summary.TotalChunks)})
@@ -65,12 +65,12 @@ func buildUserInsightCSV(insight domain.UserInsight) (ReportFile, error) {
 	_ = writer.Write([]string{"Efisiensi deduplikasi", percentString(summary.DedupRatio)})
 	_ = writer.Write([]string{})
 	writeCSVSection(writer, "Aktivitas")
-	_ = writer.Write([]string{"Tanggal", "Upload", "Download", "Hapus", "Pulihkan", "Bintang"})
+	_ = writer.Write([]string{"Tanggal", "Unggah", "Unduh", "Hapus", "Pulihkan", "Bintang"})
 	for _, item := range insight.Activity {
 		_ = writer.Write([]string{item.Date, intString(item.Uploads), intString(item.Downloads), intString(item.Deletes), intString(item.Restores), intString(item.Stars)})
 	}
 	_ = writer.Write([]string{})
-	writeCSVSection(writer, "File Terbesar")
+	writeCSVSection(writer, "Berkas Terbesar")
 	_ = writer.Write([]string{"Nama", "Ukuran (byte)", "Tipe", "Dibuat"})
 	for _, item := range insight.LargestFiles {
 		_ = writer.Write([]string{item.Name, intString(item.SizeBytes), item.MIMEType, item.CreatedAt.Format("2006-01-02 15:04:05")})
@@ -101,8 +101,8 @@ func buildAdminAnalyticsCSV(analytics domain.AdminAnalytics) (ReportFile, error)
 	_ = writer.Write([]string{"Pengguna", intString(summary.TotalUsers)})
 	_ = writer.Write([]string{"Admin", intString(summary.TotalAdmins)})
 	_ = writer.Write([]string{"Pengguna aktif", intString(summary.ActiveUsers)})
-	_ = writer.Write([]string{"File aktif", intString(summary.ActiveFiles)})
-	_ = writer.Write([]string{"Folder aktif", intString(summary.ActiveFolders)})
+	_ = writer.Write([]string{"Berkas aktif", intString(summary.ActiveFiles)})
+	_ = writer.Write([]string{"Direktori aktif", intString(summary.ActiveFolders)})
 	_ = writer.Write([]string{"Penyimpanan aktif (byte)", intString(summary.ActiveStorageBytes)})
 	_ = writer.Write([]string{"Penyimpanan sampah (byte)", intString(summary.TrashStorageBytes)})
 	_ = writer.Write([]string{"Total chunk", intString(summary.TotalChunks)})
@@ -111,12 +111,12 @@ func buildAdminAnalyticsCSV(analytics domain.AdminAnalytics) (ReportFile, error)
 	_ = writer.Write([]string{"Efisiensi deduplikasi", percentString(summary.DedupRatio)})
 	_ = writer.Write([]string{})
 	writeCSVSection(writer, "Aktivitas Agregat")
-	_ = writer.Write([]string{"Tanggal", "Login", "Upload", "Download", "Hapus", "Pulihkan", "Bintang"})
+	_ = writer.Write([]string{"Tanggal", "Login", "Unggah", "Unduh", "Hapus", "Pulihkan", "Bintang"})
 	for _, item := range analytics.Activity {
 		_ = writer.Write([]string{item.Date, intString(item.Logins), intString(item.Uploads), intString(item.Downloads), intString(item.Deletes), intString(item.Restores), intString(item.Stars)})
 	}
 	_ = writer.Write([]string{})
-	writeCSVSection(writer, "Tipe File")
+	writeCSVSection(writer, "Tipe Berkas")
 	_ = writer.Write([]string{"Tipe", "Jumlah", "Total byte"})
 	for _, item := range analytics.FileTypes {
 		_ = writer.Write([]string{item.Type, intString(item.Count), intString(item.TotalBytes)})
@@ -136,15 +136,15 @@ func buildUserInsightPDF(insight domain.UserInsight) (ReportFile, error) {
 	pdf := newReportPDF("Laporan Insight Pengguna", insight.Range)
 	summary := insight.Summary
 	addPDFTable(pdf, []string{"Metrik", "Nilai"}, [][]string{
-		{"File aktif", intString(summary.ActiveFiles)},
-		{"Folder aktif", intString(summary.ActiveFolders)},
+		{"Berkas aktif", intString(summary.ActiveFiles)},
+		{"Direktori aktif", intString(summary.ActiveFolders)},
 		{"Penyimpanan aktif", byteString(summary.ActiveStorageBytes)},
 		{"Penyimpanan sampah", byteString(summary.TrashStorageBytes)},
 		{"Total chunk", intString(summary.TotalChunks)},
 		{"Chunk digunakan ulang", intString(summary.ReuseChunks)},
 		{"Efisiensi deduplikasi", percentString(summary.DedupRatio)},
 	})
-	addPDFSection(pdf, "File terbesar")
+	addPDFSection(pdf, "Berkas terbesar")
 	addPDFTable(pdf, []string{"Nama", "Ukuran", "Tipe"}, insightFileRows(insight.LargestFiles))
 	addPDFSection(pdf, "Item di Sampah")
 	addPDFTable(pdf, []string{"Jenis", "Nama", "Dihapus"}, insightTrashRows(insight.TrashItems))
@@ -168,10 +168,10 @@ func buildAdminAnalyticsPDF(analytics domain.AdminAnalytics) (ReportFile, error)
 		{"Chunk digunakan ulang", intString(summary.ReuseChunks)},
 		{"Efisiensi deduplikasi", percentString(summary.DedupRatio)},
 	})
-	addPDFSection(pdf, "Tipe file agregat")
+	addPDFSection(pdf, "Tipe berkas agregat")
 	addPDFTable(pdf, []string{"Tipe", "Jumlah", "Ukuran"}, adminFileTypeRows(analytics.FileTypes))
 	addPDFSection(pdf, "Aktivitas terbaru")
-	addPDFTable(pdf, []string{"Tanggal", "Upload", "Download", "Hapus"}, adminActivityRows(analytics.Activity))
+	addPDFTable(pdf, []string{"Tanggal", "Unggah", "Unduh", "Hapus"}, adminActivityRows(analytics.Activity))
 	body, err := outputPDF(pdf)
 	if err != nil {
 		return ReportFile{}, err
@@ -251,9 +251,20 @@ func insightFileRows(items []domain.InsightFileItem) [][]string {
 func insightTrashRows(items []domain.InsightTrashItem) [][]string {
 	rows := make([][]string, 0, len(items))
 	for _, item := range items {
-		rows = append(rows, []string{item.Kind, item.Name, item.DeletedAt.Format("2006-01-02")})
+		rows = append(rows, []string{reportItemKind(item.Kind), item.Name, item.DeletedAt.Format("2006-01-02")})
 	}
 	return rows
+}
+
+func reportItemKind(kind string) string {
+	switch strings.ToLower(strings.TrimSpace(kind)) {
+	case "file":
+		return "Berkas"
+	case "folder":
+		return "Direktori"
+	default:
+		return kind
+	}
 }
 
 func adminFileTypeRows(items []domain.AdminFileTypeStat) [][]string {

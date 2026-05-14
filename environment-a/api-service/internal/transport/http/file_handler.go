@@ -14,13 +14,13 @@ import (
 )
 
 // handleListFiles godoc
-// @Summary List files
-// @Description List root files or files inside a directory when directory_id is provided
-// @Tags files
+// @Summary List berkas
+// @Description Menampilkan berkas pada Berkas Saya atau di dalam direktori saat directory_id diisi
+// @Tags berkas
 // @Security BearerAuth
 // @Produce json
-// @Param directory_id query string false "Directory UUID; omit for root files"
-// @Param include_deleted query bool false "Include soft-deleted files"
+// @Param directory_id query string false "UUID direktori; kosongkan untuk Berkas Saya"
+// @Param include_deleted query bool false "Sertakan berkas yang sudah soft delete"
 // @Success 200 {object} dto.FileListResponse
 // @Failure 400 {object} dto.ErrorResponse
 // @Failure 401 {object} dto.ErrorResponse
@@ -49,15 +49,15 @@ func (a *API) handleListFiles(c *gin.Context) {
 }
 
 // handleSearchFiles godoc
-// @Summary Search files
-// @Description Search file metadata by query in user namespace with optional filters and pagination
-// @Tags files
+// @Summary Cari berkas
+// @Description Mencari metadata berkas milik pengguna dengan filter dan pagination opsional
+// @Tags berkas
 // @Security BearerAuth
 // @Produce json
-// @Param q query string true "Search keyword (min 2 chars)"
-// @Param directory_id query string false "Directory UUID"
-// @Param include_deleted query bool false "Include soft-deleted files"
-// @Param limit query int false "Page size (1-200, default 20)"
+// @Param q query string true "Kata kunci pencarian, minimal 2 karakter"
+// @Param directory_id query string false "UUID direktori"
+// @Param include_deleted query bool false "Sertakan berkas yang sudah soft delete"
+// @Param limit query int false "Ukuran halaman (1-200, default 20)"
 // @Param offset query int false "Offset (default 0)"
 // @Success 200 {object} dto.FileSearchResponse
 // @Failure 400 {object} dto.ErrorResponse
@@ -114,14 +114,14 @@ func (a *API) handleSearchFiles(c *gin.Context) {
 }
 
 // handleUploadFile godoc
-// @Summary Upload file
-// @Description Stream multipart file upload to vault-core and persist metadata
-// @Tags files
+// @Summary Unggah berkas
+// @Description Mengirim stream multipart berkas ke Vault Core dan menyimpan metadata aplikasi
+// @Tags berkas
 // @Security BearerAuth
 // @Accept multipart/form-data
 // @Produce json
-// @Param directory_id formData string false "Directory UUID; omit for root upload"
-// @Param file formData file true "File payload"
+// @Param directory_id formData string false "UUID direktori; kosongkan untuk unggah ke Berkas Saya"
+// @Param file formData file true "Payload berkas"
 // @Success 201 {object} dto.UploadResponse
 // @Failure 400 {object} dto.ErrorResponse
 // @Failure 401 {object} dto.ErrorResponse
@@ -186,7 +186,7 @@ func (a *API) handleUploadFile(c *gin.Context) {
 		_ = part.Close()
 		if uploadErr != nil {
 			if errors.Is(uploadErr, domain.ErrUploadTooBig) {
-				writeError(c, http.StatusRequestEntityTooLarge, fmt.Errorf("ukuran file melampaui batas maksimal"))
+				writeError(c, http.StatusRequestEntityTooLarge, fmt.Errorf("ukuran berkas melampaui batas maksimal"))
 				return
 			}
 
@@ -206,16 +206,16 @@ func (a *API) handleUploadFile(c *gin.Context) {
 		return
 	}
 
-	writeError(c, http.StatusBadRequest, fmt.Errorf("field file wajib diisi"))
+	writeError(c, http.StatusBadRequest, fmt.Errorf("field berkas wajib diisi"))
 }
 
 // handleFileDetail godoc
-// @Summary File detail
-// @Description Get file metadata by ID (including soft-deleted files)
-// @Tags files
+// @Summary Detail berkas
+// @Description Menampilkan metadata berkas berdasarkan ID, termasuk berkas yang sudah soft delete
+// @Tags berkas
 // @Security BearerAuth
 // @Produce json
-// @Param id path string true "File UUID"
+// @Param id path string true "UUID berkas"
 // @Success 200 {object} dto.FileDetailResponse
 // @Failure 400 {object} dto.ErrorResponse
 // @Failure 401 {object} dto.ErrorResponse
@@ -242,13 +242,13 @@ func (a *API) handleFileDetail(c *gin.Context) {
 }
 
 // handleDownloadFile godoc
-// @Summary Download file
-// @Description Stream file payload from vault-core by file ID
-// @Tags files
+// @Summary Unduh berkas
+// @Description Merekonstruksi stream berkas dari chunk storage berdasarkan ID berkas
+// @Tags berkas
 // @Security BearerAuth
 // @Produce application/octet-stream
-// @Param id path string true "File UUID"
-// @Success 200 {string} binary "File stream"
+// @Param id path string true "UUID berkas"
+// @Success 200 {string} binary "Berkas stream"
 // @Failure 400 {object} dto.ErrorResponse
 // @Failure 401 {object} dto.ErrorResponse
 // @Failure 404 {object} dto.ErrorResponse
@@ -282,12 +282,12 @@ func (a *API) handleDownloadFile(c *gin.Context) {
 }
 
 // handleSoftDeleteFile godoc
-// @Summary Soft delete file
-// @Description Mark file as deleted without removing physical payload
-// @Tags files
+// @Summary Soft delete berkas
+// @Description Menandai berkas terhapus tanpa menghapus payload fisik di Vault Core
+// @Tags berkas
 // @Security BearerAuth
 // @Produce json
-// @Param id path string true "File UUID"
+// @Param id path string true "UUID berkas"
 // @Success 200 {object} dto.SoftDeleteResponse
 // @Failure 400 {object} dto.ErrorResponse
 // @Failure 401 {object} dto.ErrorResponse
@@ -315,12 +315,12 @@ func (a *API) handleSoftDeleteFile(c *gin.Context) {
 }
 
 // handleRestoreFile godoc
-// @Summary Restore file from trash
-// @Description Restore a previously deleted file
-// @Tags files
+// @Summary Pulihkan berkas dari Sampah
+// @Description Memulihkan berkas yang sebelumnya dihapus secara logis
+// @Tags berkas
 // @Security BearerAuth
 // @Produce json
-// @Param id path string true "File UUID"
+// @Param id path string true "UUID berkas"
 // @Success 200 {object} dto.FileMutationResponse
 // @Failure 400 {object} dto.ErrorResponse
 // @Failure 401 {object} dto.ErrorResponse
@@ -344,12 +344,12 @@ func (a *API) handleRestoreFile(c *gin.Context) {
 }
 
 // handlePermanentDeleteFile godoc
-// @Summary Permanently delete file
-// @Description Permanently remove deleted file metadata from trash
-// @Tags files
+// @Summary Hapus permanen metadata berkas
+// @Description Menghapus permanen metadata berkas dari Sampah tanpa menghapus chunk fisik atau manifest Vault Core
+// @Tags berkas
 // @Security BearerAuth
 // @Produce json
-// @Param id path string true "File UUID"
+// @Param id path string true "UUID berkas"
 // @Success 200 {object} dto.OKResponse
 // @Failure 400 {object} dto.ErrorResponse
 // @Failure 401 {object} dto.ErrorResponse
@@ -372,12 +372,12 @@ func (a *API) handlePermanentDeleteFile(c *gin.Context) {
 }
 
 // handleStarFile godoc
-// @Summary Star file
-// @Description Mark a file as starred
-// @Tags files
+// @Summary Tandai bintang berkas
+// @Description Menandai berkas sebagai berbintang
+// @Tags berkas
 // @Security BearerAuth
 // @Produce json
-// @Param id path string true "File UUID"
+// @Param id path string true "UUID berkas"
 // @Success 200 {object} dto.FileMutationResponse
 // @Failure 400 {object} dto.ErrorResponse
 // @Failure 401 {object} dto.ErrorResponse
@@ -389,12 +389,12 @@ func (a *API) handleStarFile(c *gin.Context) {
 }
 
 // handleUnstarFile godoc
-// @Summary Unstar file
-// @Description Remove starred marker from a file
-// @Tags files
+// @Summary Hapus bintang berkas
+// @Description Menghapus penanda bintang dari berkas
+// @Tags berkas
 // @Security BearerAuth
 // @Produce json
-// @Param id path string true "File UUID"
+// @Param id path string true "UUID berkas"
 // @Success 200 {object} dto.FileMutationResponse
 // @Failure 400 {object} dto.ErrorResponse
 // @Failure 401 {object} dto.ErrorResponse
@@ -422,12 +422,12 @@ func (a *API) handleSetStarredFile(c *gin.Context, starred bool) {
 }
 
 // handleFileManifest godoc
-// @Summary File manifest info
-// @Description Get immutable manifest details from vault-core for a file
-// @Tags files
+// @Summary Info manifest berkas
+// @Description Menampilkan detail manifest immutable dari Vault Core untuk sebuah berkas
+// @Tags berkas
 // @Security BearerAuth
 // @Produce json
-// @Param id path string true "File UUID"
+// @Param id path string true "UUID berkas"
 // @Success 200 {object} dto.FileManifestResponse
 // @Failure 400 {object} dto.ErrorResponse
 // @Failure 401 {object} dto.ErrorResponse

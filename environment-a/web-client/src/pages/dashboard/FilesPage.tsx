@@ -96,9 +96,9 @@ export function FilesPage(): JSX.Element {
             {dragActive ? (
                 <div className="pointer-events-none fixed inset-x-4 bottom-4 top-20 z-30 flex items-center justify-center rounded-[2rem] border-2 border-dashed border-brand-amber bg-white/75 shadow-deck backdrop-blur">
                     <div className="rounded-3xl bg-brand-ink px-6 py-4 text-center text-white shadow-deck">
-                        <p className="font-display text-xl font-semibold">Lepaskan file untuk upload</p>
+                        <p className="font-display text-xl font-semibold">Lepaskan berkas untuk diunggah</p>
                         <p className="mt-1 text-sm text-white/75">
-                            File akan disimpan ke {directories.selectedDirectoryID ? "folder yang sedang dibuka" : "File Saya"}.
+                            Berkas akan disimpan ke {directories.selectedDirectoryID ? "direktori yang sedang dibuka" : "Berkas Saya"}.
                         </p>
                     </div>
                 </div>
@@ -106,9 +106,9 @@ export function FilesPage(): JSX.Element {
 
             <section className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                 <div>
-                    <h1 className="font-display text-3xl font-semibold text-brand-ink">File Saya</h1>
+                    <h1 className="font-display text-3xl font-semibold text-brand-ink">Berkas Saya</h1>
                     <p className="mt-1 text-sm text-brand-steel">
-                        Kelola folder, upload file, dan buka kembali file yang sudah tersimpan.
+                        Kelola direktori, unggah berkas, dan buka kembali berkas yang sudah tersimpan.
                     </p>
                 </div>
             </section>
@@ -144,10 +144,10 @@ export function FilesPage(): JSX.Element {
                         {!visibleIsEmpty ? (
                             <div className="flex items-center justify-between gap-3">
                                 <p className="text-sm font-semibold text-brand-ink">
-                                    {directories.selectedDirectoryID ? "Isi folder" : "Isi File Saya"}
+                                    {directories.selectedDirectoryID ? "Isi direktori" : "Isi Berkas Saya"}
                                 </p>
                                 <p className="text-xs font-medium text-brand-steel">
-                                    {totalItems} item · {filteredChildFolders.length} folder · {filteredFiles.length} file
+                                    {totalItems} item · {filteredChildFolders.length} direktori · {filteredFiles.length} berkas
                                     {filterIsActive ? ` · difilter ${timeFilterLabel(timeFilter)}` : ""}
                                 </p>
                             </div>
@@ -163,17 +163,17 @@ export function FilesPage(): JSX.Element {
                                 />
                                 <EmptyState
                                     icon={<FolderOpen className="h-7 w-7" aria-hidden="true" />}
-                                    title={directories.selectedDirectoryID ? "Folder ini masih kosong" : "File Saya masih kosong"}
-                                    description="Buat folder baru atau upload file pertama ke lokasi ini."
+                                    title={directories.selectedDirectoryID ? "Direktori ini masih kosong" : "Berkas Saya masih kosong"}
+                                    description="Buat direktori baru atau unggah berkas pertama ke lokasi ini."
                                     action={(
                                         <div className="flex flex-wrap justify-center gap-2">
-                                            <Button onClick={onCreateFolder}>Buat folder</Button>
+                                            <Button onClick={onCreateFolder}>Buat direktori</Button>
                                             <Button
                                                 variant="secondary"
                                                 icon={<FileText className="h-4 w-4" aria-hidden="true" />}
                                                 onClick={() => emptyUploadInputRef.current?.click()}
                                             >
-                                                Upload file
+                                                Unggah berkas
                                             </Button>
                                         </div>
                                     )}

@@ -21,21 +21,21 @@ func (r *InsightRepository) UserInsight(ctx context.Context, userID string, sinc
 	var out domain.UserInsight
 	if err := r.db.WithContext(ctx).Raw(
 		`SELECT
-			(SELECT COUNT(*) FROM files f LEFT JOIN directories d ON d.id = f.directory_id WHERE f.user_id = ?::uuid AND f.deleted_at IS NULL AND (f.directory_id IS NULL OR d.deleted_at IS NULL)) AS active_files,
-			(SELECT COUNT(*) FROM directories WHERE user_id = ?::uuid AND deleted_at IS NULL) AS active_folders,
-			(SELECT COUNT(*) FROM files f LEFT JOIN directories d ON d.id = f.directory_id WHERE f.user_id = ?::uuid AND f.deleted_at IS NOT NULL AND (f.directory_id IS NULL OR d.deleted_at IS NULL)) AS trash_files,
-			(SELECT COUNT(*) FROM directories d WHERE d.user_id = ?::uuid AND d.deleted_at IS NOT NULL AND NOT EXISTS (
-				SELECT 1 FROM directory_closure dc JOIN directories a ON a.id = dc.ancestor_id
-				WHERE dc.descendant_id = d.id AND dc.depth > 0 AND a.deleted_at IS NOT NULL
+			(SELECT COUNT(*) FROM files f LEFT JOIN directories d ON d.id_direktori = f.id_direktori WHERE f.id_pengguna = ?::uuid AND f.status_penyimpanan = 'committed' AND f.dihapus_pada IS NULL AND (f.id_direktori IS NULL OR d.dihapus_pada IS NULL)) AS active_files,
+			(SELECT COUNT(*) FROM directories WHERE id_pengguna = ?::uuid AND dihapus_pada IS NULL) AS active_folders,
+			(SELECT COUNT(*) FROM files f LEFT JOIN directories d ON d.id_direktori = f.id_direktori WHERE f.id_pengguna = ?::uuid AND f.status_penyimpanan = 'committed' AND f.dihapus_pada IS NOT NULL AND (f.id_direktori IS NULL OR d.dihapus_pada IS NULL)) AS trash_files,
+			(SELECT COUNT(*) FROM directories d WHERE d.id_pengguna = ?::uuid AND d.dihapus_pada IS NOT NULL AND NOT EXISTS (
+				SELECT 1 FROM directory_closure dc JOIN directories a ON a.id_direktori = dc.id_induk
+				WHERE dc.id_turunan = d.id_direktori AND dc.kedalaman > 0 AND a.dihapus_pada IS NOT NULL
 			)) AS trash_folders,
-			(SELECT COUNT(*) FROM files f LEFT JOIN directories d ON d.id = f.directory_id WHERE f.user_id = ?::uuid AND f.deleted_at IS NULL AND (f.directory_id IS NULL OR d.deleted_at IS NULL) AND f.starred_at IS NOT NULL) AS starred_files,
-			(SELECT COUNT(*) FROM directories WHERE user_id = ?::uuid AND deleted_at IS NULL AND starred_at IS NOT NULL) AS starred_folders,
-			COALESCE((SELECT SUM(f.size_bytes) FROM files f LEFT JOIN directories d ON d.id = f.directory_id WHERE f.user_id = ?::uuid AND f.deleted_at IS NULL AND (f.directory_id IS NULL OR d.deleted_at IS NULL)), 0) AS active_storage_bytes,
-			COALESCE((SELECT SUM(f.size_bytes) FROM files f LEFT JOIN directories d ON d.id = f.directory_id WHERE f.user_id = ?::uuid AND (f.deleted_at IS NOT NULL OR d.deleted_at IS NOT NULL)), 0) AS trash_storage_bytes,
-			COALESCE((SELECT SUM(f.chunk_count) FROM files f LEFT JOIN directories d ON d.id = f.directory_id WHERE f.user_id = ?::uuid AND f.deleted_at IS NULL AND (f.directory_id IS NULL OR d.deleted_at IS NULL)), 0) AS total_chunks,
-			COALESCE((SELECT SUM(f.new_chunk_count) FROM files f LEFT JOIN directories d ON d.id = f.directory_id WHERE f.user_id = ?::uuid AND f.deleted_at IS NULL AND (f.directory_id IS NULL OR d.deleted_at IS NULL)), 0) AS new_chunks,
-			COALESCE((SELECT SUM(f.reuse_chunk_count) FROM files f LEFT JOIN directories d ON d.id = f.directory_id WHERE f.user_id = ?::uuid AND f.deleted_at IS NULL AND (f.directory_id IS NULL OR d.deleted_at IS NULL)), 0) AS reuse_chunks,
-			COALESCE((SELECT CASE WHEN SUM(f.chunk_count) > 0 THEN SUM(f.reuse_chunk_count)::float / SUM(f.chunk_count) ELSE 0 END FROM files f LEFT JOIN directories d ON d.id = f.directory_id WHERE f.user_id = ?::uuid AND f.deleted_at IS NULL AND (f.directory_id IS NULL OR d.deleted_at IS NULL)), 0) AS dedup_ratio,
+			(SELECT COUNT(*) FROM files f LEFT JOIN directories d ON d.id_direktori = f.id_direktori WHERE f.id_pengguna = ?::uuid AND f.status_penyimpanan = 'committed' AND f.dihapus_pada IS NULL AND (f.id_direktori IS NULL OR d.dihapus_pada IS NULL) AND f.dibintangi_pada IS NOT NULL) AS starred_files,
+			(SELECT COUNT(*) FROM directories WHERE id_pengguna = ?::uuid AND dihapus_pada IS NULL AND dibintang_pada IS NOT NULL) AS starred_folders,
+			COALESCE((SELECT SUM(f.ukuran) FROM files f LEFT JOIN directories d ON d.id_direktori = f.id_direktori WHERE f.id_pengguna = ?::uuid AND f.status_penyimpanan = 'committed' AND f.dihapus_pada IS NULL AND (f.id_direktori IS NULL OR d.dihapus_pada IS NULL)), 0) AS active_storage_bytes,
+			COALESCE((SELECT SUM(f.ukuran) FROM files f LEFT JOIN directories d ON d.id_direktori = f.id_direktori WHERE f.id_pengguna = ?::uuid AND f.status_penyimpanan = 'committed' AND (f.dihapus_pada IS NOT NULL OR d.dihapus_pada IS NOT NULL)), 0) AS trash_storage_bytes,
+			COALESCE((SELECT SUM(f.chunk_count) FROM files f LEFT JOIN directories d ON d.id_direktori = f.id_direktori WHERE f.id_pengguna = ?::uuid AND f.status_penyimpanan = 'committed' AND f.dihapus_pada IS NULL AND (f.id_direktori IS NULL OR d.dihapus_pada IS NULL)), 0) AS total_chunks,
+			COALESCE((SELECT SUM(f.new_chunk_count) FROM files f LEFT JOIN directories d ON d.id_direktori = f.id_direktori WHERE f.id_pengguna = ?::uuid AND f.status_penyimpanan = 'committed' AND f.dihapus_pada IS NULL AND (f.id_direktori IS NULL OR d.dihapus_pada IS NULL)), 0) AS new_chunks,
+			COALESCE((SELECT SUM(f.reuse_chunk_count) FROM files f LEFT JOIN directories d ON d.id_direktori = f.id_direktori WHERE f.id_pengguna = ?::uuid AND f.status_penyimpanan = 'committed' AND f.dihapus_pada IS NULL AND (f.id_direktori IS NULL OR d.dihapus_pada IS NULL)), 0) AS reuse_chunks,
+			COALESCE((SELECT CASE WHEN SUM(f.chunk_count) > 0 THEN SUM(f.reuse_chunk_count)::float / SUM(f.chunk_count) ELSE 0 END FROM files f LEFT JOIN directories d ON d.id_direktori = f.id_direktori WHERE f.id_pengguna = ?::uuid AND f.status_penyimpanan = 'committed' AND f.dihapus_pada IS NULL AND (f.id_direktori IS NULL OR d.dihapus_pada IS NULL)), 0) AS dedup_ratio,
 			(SELECT COUNT(*) FROM activity_logs WHERE user_id = ?::uuid AND created_at >= ? AND action = 'UPLOAD') AS uploads_in_range,
 			(SELECT COUNT(*) FROM activity_logs WHERE user_id = ?::uuid AND created_at >= ? AND action = 'DOWNLOAD') AS downloads_in_range`,
 		userID, userID, userID, userID, userID, userID, userID, userID, userID, userID, userID, userID, userID, since, userID, since,
@@ -71,10 +71,10 @@ func (r *InsightRepository) UserInsight(ctx context.Context, userID string, sinc
 				ELSE f.mime_type
 			END AS type,
 			COUNT(*) AS count,
-			COALESCE(SUM(f.size_bytes), 0) AS total_bytes
+			COALESCE(SUM(f.ukuran), 0) AS total_bytes
 		FROM files f
-		LEFT JOIN directories d ON d.id = f.directory_id
-		WHERE f.user_id = ?::uuid AND f.deleted_at IS NULL AND (f.directory_id IS NULL OR d.deleted_at IS NULL)
+		LEFT JOIN directories d ON d.id_direktori = f.id_direktori
+		WHERE f.id_pengguna = ?::uuid AND f.status_penyimpanan = 'committed' AND f.dihapus_pada IS NULL AND (f.id_direktori IS NULL OR d.dihapus_pada IS NULL)
 		GROUP BY type
 		ORDER BY count DESC, type
 		LIMIT 8`,
@@ -84,11 +84,11 @@ func (r *InsightRepository) UserInsight(ctx context.Context, userID string, sinc
 	}
 
 	if err := r.db.WithContext(ctx).Raw(
-		`SELECT f.id::text, f.name, f.size_bytes, f.mime_type, f.created_at
+		`SELECT f.id_berkas::text AS id, f.nama AS name, f.ukuran AS size_bytes, f.mime_type, f.dibuat_pada AS created_at
 		FROM files f
-		LEFT JOIN directories d ON d.id = f.directory_id
-		WHERE f.user_id = ?::uuid AND f.deleted_at IS NULL AND (f.directory_id IS NULL OR d.deleted_at IS NULL)
-		ORDER BY f.size_bytes DESC, f.created_at DESC
+		LEFT JOIN directories d ON d.id_direktori = f.id_direktori
+		WHERE f.id_pengguna = ?::uuid AND f.status_penyimpanan = 'committed' AND f.dihapus_pada IS NULL AND (f.id_direktori IS NULL OR d.dihapus_pada IS NULL)
+		ORDER BY f.ukuran DESC, f.dibuat_pada DESC
 		LIMIT 6`,
 		userID,
 	).Scan(&out.LargestFiles).Error; err != nil {
@@ -98,16 +98,16 @@ func (r *InsightRepository) UserInsight(ctx context.Context, userID string, sinc
 	if err := r.db.WithContext(ctx).Raw(
 		`SELECT id::text, kind, name, size_bytes, deleted_at
 		FROM (
-			SELECT f.id, 'file' AS kind, f.name, f.size_bytes, f.deleted_at
+			SELECT f.id_berkas AS id, 'file' AS kind, f.nama AS name, f.ukuran AS size_bytes, f.dihapus_pada AS deleted_at
 			FROM files f
-			LEFT JOIN directories d ON d.id = f.directory_id
-			WHERE f.user_id = ?::uuid AND f.deleted_at IS NOT NULL AND (f.directory_id IS NULL OR d.deleted_at IS NULL)
+			LEFT JOIN directories d ON d.id_direktori = f.id_direktori
+			WHERE f.id_pengguna = ?::uuid AND f.status_penyimpanan = 'committed' AND f.dihapus_pada IS NOT NULL AND (f.id_direktori IS NULL OR d.dihapus_pada IS NULL)
 			UNION ALL
-			SELECT d.id, 'folder' AS kind, d.name, 0::bigint AS size_bytes, d.deleted_at
+			SELECT d.id_direktori AS id, 'folder' AS kind, d.nama AS name, 0::bigint AS size_bytes, d.dihapus_pada AS deleted_at
 			FROM directories d
-			WHERE d.user_id = ?::uuid AND d.deleted_at IS NOT NULL AND NOT EXISTS (
-				SELECT 1 FROM directory_closure dc JOIN directories a ON a.id = dc.ancestor_id
-				WHERE dc.descendant_id = d.id AND dc.depth > 0 AND a.deleted_at IS NOT NULL
+			WHERE d.id_pengguna = ?::uuid AND d.dihapus_pada IS NOT NULL AND NOT EXISTS (
+				SELECT 1 FROM directory_closure dc JOIN directories a ON a.id_direktori = dc.id_induk
+				WHERE dc.id_turunan = d.id_direktori AND dc.kedalaman > 0 AND a.dihapus_pada IS NOT NULL
 			)
 		) trash
 		ORDER BY deleted_at ASC, name

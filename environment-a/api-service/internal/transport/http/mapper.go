@@ -37,19 +37,20 @@ func toDirectoryDTOs(records []domain.DirectoryRecord) []dto.DirectoryDTO {
 
 func toFileDTO(record domain.FileRecord) dto.FileDTO {
 	return dto.FileDTO{
-		ID:          record.ID,
-		DirectoryID: record.DirectoryID,
-		Name:        record.Name,
-		SizeBytes:   record.SizeBytes,
-		MIMEType:    record.MIMEType,
-		ManifestID:  record.ManifestID,
-		ChunkCount:  record.ChunkCount,
-		NewChunks:   record.NewChunks,
-		ReuseChunks: record.ReuseChunks,
-		DedupRatio:  record.DedupRatio,
-		CreatedAt:   record.CreatedAt,
-		DeletedAt:   record.DeletedAt,
-		StarredAt:   record.StarredAt,
+		ID:            record.ID,
+		DirectoryID:   record.DirectoryID,
+		Name:          record.Name,
+		SizeBytes:     record.SizeBytes,
+		MIMEType:      record.MIMEType,
+		ManifestID:    record.ManifestID,
+		StorageStatus: record.StorageStatus,
+		ChunkCount:    record.ChunkCount,
+		NewChunks:     record.NewChunks,
+		ReuseChunks:   record.ReuseChunks,
+		DedupRatio:    record.DedupRatio,
+		CreatedAt:     record.CreatedAt,
+		DeletedAt:     record.DeletedAt,
+		StarredAt:     record.StarredAt,
 	}
 }
 

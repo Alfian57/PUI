@@ -237,7 +237,7 @@ export function WorkspaceItemsView({
                             </div>
                             <div className="p-4">
                                 <p className="truncate text-sm font-semibold text-brand-ink">{item.folder.name}</p>
-                                <p className="mt-1 text-xs text-brand-steel">Folder · {formatDate(item.folder.created_at)}</p>
+                                <p className="mt-1 text-xs text-brand-steel">Direktori · {formatDate(item.folder.created_at)}</p>
                                 <FolderActions
                                     folder={item.folder}
                                     mode={mode}
@@ -327,10 +327,10 @@ export function WorkspaceItemsView({
                             </span>
                             <span className="min-w-0">
                                 <span className="block truncate text-sm font-semibold text-brand-ink">{item.folder.name}</span>
-                                <span className="text-xs text-brand-steel lg:hidden">Folder · {formatDate(item.folder.created_at)}</span>
+                                <span className="text-xs text-brand-steel lg:hidden">Direktori · {formatDate(item.folder.created_at)}</span>
                             </span>
                         </span>
-                        <span className="hidden text-sm text-brand-steel lg:block">Folder</span>
+                        <span className="hidden text-sm text-brand-steel lg:block">Direktori</span>
                         <span className="hidden text-sm text-brand-steel lg:block">{formatDate(item.folder.created_at)}</span>
                         <FolderActions
                             folder={item.folder}
@@ -364,11 +364,11 @@ export function WorkspaceItemsView({
                             <div className="min-w-0">
                                 <p className="truncate text-sm font-semibold text-brand-ink">{item.file.name}</p>
                                 <p className="text-xs text-brand-steel lg:hidden">
-                                    File · {formatBytes(item.file.size_bytes)} · {formatDate(item.file.created_at)}
+                                    Berkas · {formatBytes(item.file.size_bytes)} · {formatDate(item.file.created_at)}
                                 </p>
                             </div>
                         </div>
-                        <p className="hidden text-sm text-brand-steel lg:block">File</p>
+                        <p className="hidden text-sm text-brand-steel lg:block">Berkas</p>
                         <p className="hidden text-sm text-brand-steel lg:block">{formatDate(item.file.created_at)}</p>
                         <FileActions
                             file={item.file}

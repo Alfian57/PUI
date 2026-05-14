@@ -73,7 +73,7 @@ export function FilePreviewModal({
             setObjectURL(null);
             if (blobQuery.data.size > TEXT_PREVIEW_LIMIT) {
                 setTextPreview(null);
-                setTextError("File teks terlalu besar untuk ditampilkan langsung.");
+                setTextError("Berkas teks terlalu besar untuk ditampilkan langsung.");
                 return;
             }
 
@@ -124,13 +124,13 @@ export function FilePreviewModal({
                             {file ? getPreviewIcon(file) : <FileText className="h-5 w-5" aria-hidden="true" />}
                         </div>
                         <div className="min-w-0">
-                            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-steel">Preview File</p>
+                            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-steel">Preview Berkas</p>
                             <h2 className="truncate font-display text-xl font-semibold text-brand-ink">
-                                {file?.name ?? "Memuat file..."}
+                                {file?.name ?? "Memuat berkas..."}
                             </h2>
                             {file ? (
                                 <p className="mt-1 text-sm text-brand-steel">
-                                    {file.mime_type || "File"} · {formatBytes(file.size_bytes)}
+                                    {file.mime_type || "Berkas"} · {formatBytes(file.size_bytes)}
                                 </p>
                             ) : null}
                         </div>
@@ -145,7 +145,7 @@ export function FilePreviewModal({
                                 if (file) void onDownload(file);
                             }}
                         >
-                            Download
+                            Unduh
                         </Button>
                         <IconButton label="Tutup preview" icon={<X className="h-4 w-4" aria-hidden="true" />} onClick={onClose} />
                     </div>
@@ -229,7 +229,7 @@ function PreviewPanel({
     }
 
     if (!file) {
-        return <PreviewFallback title="Pilih file" description="Pilih file untuk membuka preview." />;
+        return <PreviewFallback title="Pilih berkas" description="Pilih berkas untuk membuka preview." />;
     }
 
     if (error) {
@@ -246,8 +246,8 @@ function PreviewPanel({
     if (kind === "unsupported") {
         return (
             <PreviewFallback
-                title="Preview belum tersedia untuk jenis file ini"
-                description="File tetap aman tersimpan. Gunakan download untuk membukanya di aplikasi yang sesuai."
+                title="Preview belum tersedia untuk jenis berkas ini"
+                description="Berkas tetap aman tersimpan. Gunakan unduh untuk membukanya di aplikasi yang sesuai."
                 file={file}
                 onDownload={onDownload}
             />
@@ -255,7 +255,7 @@ function PreviewPanel({
     }
 
     if (kind !== "text" && !objectURL) {
-        return <PreviewFallback title="Menyiapkan preview" description="File sedang disiapkan untuk ditampilkan." />;
+        return <PreviewFallback title="Menyiapkan preview" description="Berkas sedang disiapkan untuk ditampilkan." />;
     }
 
     switch (kind) {
@@ -296,7 +296,7 @@ function PreviewPanel({
                 </pre>
             );
         default:
-            return <PreviewFallback title="Preview belum tersedia" description="Gunakan download untuk membuka file." file={file} onDownload={onDownload} />;
+            return <PreviewFallback title="Preview belum tersedia" description="Gunakan unduh untuk membuka berkas." file={file} onDownload={onDownload} />;
     }
 }
 
@@ -322,7 +322,7 @@ function PreviewFallback({ title, description, file, onDownload }: PreviewFallba
                         icon={<Download className="h-4 w-4" aria-hidden="true" />}
                         onClick={() => void onDownload(file)}
                     >
-                        Download file
+                        Unduh berkas
                     </Button>
                 ) : null}
             </div>
@@ -349,33 +349,33 @@ function DetailPanel({ file, lastUploadResult, loading }: DetailPanelProps): JSX
     });
     const manifest: ManifestInfo | null = manifestQuery.data ?? null;
     const locationPath = file?.directory_id
-        ? ["File Saya", ...(breadcrumbQuery.data ?? []).map((directory) => directory.name)].join(" / ")
-        : "File Saya";
+        ? ["Berkas Saya", ...(breadcrumbQuery.data ?? []).map((directory) => directory.name)].join(" / ")
+        : "Berkas Saya";
 
     if (loading) {
         return <div className="h-80 animate-pulse rounded-[1.5rem] bg-gradient-to-r from-white via-brand-sky/80 to-white bg-[length:200%_100%]" />;
     }
 
     if (!file) {
-        return <PreviewFallback title="Tidak ada file dipilih" description="Pilih file untuk melihat detailnya." />;
+        return <PreviewFallback title="Tidak ada berkas dipilih" description="Pilih berkas untuk melihat detailnya." />;
     }
 
     return (
         <section className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
             <div className="rounded-[1.5rem] bg-white p-5 shadow-soft">
-                <p className="font-display text-[11px] uppercase tracking-[0.24em] text-brand-steel">Informasi File</p>
+                <p className="font-display text-[11px] uppercase tracking-[0.24em] text-brand-steel">Informasi Berkas</p>
                 <h3 className="mt-1 font-display text-xl font-semibold text-brand-ink">{file.name}</h3>
                 <dl className="mt-5 grid gap-4 text-sm sm:grid-cols-2">
                     <InfoItem label="Nama" value={file.name} />
                     <InfoItem label="Lokasi" value={breadcrumbQuery.isLoading ? "Memuat lokasi..." : locationPath} wide />
-                    <InfoItem label="Jenis File" value={file.mime_type || "-"} />
+                    <InfoItem label="Jenis Berkas" value={file.mime_type || "-"} />
                     <InfoItem label="Ukuran" value={formatBytes(file.size_bytes)} />
                     <InfoItem label="Dibuat" value={formatDate(file.created_at)} />
                     <InfoItem label="Kode Penyimpanan" value={file.manifest_id} mono wide />
                     {manifest ? (
                         <>
                             <InfoItem label="Kode Verifikasi" value={manifest.file_hash} mono wide />
-                            <InfoItem label="Jumlah Bagian File" value={`${manifest.chunk_count} bagian`} />
+                            <InfoItem label="Jumlah Bagian Berkas" value={`${manifest.chunk_count} bagian`} />
                             <InfoItem label="Dibuat di Penyimpanan" value={formatDate(manifest.created_at)} />
                         </>
                     ) : manifestQuery.isLoading ? (
@@ -391,7 +391,7 @@ function DetailPanel({ file, lastUploadResult, loading }: DetailPanelProps): JSX
                             <MapPin className="h-5 w-5" aria-hidden="true" />
                         </div>
                         <div className="min-w-0">
-                            <p className="text-sm font-semibold text-brand-ink">Lokasi File</p>
+                            <p className="text-sm font-semibold text-brand-ink">Lokasi Berkas</p>
                             <p className="mt-1 break-words text-sm leading-5 text-brand-steel">
                                 {breadcrumbQuery.isLoading ? "Memuat lokasi..." : locationPath}
                             </p>
@@ -415,9 +415,9 @@ function DetailPanel({ file, lastUploadResult, loading }: DetailPanelProps): JSX
 
                 {lastUploadResult ? (
                     <section className="rounded-[1.5rem] border border-brand-amber/40 bg-brand-amber/10 p-4 shadow-soft">
-                        <p className="font-display text-[11px] uppercase tracking-[0.24em] text-brand-steel">Hasil Upload Terakhir</p>
+                        <p className="font-display text-[11px] uppercase tracking-[0.24em] text-brand-steel">Hasil Unggah Terakhir</p>
                         <p className="mt-3 text-sm text-brand-ink">
-                            Efisiensi {(lastUploadResult.dedup_ratio * 100).toFixed(2)}% dengan {lastUploadResult.chunk_count} bagian file.
+                            Efisiensi {(lastUploadResult.dedup_ratio * 100).toFixed(2)}% dengan {lastUploadResult.chunk_count} bagian berkas.
                         </p>
                         <p className="mt-2 break-all font-mono text-xs text-brand-steel">{lastUploadResult.file_hash}</p>
                     </section>

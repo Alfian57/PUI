@@ -8,12 +8,12 @@ import (
 )
 
 // handleLogin godoc
-// @Summary Login
-// @Description Create bearer access token for the active session from email and password
-// @Tags auth
+// @Summary Masuk
+// @Description Membuat bearer access token untuk sesi aktif dari email dan password
+// @Tags autentikasi
 // @Accept json
 // @Produce json
-// @Param payload body dto.LoginRequest true "Login payload"
+// @Param payload body dto.LoginRequest true "Payload masuk"
 // @Success 200 {object} dto.LoginResponse
 // @Failure 400 {object} dto.ErrorResponse
 // @Failure 401 {object} dto.ErrorResponse
@@ -36,12 +36,12 @@ func (a *API) handleLogin(c *gin.Context) {
 }
 
 // handleRegister godoc
-// @Summary Register user
-// @Description Create a new user account with user role
-// @Tags auth
+// @Summary Daftar pengguna
+// @Description Membuat akun pengguna baru dengan peran user
+// @Tags autentikasi
 // @Accept json
 // @Produce json
-// @Param payload body dto.RegisterRequest true "Register payload"
+// @Param payload body dto.RegisterRequest true "Payload pendaftaran"
 // @Success 201 {object} dto.MeResponse
 // @Failure 400 {object} dto.ErrorResponse
 // @Failure 409 {object} dto.ErrorResponse
@@ -66,9 +66,9 @@ func (a *API) handleRegister(c *gin.Context) {
 }
 
 // handleLogout godoc
-// @Summary Logout
-// @Description Revoke current access session
-// @Tags auth
+// @Summary Keluar
+// @Description Mencabut sesi akses saat ini
+// @Tags autentikasi
 // @Security BearerAuth
 // @Produce json
 // @Success 200 {object} dto.OKResponse
@@ -90,9 +90,9 @@ func (a *API) handleLogout(c *gin.Context) {
 }
 
 // handleMe godoc
-// @Summary Current user
-// @Description Return authenticated user profile
-// @Tags auth
+// @Summary Pengguna saat ini
+// @Description Menampilkan profil pengguna terautentikasi
+// @Tags autentikasi
 // @Security BearerAuth
 // @Produce json
 // @Success 200 {object} dto.MeResponse
@@ -111,13 +111,13 @@ func (a *API) handleMe(c *gin.Context) {
 }
 
 // handleUpdateProfile godoc
-// @Summary Update profile
-// @Description Update authenticated user profile and optionally change password
-// @Tags auth
+// @Summary Update profil
+// @Description Memperbarui profil pengguna terautentikasi dan opsional mengganti password
+// @Tags autentikasi
 // @Security BearerAuth
 // @Accept json
 // @Produce json
-// @Param payload body dto.UpdateProfileRequest true "Profile payload"
+// @Param payload body dto.UpdateProfileRequest true "Profil payload"
 // @Success 200 {object} dto.MeResponse
 // @Failure 400 {object} dto.ErrorResponse
 // @Failure 401 {object} dto.ErrorResponse

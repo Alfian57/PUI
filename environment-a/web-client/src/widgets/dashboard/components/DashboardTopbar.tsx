@@ -52,7 +52,7 @@ export function DashboardTopbar({ user, onSelectFile, onMenuClick, onLogout }: D
                         type="text"
                         value={input}
                         onChange={(event) => setInput(event.target.value)}
-                        placeholder="Telusuri file di HashBox"
+                        placeholder="Telusuri berkas di HashBox"
                         className="h-10 w-full rounded-2xl border border-transparent bg-brand-sky/75 px-10 text-sm text-brand-ink outline-none ring-brand-amber transition placeholder:text-brand-steel/70 focus:border-brand-steel/20 focus:bg-white focus:ring-2"
                     />
                     {input ? (
@@ -72,11 +72,11 @@ export function DashboardTopbar({ user, onSelectFile, onMenuClick, onLogout }: D
                     {showResults ? (
                         <div className="absolute left-0 right-0 top-12 z-30 overflow-hidden rounded-3xl border border-brand-steel/15 bg-white shadow-deck">
                             {isLoading ? (
-                                <p className="px-4 py-3 text-sm text-brand-steel">Mencari file...</p>
+                                <p className="px-4 py-3 text-sm text-brand-steel">Mencari berkas...</p>
                             ) : null}
 
                             {!isLoading && results.length === 0 ? (
-                                <p className="px-4 py-3 text-sm text-brand-steel">Tidak ada file yang cocok.</p>
+                                <p className="px-4 py-3 text-sm text-brand-steel">Tidak ada berkas yang cocok.</p>
                             ) : null}
 
                             {results.map((file) => (
@@ -131,7 +131,7 @@ export function DashboardTopbar({ user, onSelectFile, onMenuClick, onLogout }: D
                                 className="mt-2 flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-medium text-brand-steel transition hover:bg-brand-sky hover:text-brand-ink focus:outline-none focus:ring-2 focus:ring-brand-amber/70"
                             >
                                 <UserCircle className="h-4 w-4" aria-hidden="true" />
-                                Profile
+                                Profil
                             </Link>
                             <button
                                 type="button"

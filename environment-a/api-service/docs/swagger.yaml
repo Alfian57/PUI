@@ -84,11 +84,17 @@ definitions:
         type: integer
       active_users:
         type: integer
+      dedup_ratio:
+        type: number
       deleted_items_in_range:
         type: integer
       downloads_in_range:
         type: integer
+      new_chunks:
+        type: integer
       restored_items_in_range:
+        type: integer
+      reuse_chunks:
         type: integer
       starred_actions_in_range:
         type: integer
@@ -97,6 +103,8 @@ definitions:
       starred_folders:
         type: integer
       total_admins:
+        type: integer
+      total_chunks:
         type: integer
       total_users:
         type: integer
@@ -231,6 +239,8 @@ definitions:
       size_bytes:
         type: integer
       starred_at:
+        type: string
+      status_penyimpanan:
         type: string
     type: object
   dto.FileDetailResponse:
@@ -449,24 +459,25 @@ definitions:
     type: object
 info:
   contact: {}
-  description: API service for authentication, directory hierarchy, and immutable
-    file metadata.
+  description: API service untuk autentikasi, hierarki direktori, dan metadata berkas
+    immutable.
   title: HashBox API Service
   version: "1.0"
 paths:
   /activity-logs:
     get:
-      description: List activity logs for current user with optional filters and pagination
+      description: Menampilkan riwayat aktivitas pengguna saat ini dengan filter dan
+        pagination opsional
       parameters:
-      - description: Filter by action
+      - description: Filter berdasarkan aksi
         in: query
         name: action
         type: string
-      - description: Filter by resource type
+      - description: Filter berdasarkan tipe resource
         in: query
         name: resource_type
         type: string
-      - description: Page size (1-200, default 20)
+      - description: Ukuran halaman (1-200, default 20)
         in: query
         name: limit
         type: integer
@@ -495,15 +506,14 @@ paths:
             $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
-      summary: Activity logs
+      summary: Riwayat aktivitas
       tags:
-      - activity
+      - aktivitas
   /admin/analytics:
     get:
-      description: Return aggregate, privacy-safe application analytics for admin
-        users
+      description: Menampilkan analitik aplikasi agregat dan aman privasi untuk admin
       parameters:
-      - description: 'Analytics range: 7d, 30d, or 90d'
+      - description: 'Rentang analitik: 7d, 30d, atau 90d'
         in: query
         name: range
         type: string
@@ -532,17 +542,16 @@ paths:
             $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
-      summary: Admin analytics
+      summary: Analitik admin
       tags:
       - admin
   /auth/login:
     post:
       consumes:
       - application/json
-      description: Create bearer access token for the active session from email and
-        password
+      description: Membuat bearer access token untuk sesi aktif dari email dan password
       parameters:
-      - description: Login payload
+      - description: Payload masuk
         in: body
         name: payload
         required: true
@@ -567,12 +576,12 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
-      summary: Login
+      summary: Masuk
       tags:
-      - auth
+      - autentikasi
   /auth/logout:
     post:
-      description: Revoke current access session
+      description: Mencabut sesi akses saat ini
       produces:
       - application/json
       responses:
@@ -590,12 +599,12 @@ paths:
             $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
-      summary: Logout
+      summary: Keluar
       tags:
-      - auth
+      - autentikasi
   /auth/me:
     get:
-      description: Return authenticated user profile
+      description: Menampilkan profil pengguna terautentikasi
       produces:
       - application/json
       responses:
@@ -609,15 +618,16 @@ paths:
             $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
-      summary: Current user
+      summary: Pengguna saat ini
       tags:
-      - auth
+      - autentikasi
     patch:
       consumes:
       - application/json
-      description: Update authenticated user profile and optionally change password
+      description: Memperbarui profil pengguna terautentikasi dan opsional mengganti
+        password
       parameters:
-      - description: Profile payload
+      - description: Profil payload
         in: body
         name: payload
         required: true
@@ -648,16 +658,16 @@ paths:
             $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
-      summary: Update profile
+      summary: Update profil
       tags:
-      - auth
+      - autentikasi
   /auth/register:
     post:
       consumes:
       - application/json
-      description: Create a new user account with user role
+      description: Membuat akun pengguna baru dengan peran user
       parameters:
-      - description: Register payload
+      - description: Payload pendaftaran
         in: body
         name: payload
         required: true
@@ -682,16 +692,16 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
-      summary: Register user
+      summary: Daftar pengguna
       tags:
-      - auth
+      - autentikasi
   /directories:
     post:
       consumes:
       - application/json
-      description: Create root or nested directory in user namespace
+      description: Membuat direktori root atau direktori bertingkat di ruang pengguna
       parameters:
-      - description: Create directory payload
+      - description: Payload pembuatan direktori
         in: body
         name: payload
         required: true
@@ -726,14 +736,15 @@ paths:
             $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
-      summary: Create directory
+      summary: Buat direktori
       tags:
-      - directories
+      - direktori
   /directories/{id}:
     delete:
-      description: Soft-delete a directory subtree and move it to trash
+      description: Melakukan soft delete pada subtree direktori dan memindahkannya
+        ke Sampah
       parameters:
-      - description: Directory UUID
+      - description: UUID direktori
         in: path
         name: id
         required: true
@@ -763,14 +774,14 @@ paths:
             $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
-      summary: Move directory to trash
+      summary: Pindahkan direktori ke Sampah
       tags:
-      - directories
+      - direktori
   /directories/{id}/breadcrumb:
     get:
-      description: Resolve breadcrumb path for given directory
+      description: Menyusun path breadcrumb untuk direktori tertentu
       parameters:
-      - description: Directory UUID
+      - description: UUID direktori
         in: path
         name: id
         required: true
@@ -800,19 +811,19 @@ paths:
             $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
-      summary: Directory breadcrumb
+      summary: Breadcrumb direktori
       tags:
-      - directories
+      - direktori
   /directories/{id}/files:
     get:
-      description: List files by directory with optional include_deleted=true
+      description: Menampilkan berkas pada direktori dengan opsi include_deleted=true
       parameters:
-      - description: Directory UUID
+      - description: UUID direktori
         in: path
         name: id
         required: true
         type: string
-      - description: Include soft-deleted files
+      - description: Sertakan berkas yang sudah soft delete
         in: query
         name: include_deleted
         type: boolean
@@ -837,14 +848,14 @@ paths:
             $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
-      summary: Directory files
+      summary: Berkas direktori
       tags:
-      - directories
+      - direktori
   /directories/{id}/permanent:
     delete:
-      description: Permanently remove a directory subtree from trash metadata
+      description: Menghapus permanen metadata subtree direktori dari Sampah
       parameters:
-      - description: Directory UUID
+      - description: UUID direktori
         in: path
         name: id
         required: true
@@ -874,14 +885,14 @@ paths:
             $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
-      summary: Permanently delete directory
+      summary: Hapus permanen metadata direktori
       tags:
-      - directories
+      - direktori
   /directories/{id}/restore:
     post:
-      description: Restore a previously deleted directory subtree
+      description: Memulihkan subtree direktori yang sebelumnya dihapus secara logis
       parameters:
-      - description: Directory UUID
+      - description: UUID direktori
         in: path
         name: id
         required: true
@@ -911,14 +922,14 @@ paths:
             $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
-      summary: Restore directory from trash
+      summary: Pulihkan direktori dari Sampah
       tags:
-      - directories
+      - direktori
   /directories/{id}/star:
     delete:
-      description: Remove starred marker from a directory
+      description: Menghapus penanda bintang dari direktori
       parameters:
-      - description: Directory UUID
+      - description: UUID direktori
         in: path
         name: id
         required: true
@@ -948,13 +959,13 @@ paths:
             $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
-      summary: Unstar directory
+      summary: Hapus bintang direktori
       tags:
-      - directories
+      - direktori
     put:
-      description: Mark a directory as starred
+      description: Menandai direktori sebagai berbintang
       parameters:
-      - description: Directory UUID
+      - description: UUID direktori
         in: path
         name: id
         required: true
@@ -984,14 +995,14 @@ paths:
             $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
-      summary: Star directory
+      summary: Tandai bintang direktori
       tags:
-      - directories
+      - direktori
   /directories/tree:
     get:
-      description: List root directories or subtree with root_id query
+      description: Menampilkan direktori root atau subtree berdasarkan root_id
       parameters:
-      - description: Root directory UUID
+      - description: UUID direktori root
         in: query
         name: root_id
         type: string
@@ -1016,19 +1027,19 @@ paths:
             $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
-      summary: Directory tree
+      summary: Pohon direktori
       tags:
-      - directories
+      - direktori
   /files:
     get:
-      description: List root files or files inside a directory when directory_id is
-        provided
+      description: Menampilkan berkas pada Berkas Saya atau di dalam direktori saat
+        directory_id diisi
       parameters:
-      - description: Directory UUID; omit for root files
+      - description: UUID direktori; kosongkan untuk Berkas Saya
         in: query
         name: directory_id
         type: string
-      - description: Include soft-deleted files
+      - description: Sertakan berkas yang sudah soft delete
         in: query
         name: include_deleted
         type: boolean
@@ -1057,19 +1068,20 @@ paths:
             $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
-      summary: List files
+      summary: List berkas
       tags:
-      - files
+      - berkas
     post:
       consumes:
       - multipart/form-data
-      description: Stream multipart file upload to vault-core and persist metadata
+      description: Mengirim stream multipart berkas ke Vault Core dan menyimpan metadata
+        aplikasi
       parameters:
-      - description: Directory UUID; omit for root upload
+      - description: UUID direktori; kosongkan untuk unggah ke Berkas Saya
         in: formData
         name: directory_id
         type: string
-      - description: File payload
+      - description: Payload berkas
         in: formData
         name: file
         required: true
@@ -1111,14 +1123,15 @@ paths:
             $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
-      summary: Upload file
+      summary: Unggah berkas
       tags:
-      - files
+      - berkas
   /files/{id}:
     delete:
-      description: Mark file as deleted without removing physical payload
+      description: Menandai berkas terhapus tanpa menghapus payload fisik di Vault
+        Core
       parameters:
-      - description: File UUID
+      - description: UUID berkas
         in: path
         name: id
         required: true
@@ -1148,13 +1161,14 @@ paths:
             $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
-      summary: Soft delete file
+      summary: Soft delete berkas
       tags:
-      - files
+      - berkas
     get:
-      description: Get file metadata by ID (including soft-deleted files)
+      description: Menampilkan metadata berkas berdasarkan ID, termasuk berkas yang
+        sudah soft delete
       parameters:
-      - description: File UUID
+      - description: UUID berkas
         in: path
         name: id
         required: true
@@ -1184,14 +1198,15 @@ paths:
             $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
-      summary: File detail
+      summary: Detail berkas
       tags:
-      - files
+      - berkas
   /files/{id}/download:
     get:
-      description: Stream file payload from vault-core by file ID
+      description: Merekonstruksi stream berkas dari chunk storage berdasarkan ID
+        berkas
       parameters:
-      - description: File UUID
+      - description: UUID berkas
         in: path
         name: id
         required: true
@@ -1200,7 +1215,7 @@ paths:
       - application/octet-stream
       responses:
         "200":
-          description: File stream
+          description: Berkas stream
           schema:
             type: string
         "400":
@@ -1225,14 +1240,15 @@ paths:
             $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
-      summary: Download file
+      summary: Unduh berkas
       tags:
-      - files
+      - berkas
   /files/{id}/manifest:
     get:
-      description: Get immutable manifest details from vault-core for a file
+      description: Menampilkan detail manifest immutable dari Vault Core untuk sebuah
+        berkas
       parameters:
-      - description: File UUID
+      - description: UUID berkas
         in: path
         name: id
         required: true
@@ -1262,14 +1278,15 @@ paths:
             $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
-      summary: File manifest info
+      summary: Info manifest berkas
       tags:
-      - files
+      - berkas
   /files/{id}/permanent:
     delete:
-      description: Permanently remove deleted file metadata from trash
+      description: Menghapus permanen metadata berkas dari Sampah tanpa menghapus
+        chunk fisik atau manifest Vault Core
       parameters:
-      - description: File UUID
+      - description: UUID berkas
         in: path
         name: id
         required: true
@@ -1299,14 +1316,14 @@ paths:
             $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
-      summary: Permanently delete file
+      summary: Hapus permanen metadata berkas
       tags:
-      - files
+      - berkas
   /files/{id}/restore:
     post:
-      description: Restore a previously deleted file
+      description: Memulihkan berkas yang sebelumnya dihapus secara logis
       parameters:
-      - description: File UUID
+      - description: UUID berkas
         in: path
         name: id
         required: true
@@ -1336,14 +1353,14 @@ paths:
             $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
-      summary: Restore file from trash
+      summary: Pulihkan berkas dari Sampah
       tags:
-      - files
+      - berkas
   /files/{id}/star:
     delete:
-      description: Remove starred marker from a file
+      description: Menghapus penanda bintang dari berkas
       parameters:
-      - description: File UUID
+      - description: UUID berkas
         in: path
         name: id
         required: true
@@ -1373,13 +1390,13 @@ paths:
             $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
-      summary: Unstar file
+      summary: Hapus bintang berkas
       tags:
-      - files
+      - berkas
     put:
-      description: Mark a file as starred
+      description: Menandai berkas sebagai berbintang
       parameters:
-      - description: File UUID
+      - description: UUID berkas
         in: path
         name: id
         required: true
@@ -1409,28 +1426,28 @@ paths:
             $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
-      summary: Star file
+      summary: Tandai bintang berkas
       tags:
-      - files
+      - berkas
   /files/search:
     get:
-      description: Search file metadata by query in user namespace with optional filters
-        and pagination
+      description: Mencari metadata berkas milik pengguna dengan filter dan pagination
+        opsional
       parameters:
-      - description: Search keyword (min 2 chars)
+      - description: Kata kunci pencarian, minimal 2 karakter
         in: query
         name: q
         required: true
         type: string
-      - description: Directory UUID
+      - description: UUID direktori
         in: query
         name: directory_id
         type: string
-      - description: Include soft-deleted files
+      - description: Sertakan berkas yang sudah soft delete
         in: query
         name: include_deleted
         type: boolean
-      - description: Page size (1-200, default 20)
+      - description: Ukuran halaman (1-200, default 20)
         in: query
         name: limit
         type: integer
@@ -1463,9 +1480,9 @@ paths:
             $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
-      summary: Search files
+      summary: Cari berkas
       tags:
-      - files
+      - berkas
   /health:
     get:
       description: Public liveness probe for API service
@@ -1482,7 +1499,7 @@ paths:
       - system
   /starred:
     get:
-      description: List user's starred files and directories
+      description: Menampilkan berkas dan direktori berbintang milik pengguna
       produces:
       - application/json
       responses:
@@ -1500,7 +1517,7 @@ paths:
             $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
-      summary: Starred items
+      summary: Item berbintang
       tags:
       - workspace
   /status:
@@ -1519,7 +1536,8 @@ paths:
       - system
   /trash:
     get:
-      description: List user's deleted files and directory trash roots
+      description: Menampilkan berkas dan root direktori yang dihapus secara logis
+        oleh pengguna
       produces:
       - application/json
       responses:
@@ -1537,7 +1555,7 @@ paths:
             $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
-      summary: Trash
+      summary: Sampah
       tags:
       - workspace
 securityDefinitions:

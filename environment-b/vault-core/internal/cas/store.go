@@ -110,6 +110,10 @@ func (s *Store) ProcessUpload(ctx context.Context, fileName string, reader io.Re
 		return UploadCommitResult{}, fmt.Errorf("split upload stream: %w", err)
 	}
 
+	if totalSize == 0 {
+		return UploadCommitResult{}, fmt.Errorf("%w: berkas kosong tidak dapat dikomit", ErrInvalidUpload)
+	}
+
 	fileHash := hex.EncodeToString(fileHasher.Sum(nil))
 	manifest := ManifestRecord{
 		ManifestID:     fileHash,
@@ -260,73 +264,6 @@ func (s *Store) GetChunk(ctx context.Context, chunkHash string) (ChunkRecord, bo
 	}
 
 	return out, true, nil
-}
-
-func (s *Store) OpenObjectForDownload(ctx context.Context, manifestID string) (*os.File, ManifestRecord, error) {
-	manifest, err := s.GetManifest(ctx, manifestID)
-	if err != nil {
-		return nil, ManifestRecord{}, err
-	}
-
-	tempFile, err := os.CreateTemp("", "pui-vault-download-*.bin")
-	if err != nil {
-		return nil, ManifestRecord{}, fmt.Errorf("create temp object file: %w", err)
-	}
-
-	cleanup := func() {
-		_ = tempFile.Close()
-		_ = os.Remove(tempFile.Name())
-	}
-
-	hasher := blake3.New()
-	multiWriter := io.MultiWriter(tempFile, hasher)
-	var totalSize int64
-
-	for _, chunkHash := range manifest.ChunkHashes {
-		if err := contextErr(ctx); err != nil {
-			cleanup()
-			return nil, ManifestRecord{}, err
-		}
-
-		_, chunkAbsolutePath, err := s.chunkPaths(chunkHash)
-		if err != nil {
-			cleanup()
-			return nil, ManifestRecord{}, fmt.Errorf("resolve chunk path %s: %w", chunkHash, err)
-		}
-
-		chunkFile, err := os.Open(chunkAbsolutePath)
-		if err != nil {
-			cleanup()
-			return nil, ManifestRecord{}, fmt.Errorf("open chunk %s: %w", chunkHash, err)
-		}
-
-		written, copyErr := io.Copy(multiWriter, chunkFile)
-		_ = chunkFile.Close()
-		if copyErr != nil {
-			cleanup()
-			return nil, ManifestRecord{}, fmt.Errorf("copy chunk %s: %w", chunkHash, copyErr)
-		}
-
-		totalSize += written
-	}
-
-	if totalSize != manifest.TotalSizeBytes {
-		cleanup()
-		return nil, ManifestRecord{}, fmt.Errorf("reconstructed size mismatch")
-	}
-
-	computedHash := hex.EncodeToString(hasher.Sum(nil))
-	if !strings.EqualFold(computedHash, manifest.FileHash) {
-		cleanup()
-		return nil, ManifestRecord{}, fmt.Errorf("reconstructed hash mismatch")
-	}
-
-	if _, err := tempFile.Seek(0, io.SeekStart); err != nil {
-		cleanup()
-		return nil, ManifestRecord{}, fmt.Errorf("rewind temp object file: %w", err)
-	}
-
-	return tempFile, manifest, nil
 }
 
 func (s *Store) touchChunk(ctx context.Context, chunkHash string, chunkBytes []byte) (bool, error) {

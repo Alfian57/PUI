@@ -22,30 +22,30 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "List activity logs for current user with optional filters and pagination",
+                "description": "Menampilkan riwayat aktivitas pengguna saat ini dengan filter dan pagination opsional",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "activity"
+                    "aktivitas"
                 ],
-                "summary": "Activity logs",
+                "summary": "Riwayat aktivitas",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Filter by action",
+                        "description": "Filter berdasarkan aksi",
                         "name": "action",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Filter by resource type",
+                        "description": "Filter berdasarkan tipe resource",
                         "name": "resource_type",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "Page size (1-200, default 20)",
+                        "description": "Ukuran halaman (1-200, default 20)",
                         "name": "limit",
                         "in": "query"
                     },
@@ -91,18 +91,18 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Return aggregate, privacy-safe application analytics for admin users",
+                "description": "Menampilkan analitik aplikasi agregat dan aman privasi untuk admin",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "admin"
                 ],
-                "summary": "Admin analytics",
+                "summary": "Analitik admin",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Analytics range: 7d, 30d, or 90d",
+                        "description": "Rentang analitik: 7d, 30d, atau 90d",
                         "name": "range",
                         "in": "query"
                     }
@@ -143,7 +143,7 @@ const docTemplate = `{
         },
         "/auth/login": {
             "post": {
-                "description": "Create bearer access token for the active session from email and password",
+                "description": "Membuat bearer access token untuk sesi aktif dari email dan password",
                 "consumes": [
                     "application/json"
                 ],
@@ -151,12 +151,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "auth"
+                    "autentikasi"
                 ],
-                "summary": "Login",
+                "summary": "Masuk",
                 "parameters": [
                     {
-                        "description": "Login payload",
+                        "description": "Payload masuk",
                         "name": "payload",
                         "in": "body",
                         "required": true,
@@ -200,14 +200,14 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Revoke current access session",
+                "description": "Mencabut sesi akses saat ini",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "auth"
+                    "autentikasi"
                 ],
-                "summary": "Logout",
+                "summary": "Keluar",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -237,14 +237,14 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Return authenticated user profile",
+                "description": "Menampilkan profil pengguna terautentikasi",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "auth"
+                    "autentikasi"
                 ],
-                "summary": "Current user",
+                "summary": "Pengguna saat ini",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -266,7 +266,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Update authenticated user profile and optionally change password",
+                "description": "Memperbarui profil pengguna terautentikasi dan opsional mengganti password",
                 "consumes": [
                     "application/json"
                 ],
@@ -274,12 +274,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "auth"
+                    "autentikasi"
                 ],
-                "summary": "Update profile",
+                "summary": "Update profil",
                 "parameters": [
                     {
-                        "description": "Profile payload",
+                        "description": "Profil payload",
                         "name": "payload",
                         "in": "body",
                         "required": true,
@@ -324,7 +324,7 @@ const docTemplate = `{
         },
         "/auth/register": {
             "post": {
-                "description": "Create a new user account with user role",
+                "description": "Membuat akun pengguna baru dengan peran user",
                 "consumes": [
                     "application/json"
                 ],
@@ -332,12 +332,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "auth"
+                    "autentikasi"
                 ],
-                "summary": "Register user",
+                "summary": "Daftar pengguna",
                 "parameters": [
                     {
-                        "description": "Register payload",
+                        "description": "Payload pendaftaran",
                         "name": "payload",
                         "in": "body",
                         "required": true,
@@ -381,7 +381,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Create root or nested directory in user namespace",
+                "description": "Membuat direktori root atau direktori bertingkat di ruang pengguna",
                 "consumes": [
                     "application/json"
                 ],
@@ -389,12 +389,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "directories"
+                    "direktori"
                 ],
-                "summary": "Create directory",
+                "summary": "Buat direktori",
                 "parameters": [
                     {
-                        "description": "Create directory payload",
+                        "description": "Payload pembuatan direktori",
                         "name": "payload",
                         "in": "body",
                         "required": true,
@@ -450,18 +450,18 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "List root directories or subtree with root_id query",
+                "description": "Menampilkan direktori root atau subtree berdasarkan root_id",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "directories"
+                    "direktori"
                 ],
-                "summary": "Directory tree",
+                "summary": "Pohon direktori",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Root directory UUID",
+                        "description": "UUID direktori root",
                         "name": "root_id",
                         "in": "query"
                     }
@@ -501,18 +501,18 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Soft-delete a directory subtree and move it to trash",
+                "description": "Melakukan soft delete pada subtree direktori dan memindahkannya ke Sampah",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "directories"
+                    "direktori"
                 ],
-                "summary": "Move directory to trash",
+                "summary": "Pindahkan direktori ke Sampah",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Directory UUID",
+                        "description": "UUID direktori",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -559,18 +559,18 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Resolve breadcrumb path for given directory",
+                "description": "Menyusun path breadcrumb untuk direktori tertentu",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "directories"
+                    "direktori"
                 ],
-                "summary": "Directory breadcrumb",
+                "summary": "Breadcrumb direktori",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Directory UUID",
+                        "description": "UUID direktori",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -617,25 +617,25 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "List files by directory with optional include_deleted=true",
+                "description": "Menampilkan berkas pada direktori dengan opsi include_deleted=true",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "directories"
+                    "direktori"
                 ],
-                "summary": "Directory files",
+                "summary": "Berkas direktori",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Directory UUID",
+                        "description": "UUID direktori",
                         "name": "id",
                         "in": "path",
                         "required": true
                     },
                     {
                         "type": "boolean",
-                        "description": "Include soft-deleted files",
+                        "description": "Sertakan berkas yang sudah soft delete",
                         "name": "include_deleted",
                         "in": "query"
                     }
@@ -675,18 +675,18 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Permanently remove a directory subtree from trash metadata",
+                "description": "Menghapus permanen metadata subtree direktori dari Sampah",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "directories"
+                    "direktori"
                 ],
-                "summary": "Permanently delete directory",
+                "summary": "Hapus permanen metadata direktori",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Directory UUID",
+                        "description": "UUID direktori",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -733,18 +733,18 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Restore a previously deleted directory subtree",
+                "description": "Memulihkan subtree direktori yang sebelumnya dihapus secara logis",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "directories"
+                    "direktori"
                 ],
-                "summary": "Restore directory from trash",
+                "summary": "Pulihkan direktori dari Sampah",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Directory UUID",
+                        "description": "UUID direktori",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -791,18 +791,18 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Mark a directory as starred",
+                "description": "Menandai direktori sebagai berbintang",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "directories"
+                    "direktori"
                 ],
-                "summary": "Star directory",
+                "summary": "Tandai bintang direktori",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Directory UUID",
+                        "description": "UUID direktori",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -847,18 +847,18 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Remove starred marker from a directory",
+                "description": "Menghapus penanda bintang dari direktori",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "directories"
+                    "direktori"
                 ],
-                "summary": "Unstar directory",
+                "summary": "Hapus bintang direktori",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Directory UUID",
+                        "description": "UUID direktori",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -905,24 +905,24 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "List root files or files inside a directory when directory_id is provided",
+                "description": "Menampilkan berkas pada Berkas Saya atau di dalam direktori saat directory_id diisi",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "files"
+                    "berkas"
                 ],
-                "summary": "List files",
+                "summary": "List berkas",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Directory UUID; omit for root files",
+                        "description": "UUID direktori; kosongkan untuk Berkas Saya",
                         "name": "directory_id",
                         "in": "query"
                     },
                     {
                         "type": "boolean",
-                        "description": "Include soft-deleted files",
+                        "description": "Sertakan berkas yang sudah soft delete",
                         "name": "include_deleted",
                         "in": "query"
                     }
@@ -966,7 +966,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Stream multipart file upload to vault-core and persist metadata",
+                "description": "Mengirim stream multipart berkas ke Vault Core dan menyimpan metadata aplikasi",
                 "consumes": [
                     "multipart/form-data"
                 ],
@@ -974,19 +974,19 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "files"
+                    "berkas"
                 ],
-                "summary": "Upload file",
+                "summary": "Unggah berkas",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Directory UUID; omit for root upload",
+                        "description": "UUID direktori; kosongkan untuk unggah ke Berkas Saya",
                         "name": "directory_id",
                         "in": "formData"
                     },
                     {
                         "type": "file",
-                        "description": "File payload",
+                        "description": "Payload berkas",
                         "name": "file",
                         "in": "formData",
                         "required": true
@@ -1051,37 +1051,37 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Search file metadata by query in user namespace with optional filters and pagination",
+                "description": "Mencari metadata berkas milik pengguna dengan filter dan pagination opsional",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "files"
+                    "berkas"
                 ],
-                "summary": "Search files",
+                "summary": "Cari berkas",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Search keyword (min 2 chars)",
+                        "description": "Kata kunci pencarian, minimal 2 karakter",
                         "name": "q",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "Directory UUID",
+                        "description": "UUID direktori",
                         "name": "directory_id",
                         "in": "query"
                     },
                     {
                         "type": "boolean",
-                        "description": "Include soft-deleted files",
+                        "description": "Sertakan berkas yang sudah soft delete",
                         "name": "include_deleted",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "Page size (1-200, default 20)",
+                        "description": "Ukuran halaman (1-200, default 20)",
                         "name": "limit",
                         "in": "query"
                     },
@@ -1133,18 +1133,18 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Get file metadata by ID (including soft-deleted files)",
+                "description": "Menampilkan metadata berkas berdasarkan ID, termasuk berkas yang sudah soft delete",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "files"
+                    "berkas"
                 ],
-                "summary": "File detail",
+                "summary": "Detail berkas",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "File UUID",
+                        "description": "UUID berkas",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -1189,18 +1189,18 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Mark file as deleted without removing physical payload",
+                "description": "Menandai berkas terhapus tanpa menghapus payload fisik di Vault Core",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "files"
+                    "berkas"
                 ],
-                "summary": "Soft delete file",
+                "summary": "Soft delete berkas",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "File UUID",
+                        "description": "UUID berkas",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -1247,18 +1247,18 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Stream file payload from vault-core by file ID",
+                "description": "Merekonstruksi stream berkas dari chunk storage berdasarkan ID berkas",
                 "produces": [
                     "application/octet-stream"
                 ],
                 "tags": [
-                    "files"
+                    "berkas"
                 ],
-                "summary": "Download file",
+                "summary": "Unduh berkas",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "File UUID",
+                        "description": "UUID berkas",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -1266,7 +1266,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "File stream",
+                        "description": "Berkas stream",
                         "schema": {
                             "type": "string"
                         }
@@ -1311,18 +1311,18 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Get immutable manifest details from vault-core for a file",
+                "description": "Menampilkan detail manifest immutable dari Vault Core untuk sebuah berkas",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "files"
+                    "berkas"
                 ],
-                "summary": "File manifest info",
+                "summary": "Info manifest berkas",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "File UUID",
+                        "description": "UUID berkas",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -1369,18 +1369,18 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Permanently remove deleted file metadata from trash",
+                "description": "Menghapus permanen metadata berkas dari Sampah tanpa menghapus chunk fisik atau manifest Vault Core",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "files"
+                    "berkas"
                 ],
-                "summary": "Permanently delete file",
+                "summary": "Hapus permanen metadata berkas",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "File UUID",
+                        "description": "UUID berkas",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -1427,18 +1427,18 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Restore a previously deleted file",
+                "description": "Memulihkan berkas yang sebelumnya dihapus secara logis",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "files"
+                    "berkas"
                 ],
-                "summary": "Restore file from trash",
+                "summary": "Pulihkan berkas dari Sampah",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "File UUID",
+                        "description": "UUID berkas",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -1485,18 +1485,18 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Mark a file as starred",
+                "description": "Menandai berkas sebagai berbintang",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "files"
+                    "berkas"
                 ],
-                "summary": "Star file",
+                "summary": "Tandai bintang berkas",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "File UUID",
+                        "description": "UUID berkas",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -1541,18 +1541,18 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Remove starred marker from a file",
+                "description": "Menghapus penanda bintang dari berkas",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "files"
+                    "berkas"
                 ],
-                "summary": "Unstar file",
+                "summary": "Hapus bintang berkas",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "File UUID",
+                        "description": "UUID berkas",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -1620,14 +1620,14 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "List user's starred files and directories",
+                "description": "Menampilkan berkas dan direktori berbintang milik pengguna",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "workspace"
                 ],
-                "summary": "Starred items",
+                "summary": "Item berbintang",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -1678,14 +1678,14 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "List user's deleted files and directory trash roots",
+                "description": "Menampilkan berkas dan root direktori yang dihapus secara logis oleh pengguna",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "workspace"
                 ],
-                "summary": "Trash",
+                "summary": "Sampah",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -1838,13 +1838,22 @@ const docTemplate = `{
                 "active_users": {
                     "type": "integer"
                 },
+                "dedup_ratio": {
+                    "type": "number"
+                },
                 "deleted_items_in_range": {
                     "type": "integer"
                 },
                 "downloads_in_range": {
                     "type": "integer"
                 },
+                "new_chunks": {
+                    "type": "integer"
+                },
                 "restored_items_in_range": {
+                    "type": "integer"
+                },
+                "reuse_chunks": {
                     "type": "integer"
                 },
                 "starred_actions_in_range": {
@@ -1857,6 +1866,9 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "total_admins": {
+                    "type": "integer"
+                },
+                "total_chunks": {
                     "type": "integer"
                 },
                 "total_users": {
@@ -2062,6 +2074,9 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "starred_at": {
+                    "type": "string"
+                },
+                "status_penyimpanan": {
                     "type": "string"
                 }
             }
@@ -2407,7 +2422,7 @@ var SwaggerInfo = &swag.Spec{
 	BasePath:         "/api/v1",
 	Schemes:          []string{},
 	Title:            "HashBox API Service",
-	Description:      "API service for authentication, directory hierarchy, and immutable file metadata.",
+	Description:      "API service untuk autentikasi, hierarki direktori, dan metadata berkas immutable.",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

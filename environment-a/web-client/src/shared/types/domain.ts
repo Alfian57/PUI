@@ -22,6 +22,7 @@ export type FileRecord = {
   size_bytes: number;
   mime_type: string;
   manifest_id: string;
+  status_penyimpanan: "pending" | "committed" | "failed";
   chunk_count: number;
   new_chunk_count: number;
   reuse_chunk_count: number;

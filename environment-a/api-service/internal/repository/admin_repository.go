@@ -21,35 +21,30 @@ func (r *AdminRepository) Analytics(ctx context.Context, since time.Time) (domai
 	var out domain.AdminAnalytics
 	if err := r.db.WithContext(ctx).Raw(
 		`SELECT
-			(SELECT COUNT(*) FROM users WHERE role = 'user') AS total_users,
-			(SELECT COUNT(*) FROM users WHERE role = 'admin') AS total_admins,
-			(SELECT COUNT(DISTINCT l.user_id) FROM activity_logs l JOIN users u ON u.id = l.user_id WHERE u.role = 'user' AND l.created_at >= ? AND l.action IN ('LOGIN', 'UPLOAD', 'DOWNLOAD', 'CREATE_DIRECTORY', 'DELETE_SOFT', 'DELETE_DIRECTORY_SOFT', 'RESTORE_FILE', 'RESTORE_DIRECTORY')) AS active_users,
-			(SELECT COUNT(*) FROM files f LEFT JOIN directories d ON d.id = f.directory_id WHERE f.deleted_at IS NULL AND (f.directory_id IS NULL OR d.deleted_at IS NULL)) AS active_files,
-			(SELECT COUNT(*) FROM directories WHERE deleted_at IS NULL) AS active_folders,
-			(SELECT COUNT(*) FROM files f LEFT JOIN directories d ON d.id = f.directory_id WHERE f.deleted_at IS NOT NULL AND (f.directory_id IS NULL OR d.deleted_at IS NULL)) AS trash_files,
-			(SELECT COUNT(*) FROM directories d WHERE d.deleted_at IS NOT NULL AND NOT EXISTS (
-				SELECT 1 FROM directory_closure dc JOIN directories a ON a.id = dc.ancestor_id
-				WHERE dc.descendant_id = d.id AND dc.depth > 0 AND a.deleted_at IS NOT NULL
+			(SELECT COUNT(*) FROM users WHERE peran = 'user') AS total_users,
+			(SELECT COUNT(*) FROM users WHERE peran = 'admin') AS total_admins,
+			(SELECT COUNT(DISTINCT l.user_id) FROM activity_logs l JOIN users u ON u.id_pengguna = l.user_id WHERE u.peran = 'user' AND l.created_at >= ? AND l.action IN ('LOGIN', 'UPLOAD', 'DOWNLOAD', 'CREATE_DIRECTORY', 'DELETE_SOFT', 'DELETE_DIRECTORY_SOFT', 'RESTORE_FILE', 'RESTORE_DIRECTORY')) AS active_users,
+			(SELECT COUNT(*) FROM files f LEFT JOIN directories d ON d.id_direktori = f.id_direktori WHERE f.status_penyimpanan = 'committed' AND f.dihapus_pada IS NULL AND (f.id_direktori IS NULL OR d.dihapus_pada IS NULL)) AS active_files,
+			(SELECT COUNT(*) FROM directories WHERE dihapus_pada IS NULL) AS active_folders,
+			(SELECT COUNT(*) FROM files f LEFT JOIN directories d ON d.id_direktori = f.id_direktori WHERE f.status_penyimpanan = 'committed' AND f.dihapus_pada IS NOT NULL AND (f.id_direktori IS NULL OR d.dihapus_pada IS NULL)) AS trash_files,
+			(SELECT COUNT(*) FROM directories d WHERE d.dihapus_pada IS NOT NULL AND NOT EXISTS (
+				SELECT 1 FROM directory_closure dc JOIN directories a ON a.id_direktori = dc.id_induk
+				WHERE dc.id_turunan = d.id_direktori AND dc.kedalaman > 0 AND a.dihapus_pada IS NOT NULL
 			)) AS trash_folders,
-			(SELECT COUNT(*) FROM files f LEFT JOIN directories d ON d.id = f.directory_id WHERE f.deleted_at IS NULL AND (f.directory_id IS NULL OR d.deleted_at IS NULL) AND f.starred_at IS NOT NULL) AS starred_files,
-			(SELECT COUNT(*) FROM directories WHERE deleted_at IS NULL AND starred_at IS NOT NULL) AS starred_folders,
-			COALESCE((SELECT SUM(f.size_bytes) FROM files f LEFT JOIN directories d ON d.id = f.directory_id WHERE f.deleted_at IS NULL AND (f.directory_id IS NULL OR d.deleted_at IS NULL)), 0) AS active_storage_bytes,
-			COALESCE((SELECT SUM(f.size_bytes) FROM files f LEFT JOIN directories d ON d.id = f.directory_id WHERE f.deleted_at IS NOT NULL OR d.deleted_at IS NOT NULL), 0) AS trash_storage_bytes,
-			COALESCE((SELECT SUM(f.chunk_count) FROM files f LEFT JOIN directories d ON d.id = f.directory_id WHERE f.deleted_at IS NULL AND (f.directory_id IS NULL OR d.deleted_at IS NULL)), 0) AS total_chunks,
-			COALESCE((SELECT SUM(f.new_chunk_count) FROM files f LEFT JOIN directories d ON d.id = f.directory_id WHERE f.deleted_at IS NULL AND (f.directory_id IS NULL OR d.deleted_at IS NULL)), 0) AS new_chunks,
-			COALESCE((SELECT SUM(f.reuse_chunk_count) FROM files f LEFT JOIN directories d ON d.id = f.directory_id WHERE f.deleted_at IS NULL AND (f.directory_id IS NULL OR d.deleted_at IS NULL)), 0) AS reuse_chunks,
-			COALESCE((SELECT CASE WHEN SUM(f.chunk_count) > 0 THEN SUM(f.reuse_chunk_count)::float / SUM(f.chunk_count) ELSE 0 END FROM files f LEFT JOIN directories d ON d.id = f.directory_id WHERE f.deleted_at IS NULL AND (f.directory_id IS NULL OR d.deleted_at IS NULL)), 0) AS dedup_ratio,
+			(SELECT COUNT(*) FROM files f LEFT JOIN directories d ON d.id_direktori = f.id_direktori WHERE f.status_penyimpanan = 'committed' AND f.dihapus_pada IS NULL AND (f.id_direktori IS NULL OR d.dihapus_pada IS NULL) AND f.dibintangi_pada IS NOT NULL) AS starred_files,
+			(SELECT COUNT(*) FROM directories WHERE dihapus_pada IS NULL AND dibintang_pada IS NOT NULL) AS starred_folders,
+			COALESCE((SELECT SUM(f.ukuran) FROM files f LEFT JOIN directories d ON d.id_direktori = f.id_direktori WHERE f.status_penyimpanan = 'committed' AND f.dihapus_pada IS NULL AND (f.id_direktori IS NULL OR d.dihapus_pada IS NULL)), 0) AS active_storage_bytes,
+			COALESCE((SELECT SUM(f.ukuran) FROM files f LEFT JOIN directories d ON d.id_direktori = f.id_direktori WHERE f.status_penyimpanan = 'committed' AND (f.dihapus_pada IS NOT NULL OR d.dihapus_pada IS NOT NULL)), 0) AS trash_storage_bytes,
+			COALESCE((SELECT SUM(f.chunk_count) FROM files f LEFT JOIN directories d ON d.id_direktori = f.id_direktori WHERE f.status_penyimpanan = 'committed' AND f.dihapus_pada IS NULL AND (f.id_direktori IS NULL OR d.dihapus_pada IS NULL)), 0) AS total_chunks,
+			COALESCE((SELECT SUM(f.new_chunk_count) FROM files f LEFT JOIN directories d ON d.id_direktori = f.id_direktori WHERE f.status_penyimpanan = 'committed' AND f.dihapus_pada IS NULL AND (f.id_direktori IS NULL OR d.dihapus_pada IS NULL)), 0) AS new_chunks,
+			COALESCE((SELECT SUM(f.reuse_chunk_count) FROM files f LEFT JOIN directories d ON d.id_direktori = f.id_direktori WHERE f.status_penyimpanan = 'committed' AND f.dihapus_pada IS NULL AND (f.id_direktori IS NULL OR d.dihapus_pada IS NULL)), 0) AS reuse_chunks,
+			COALESCE((SELECT CASE WHEN SUM(f.chunk_count) > 0 THEN SUM(f.reuse_chunk_count)::float / SUM(f.chunk_count) ELSE 0 END FROM files f LEFT JOIN directories d ON d.id_direktori = f.id_direktori WHERE f.status_penyimpanan = 'committed' AND f.dihapus_pada IS NULL AND (f.id_direktori IS NULL OR d.dihapus_pada IS NULL)), 0) AS dedup_ratio,
 			(SELECT COUNT(*) FROM activity_logs WHERE created_at >= ? AND action = 'UPLOAD') AS uploads_in_range,
 			(SELECT COUNT(*) FROM activity_logs WHERE created_at >= ? AND action = 'DOWNLOAD') AS downloads_in_range,
 			(SELECT COUNT(*) FROM activity_logs WHERE created_at >= ? AND action IN ('DELETE_SOFT', 'DELETE_DIRECTORY_SOFT', 'DELETE_FILE_PERMANENT', 'DELETE_DIRECTORY_PERMANENT')) AS deleted_items_in_range,
 			(SELECT COUNT(*) FROM activity_logs WHERE created_at >= ? AND action IN ('RESTORE_FILE', 'RESTORE_DIRECTORY')) AS restored_items_in_range,
 			(SELECT COUNT(*) FROM activity_logs WHERE created_at >= ? AND action IN ('STAR_FILE', 'UNSTAR_FILE', 'STAR_DIRECTORY', 'UNSTAR_DIRECTORY')) AS starred_actions_in_range`,
-		since,
-		since,
-		since,
-		since,
-		since,
-		since,
+		since, since, since, since, since, since,
 	).Scan(&out.Summary).Error; err != nil {
 		return domain.AdminAnalytics{}, fmt.Errorf("query admin summary: %w", err)
 	}
@@ -83,10 +78,10 @@ func (r *AdminRepository) Analytics(ctx context.Context, since time.Time) (domai
 				ELSE f.mime_type
 			END AS type,
 			COUNT(*) AS count,
-			COALESCE(SUM(f.size_bytes), 0) AS total_bytes
+			COALESCE(SUM(f.ukuran), 0) AS total_bytes
 		FROM files f
-		LEFT JOIN directories d ON d.id = f.directory_id
-		WHERE f.deleted_at IS NULL AND (f.directory_id IS NULL OR d.deleted_at IS NULL)
+		LEFT JOIN directories d ON d.id_direktori = f.id_direktori
+		WHERE f.status_penyimpanan = 'committed' AND f.dihapus_pada IS NULL AND (f.id_direktori IS NULL OR d.dihapus_pada IS NULL)
 		GROUP BY type
 		ORDER BY count DESC, type
 		LIMIT 12`,
@@ -98,15 +93,15 @@ func (r *AdminRepository) Analytics(ctx context.Context, since time.Time) (domai
 		`SELECT bucket, COUNT(*) AS count
 		FROM (
 			SELECT CASE
-				WHEN size_bytes < 1048576 THEN '< 1 MB'
-				WHEN size_bytes < 10485760 THEN '1-10 MB'
-				WHEN size_bytes < 104857600 THEN '10-100 MB'
-				WHEN size_bytes < 536870912 THEN '100-512 MB'
+				WHEN f.ukuran < 1048576 THEN '< 1 MB'
+				WHEN f.ukuran < 10485760 THEN '1-10 MB'
+				WHEN f.ukuran < 104857600 THEN '10-100 MB'
+				WHEN f.ukuran < 536870912 THEN '100-512 MB'
 				ELSE '> 512 MB'
 			END AS bucket
 			FROM files f
-			LEFT JOIN directories d ON d.id = f.directory_id
-			WHERE f.deleted_at IS NULL AND (f.directory_id IS NULL OR d.deleted_at IS NULL)
+			LEFT JOIN directories d ON d.id_direktori = f.id_direktori
+			WHERE f.status_penyimpanan = 'committed' AND f.dihapus_pada IS NULL AND (f.id_direktori IS NULL OR d.dihapus_pada IS NULL)
 		) buckets
 		GROUP BY bucket
 		ORDER BY CASE bucket
@@ -121,16 +116,16 @@ func (r *AdminRepository) Analytics(ctx context.Context, since time.Time) (domai
 	}
 
 	if err := r.db.WithContext(ctx).Raw(
-		`SELECT depth, COUNT(*) AS count
+		`SELECT kedalaman AS depth, COUNT(*) AS count
 		FROM (
-			SELECT d.id, COALESCE(MAX(dc.depth), 0) AS depth
+			SELECT d.id_direktori, COALESCE(MAX(dc.kedalaman), 0) AS kedalaman
 			FROM directories d
-			JOIN directory_closure dc ON dc.descendant_id = d.id
-			WHERE d.deleted_at IS NULL
-			GROUP BY d.id
+			JOIN directory_closure dc ON dc.id_turunan = d.id_direktori
+			WHERE d.dihapus_pada IS NULL
+			GROUP BY d.id_direktori
 		) directory_depths
-		GROUP BY depth
-		ORDER BY depth`,
+		GROUP BY kedalaman
+		ORDER BY kedalaman`,
 	).Scan(&out.Depths).Error; err != nil {
 		return domain.AdminAnalytics{}, fmt.Errorf("query directory depths: %w", err)
 	}

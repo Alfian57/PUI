@@ -13,7 +13,7 @@ import (
 
 // @title HashBox API Service
 // @version 1.0
-// @description API service for authentication, directory hierarchy, and immutable file metadata.
+// @description API service untuk autentikasi, hierarki direktori, dan metadata berkas immutable.
 // @BasePath /api/v1
 // @securityDefinitions.apikey BearerAuth
 // @in header

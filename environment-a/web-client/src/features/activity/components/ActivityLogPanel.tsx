@@ -30,41 +30,41 @@ const ACTION_LABELS: Record<string, string> = {
     LOGIN: "Masuk ke akun",
     REGISTER: "Akun dibuat",
     LOGOUT: "Keluar dari akun",
-    UPLOAD: "Upload file",
-    UPLOAD_FAILED: "Upload gagal",
-    DOWNLOAD: "Download file",
-    DELETE_SOFT: "File dihapus",
-    DELETE_FILE_PERMANENT: "File dihapus permanen",
-    DELETE_DIRECTORY_SOFT: "Folder dihapus",
-    DELETE_DIRECTORY_PERMANENT: "Folder dihapus permanen",
-    RESTORE_FILE: "File dipulihkan",
-    RESTORE_DIRECTORY: "Folder dipulihkan",
-    STAR_FILE: "File diberi bintang",
-    UNSTAR_FILE: "Bintang file dihapus",
-    STAR_DIRECTORY: "Folder diberi bintang",
-    UNSTAR_DIRECTORY: "Bintang folder dihapus",
-    CREATE_DIRECTORY: "Folder dibuat",
-    UPDATE_PROFILE: "Profile diperbarui"
+    UPLOAD: "Unggah berkas",
+    UPLOAD_FAILED: "Unggah gagal",
+    DOWNLOAD: "Unduh berkas",
+    DELETE_SOFT: "Berkas dihapus",
+    DELETE_FILE_PERMANENT: "Berkas dihapus permanen",
+    DELETE_DIRECTORY_SOFT: "Direktori dihapus",
+    DELETE_DIRECTORY_PERMANENT: "Direktori dihapus permanen",
+    RESTORE_FILE: "Berkas dipulihkan",
+    RESTORE_DIRECTORY: "Direktori dipulihkan",
+    STAR_FILE: "Berkas diberi bintang",
+    UNSTAR_FILE: "Bintang berkas dihapus",
+    STAR_DIRECTORY: "Direktori diberi bintang",
+    UNSTAR_DIRECTORY: "Bintang direktori dihapus",
+    CREATE_DIRECTORY: "Direktori dibuat",
+    UPDATE_PROFILE: "Profil diperbarui"
 };
 
 const ACTION_DESCRIPTIONS: Record<string, string> = {
     LOGIN: "Sesi HashBox berhasil dimulai.",
     REGISTER: "Akun pengguna baru berhasil dibuat.",
     LOGOUT: "Sesi HashBox ditutup.",
-    UPLOAD: "File baru ditambahkan ke penyimpanan.",
-    UPLOAD_FAILED: "Upload file tidak berhasil diproses.",
-    DOWNLOAD: "File diunduh dari HashBox.",
-    DELETE_SOFT: "File dipindahkan ke Sampah.",
-    DELETE_FILE_PERMANENT: "File dihapus permanen dari Sampah.",
-    DELETE_DIRECTORY_SOFT: "Folder dipindahkan ke Sampah.",
-    DELETE_DIRECTORY_PERMANENT: "Folder dihapus permanen dari Sampah.",
-    RESTORE_FILE: "File dikembalikan dari Sampah.",
-    RESTORE_DIRECTORY: "Folder dikembalikan dari Sampah.",
-    STAR_FILE: "File ditambahkan ke daftar Berbintang.",
-    UNSTAR_FILE: "File dihapus dari daftar Berbintang.",
-    STAR_DIRECTORY: "Folder ditambahkan ke daftar Berbintang.",
-    UNSTAR_DIRECTORY: "Folder dihapus dari daftar Berbintang.",
-    CREATE_DIRECTORY: "Folder baru ditambahkan.",
+    UPLOAD: "Berkas baru ditambahkan ke penyimpanan.",
+    UPLOAD_FAILED: "Unggah berkas tidak berhasil diproses.",
+    DOWNLOAD: "Berkas diunduh dari HashBox.",
+    DELETE_SOFT: "Berkas dipindahkan ke Sampah.",
+    DELETE_FILE_PERMANENT: "Berkas dihapus permanen dari Sampah.",
+    DELETE_DIRECTORY_SOFT: "Direktori dipindahkan ke Sampah.",
+    DELETE_DIRECTORY_PERMANENT: "Direktori dihapus permanen dari Sampah.",
+    RESTORE_FILE: "Berkas dikembalikan dari Sampah.",
+    RESTORE_DIRECTORY: "Direktori dikembalikan dari Sampah.",
+    STAR_FILE: "Berkas ditambahkan ke daftar Berbintang.",
+    UNSTAR_FILE: "Berkas dihapus dari daftar Berbintang.",
+    STAR_DIRECTORY: "Direktori ditambahkan ke daftar Berbintang.",
+    UNSTAR_DIRECTORY: "Direktori dihapus dari daftar Berbintang.",
+    CREATE_DIRECTORY: "Direktori baru ditambahkan.",
     UPDATE_PROFILE: "Informasi akun diperbarui."
 };
 
@@ -87,77 +87,77 @@ const ACTION_META: Record<string, { icon: JSX.Element; tone: string; badge: stri
     UPLOAD: {
         icon: <UploadCloud className="h-4 w-4" aria-hidden="true" />,
         tone: "bg-brand-sky text-brand-steel",
-        badge: "File"
+        badge: "Berkas"
     },
     UPLOAD_FAILED: {
         icon: <XCircle className="h-4 w-4" aria-hidden="true" />,
         tone: "bg-brand-coral/10 text-brand-coral",
-        badge: "File"
+        badge: "Berkas"
     },
     DOWNLOAD: {
         icon: <ArrowDownToLine className="h-4 w-4" aria-hidden="true" />,
         tone: "bg-brand-mint text-brand-success",
-        badge: "File"
+        badge: "Berkas"
     },
     DELETE_SOFT: {
         icon: <Trash2 className="h-4 w-4" aria-hidden="true" />,
         tone: "bg-brand-coral/10 text-brand-coral",
-        badge: "File"
+        badge: "Berkas"
     },
     DELETE_FILE_PERMANENT: {
         icon: <Trash2 className="h-4 w-4" aria-hidden="true" />,
         tone: "bg-brand-coral/10 text-brand-coral",
-        badge: "File"
+        badge: "Berkas"
     },
     DELETE_DIRECTORY_SOFT: {
         icon: <Trash2 className="h-4 w-4" aria-hidden="true" />,
         tone: "bg-brand-coral/10 text-brand-coral",
-        badge: "Folder"
+        badge: "Direktori"
     },
     DELETE_DIRECTORY_PERMANENT: {
         icon: <Trash2 className="h-4 w-4" aria-hidden="true" />,
         tone: "bg-brand-coral/10 text-brand-coral",
-        badge: "Folder"
+        badge: "Direktori"
     },
     RESTORE_FILE: {
         icon: <RotateCcw className="h-4 w-4" aria-hidden="true" />,
         tone: "bg-brand-mint text-brand-success",
-        badge: "File"
+        badge: "Berkas"
     },
     RESTORE_DIRECTORY: {
         icon: <RotateCcw className="h-4 w-4" aria-hidden="true" />,
         tone: "bg-brand-mint text-brand-success",
-        badge: "Folder"
+        badge: "Direktori"
     },
     STAR_FILE: {
         icon: <Star className="h-4 w-4" aria-hidden="true" />,
         tone: "bg-brand-amber/15 text-brand-ink",
-        badge: "File"
+        badge: "Berkas"
     },
     UNSTAR_FILE: {
         icon: <Star className="h-4 w-4" aria-hidden="true" />,
         tone: "bg-brand-amber/15 text-brand-ink",
-        badge: "File"
+        badge: "Berkas"
     },
     STAR_DIRECTORY: {
         icon: <Star className="h-4 w-4" aria-hidden="true" />,
         tone: "bg-brand-amber/15 text-brand-ink",
-        badge: "Folder"
+        badge: "Direktori"
     },
     UNSTAR_DIRECTORY: {
         icon: <Star className="h-4 w-4" aria-hidden="true" />,
         tone: "bg-brand-amber/15 text-brand-ink",
-        badge: "Folder"
+        badge: "Direktori"
     },
     CREATE_DIRECTORY: {
         icon: <FolderPlus className="h-4 w-4" aria-hidden="true" />,
         tone: "bg-brand-amber/15 text-brand-ink",
-        badge: "Folder"
+        badge: "Direktori"
     },
     UPDATE_PROFILE: {
         icon: <UserRound className="h-4 w-4" aria-hidden="true" />,
         tone: "bg-brand-sky text-brand-steel",
-        badge: "Profile"
+        badge: "Profil"
     }
 };
 

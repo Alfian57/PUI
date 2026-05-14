@@ -75,12 +75,12 @@ function UserDashboardLayout(): JSX.Element {
     async function handleCreateFolder(name: string, parentID: string | null): Promise<void> {
         try {
             await directories.createFolder(name, parentID);
-            notice.show({ variant: "success", message: "Folder baru berhasil dibuat." });
+            notice.show({ variant: "success", message: "Direktori baru berhasil dibuat." });
             setCreateFolderOpen(false);
         } catch (cause) {
             notice.show({
                 variant: "error",
-                message: cause instanceof Error ? cause.message : "Gagal membuat folder."
+                message: cause instanceof Error ? cause.message : "Gagal membuat direktori."
             });
         }
     }
@@ -89,18 +89,18 @@ function UserDashboardLayout(): JSX.Element {
         if (file.size > MAX_FILE_SIZE) {
             notice.show({
                 variant: "error",
-                message: `File terlalu besar (${(file.size / 1024 / 1024).toFixed(1)} MB). Maksimal 512 MB.`
+                message: `Berkas terlalu besar (${(file.size / 1024 / 1024).toFixed(1)} MB). Maksimal 512 MB.`
             });
             return;
         }
 
         try {
             await files.upload(file);
-            notice.show({ variant: "success", message: "Upload file berhasil diproses." });
+            notice.show({ variant: "success", message: "Unggah berkas berhasil diproses." });
         } catch (cause) {
             notice.show({
                 variant: "error",
-                message: cause instanceof Error ? cause.message : "Upload gagal."
+                message: cause instanceof Error ? cause.message : "Unggah gagal."
             });
         }
     }
@@ -119,9 +119,9 @@ function UserDashboardLayout(): JSX.Element {
 
     async function handleSoftDelete(file: FileRecord): Promise<void> {
         const accepted = await confirm({
-            title: "Hapus file?",
-            description: `File "${file.name}" akan dipindahkan ke Sampah dan masih bisa dipulihkan.`,
-            confirmLabel: "Hapus file",
+            title: "Hapus berkas?",
+            description: `Berkas "${file.name}" akan dipindahkan ke Sampah dan masih bisa dipulihkan.`,
+            confirmLabel: "Hapus berkas",
             variant: "danger"
         });
         if (!accepted) {
@@ -134,15 +134,15 @@ function UserDashboardLayout(): JSX.Element {
         } catch (cause) {
             notice.show({
                 variant: "error",
-                message: cause instanceof Error ? cause.message : "Hapus file gagal."
+                message: cause instanceof Error ? cause.message : "Hapus berkas gagal."
             });
         }
     }
 
     async function handleSoftDeleteFolder(directoryID: string, name: string): Promise<void> {
         const accepted = await confirm({
-            title: "Pindahkan folder ke Sampah?",
-            description: `Folder "${name}" beserta isi di dalamnya akan dipindahkan ke Sampah.`,
+            title: "Pindahkan direktori ke Sampah?",
+            description: `Direktori "${name}" beserta isi di dalamnya akan dipindahkan ke Sampah.`,
             confirmLabel: "Pindahkan",
             variant: "danger"
         });
@@ -152,7 +152,7 @@ function UserDashboardLayout(): JSX.Element {
             await directories.softDelete(directoryID);
             notice.show({ variant: "success", message: `${name} dipindahkan ke Sampah.` });
         } catch (cause) {
-            notice.show({ variant: "error", message: cause instanceof Error ? cause.message : "Hapus folder gagal." });
+            notice.show({ variant: "error", message: cause instanceof Error ? cause.message : "Hapus direktori gagal." });
         }
     }
 
@@ -162,7 +162,7 @@ function UserDashboardLayout(): JSX.Element {
             await files.setStarred(file.id, next);
             notice.show({ variant: "success", message: next ? `${file.name} ditambahkan ke Berbintang.` : `${file.name} dihapus dari Berbintang.` });
         } catch (cause) {
-            notice.show({ variant: "error", message: cause instanceof Error ? cause.message : "Gagal mengubah bintang file." });
+            notice.show({ variant: "error", message: cause instanceof Error ? cause.message : "Gagal mengubah bintang berkas." });
         }
     }
 
@@ -172,7 +172,7 @@ function UserDashboardLayout(): JSX.Element {
             await directories.setStarred(directoryID, next);
             notice.show({ variant: "success", message: next ? `${name} ditambahkan ke Berbintang.` : `${name} dihapus dari Berbintang.` });
         } catch (cause) {
-            notice.show({ variant: "error", message: cause instanceof Error ? cause.message : "Gagal mengubah bintang folder." });
+            notice.show({ variant: "error", message: cause instanceof Error ? cause.message : "Gagal mengubah bintang direktori." });
         }
     }
 
@@ -181,14 +181,14 @@ function UserDashboardLayout(): JSX.Element {
             await files.restore(file.id);
             notice.show({ variant: "success", message: `${file.name} dipulihkan.` });
         } catch (cause) {
-            notice.show({ variant: "error", message: cause instanceof Error ? cause.message : "Pulihkan file gagal." });
+            notice.show({ variant: "error", message: cause instanceof Error ? cause.message : "Pulihkan berkas gagal." });
         }
     }
 
     async function handleRestoreFolder(directoryID: string, name: string): Promise<void> {
         const accepted = await confirm({
-            title: "Pulihkan folder?",
-            description: `Folder "${name}" beserta isi di dalamnya akan dikembalikan ke File Saya.`,
+            title: "Pulihkan direktori?",
+            description: `Direktori "${name}" beserta isi di dalamnya akan dikembalikan ke Berkas Saya.`,
             confirmLabel: "Pulihkan"
         });
         if (!accepted) return;
@@ -197,14 +197,14 @@ function UserDashboardLayout(): JSX.Element {
             await directories.restore(directoryID);
             notice.show({ variant: "success", message: `${name} dipulihkan.` });
         } catch (cause) {
-            notice.show({ variant: "error", message: cause instanceof Error ? cause.message : "Pulihkan folder gagal." });
+            notice.show({ variant: "error", message: cause instanceof Error ? cause.message : "Pulihkan direktori gagal." });
         }
     }
 
     async function handlePermanentDeleteFile(file: FileRecord): Promise<void> {
         const accepted = await confirm({
-            title: "Hapus file permanen?",
-            description: `Metadata file "${file.name}" akan dihapus permanen dari HashBox.`,
+            title: "Hapus berkas permanen?",
+            description: `Metadata berkas "${file.name}" akan dihapus permanen dari HashBox.`,
             confirmLabel: "Hapus permanen",
             variant: "danger"
         });
@@ -214,14 +214,14 @@ function UserDashboardLayout(): JSX.Element {
             await files.permanentDelete(file.id);
             notice.show({ variant: "success", message: `${file.name} dihapus permanen.` });
         } catch (cause) {
-            notice.show({ variant: "error", message: cause instanceof Error ? cause.message : "Hapus permanen file gagal." });
+            notice.show({ variant: "error", message: cause instanceof Error ? cause.message : "Hapus permanen berkas gagal." });
         }
     }
 
     async function handlePermanentDeleteFolder(directoryID: string, name: string): Promise<void> {
         const accepted = await confirm({
-            title: "Hapus folder permanen?",
-            description: `Folder "${name}" beserta metadata isi di dalamnya akan dihapus permanen.`,
+            title: "Hapus direktori permanen?",
+            description: `Direktori "${name}" beserta metadata isi di dalamnya akan dihapus permanen.`,
             confirmLabel: "Hapus permanen",
             variant: "danger"
         });
@@ -231,7 +231,7 @@ function UserDashboardLayout(): JSX.Element {
             await directories.permanentDelete(directoryID);
             notice.show({ variant: "success", message: `${name} dihapus permanen.` });
         } catch (cause) {
-            notice.show({ variant: "error", message: cause instanceof Error ? cause.message : "Hapus permanen folder gagal." });
+            notice.show({ variant: "error", message: cause instanceof Error ? cause.message : "Hapus permanen direktori gagal." });
         }
     }
 
@@ -304,7 +304,7 @@ function UserDashboardLayout(): JSX.Element {
 
         const accepted = await confirm({
             title: "Pulihkan item terpilih?",
-            description: `${total} item akan dikembalikan ke File Saya.`,
+            description: `${total} item akan dikembalikan ke Berkas Saya.`,
             confirmLabel: "Pulihkan"
         });
         if (!accepted) return;
@@ -366,7 +366,7 @@ function UserDashboardLayout(): JSX.Element {
     async function handleLogout(): Promise<void> {
         const accepted = await confirm({
             title: "Keluar dari HashBox?",
-            description: "Sesi aktif akan ditutup dan Anda perlu login kembali untuk membuka file.",
+            description: "Sesi aktif akan ditutup dan Anda perlu login kembali untuk membuka berkas.",
             confirmLabel: "Keluar",
             variant: "danger"
         });

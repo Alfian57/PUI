@@ -29,9 +29,9 @@ export function FolderGrid({ folders, loading, onOpen, onCreateFolder }: FolderG
             <div className="rounded-[1.75rem] border border-dashed border-brand-steel/20 bg-white">
                 <EmptyState
                     icon={<FolderOpen className="h-7 w-7" aria-hidden="true" />}
-                    title="Belum ada folder di sini"
-                    description="Buat folder untuk merapikan file berdasarkan kebutuhan Anda."
-                    action={<Button onClick={onCreateFolder}>Buat folder</Button>}
+                    title="Belum ada direktori di sini"
+                    description="Buat direktori untuk merapikan berkas berdasarkan kebutuhan Anda."
+                    action={<Button onClick={onCreateFolder}>Buat direktori</Button>}
                 />
             </div>
         );

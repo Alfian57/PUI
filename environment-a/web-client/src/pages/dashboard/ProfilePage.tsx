@@ -42,7 +42,7 @@ export function ProfilePage(): JSX.Element {
 
         void (async () => {
             const accepted = await confirm({
-                title: "Buang perubahan profile?",
+                title: "Buang perubahan profil?",
                 description: "Perubahan yang belum disimpan akan hilang jika Anda meninggalkan halaman ini.",
                 confirmLabel: "Buang perubahan",
                 variant: "danger"
@@ -72,8 +72,8 @@ export function ProfilePage(): JSX.Element {
         }
 
         const accepted = await confirm({
-            title: "Buang perubahan profile?",
-            description: "Form akan kembali ke data profile terakhir yang tersimpan.",
+            title: "Buang perubahan profil?",
+            description: "Form akan kembali ke data profil terakhir yang tersimpan.",
             confirmLabel: "Buang perubahan",
             variant: "danger"
         });
@@ -112,16 +112,16 @@ export function ProfilePage(): JSX.Element {
             setCurrentPassword("");
             setNewPassword("");
             setConfirmPassword("");
-            notice.show({ variant: "success", message: "Profile berhasil diperbarui." });
+            notice.show({ variant: "success", message: "Profil berhasil diperbarui." });
         } catch (cause) {
-            setFormError(toErrorMessage(cause, "Profile gagal diperbarui."));
+            setFormError(toErrorMessage(cause, "Profil gagal diperbarui."));
         }
     }
 
     return (
         <div className="space-y-6">
             <section>
-                <h1 className="font-display text-3xl font-semibold text-brand-ink">Profile</h1>
+                <h1 className="font-display text-3xl font-semibold text-brand-ink">Profil</h1>
                 <p className="mt-1 text-sm text-brand-steel">Perbarui identitas akun dan password HashBox Anda.</p>
             </section>
 
@@ -140,7 +140,7 @@ export function ProfilePage(): JSX.Element {
                             Akun aktif
                         </div>
                         <p className="mt-2 text-sm leading-6 text-brand-steel">
-                            Gunakan data yang mudah dikenali agar aktivitas file tetap jelas saat Anda membuka riwayat.
+                            Gunakan data yang mudah dikenali agar aktivitas berkas tetap jelas saat Anda membuka riwayat.
                         </p>
                     </div>
                 </aside>
@@ -222,7 +222,7 @@ export function ProfilePage(): JSX.Element {
                             disabled={!dirty || auth.updateProfileState.isPending}
                             icon={<Save className="h-4 w-4" aria-hidden="true" />}
                         >
-                            {auth.updateProfileState.isPending ? "Menyimpan..." : "Simpan profile"}
+                            {auth.updateProfileState.isPending ? "Menyimpan..." : "Simpan profil"}
                         </Button>
                     </div>
                 </form>

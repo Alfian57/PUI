@@ -1,6 +1,7 @@
 package uds
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"net"
@@ -94,35 +95,55 @@ func TestUDSHealthAndForbiddenOperation(t *testing.T) {
 		}
 	})
 
-	t.Run("destructive manifest method rejected", func(t *testing.T) {
+	t.Run("destructive internal operations rejected", func(t *testing.T) {
 		manifestID := "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-		req, err := http.NewRequestWithContext(context.Background(), http.MethodDelete, "http://unix/internal/v1/manifests/"+manifestID, nil)
-		if err != nil {
-			t.Fatalf("build delete request: %v", err)
+		chunkHash := "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+		cases := []struct {
+			method string
+			path   string
+		}{
+			{method: http.MethodDelete, path: "/internal/v1/uploads"},
+			{method: http.MethodPut, path: "/internal/v1/uploads"},
+			{method: http.MethodPatch, path: "/internal/v1/uploads"},
+			{method: http.MethodDelete, path: "/internal/v1/manifests/" + manifestID},
+			{method: http.MethodPut, path: "/internal/v1/manifests/" + manifestID},
+			{method: http.MethodPatch, path: "/internal/v1/manifests/" + manifestID},
+			{method: http.MethodDelete, path: "/internal/v1/chunks/" + chunkHash + "/status"},
+			{method: http.MethodPut, path: "/internal/v1/chunks/" + chunkHash + "/status"},
+			{method: http.MethodPatch, path: "/internal/v1/chunks/" + chunkHash + "/status"},
 		}
 
-		resp, err := client.Do(req)
-		if err != nil {
-			t.Fatalf("do delete request: %v", err)
-		}
-		defer resp.Body.Close()
+		for _, tc := range cases {
+			t.Run(tc.method+" "+tc.path, func(t *testing.T) {
+				req, err := http.NewRequestWithContext(context.Background(), tc.method, "http://unix"+tc.path, bytes.NewReader([]byte("malicious overwrite")))
+				if err != nil {
+					t.Fatalf("build destructive request: %v", err)
+				}
 
-		if resp.StatusCode != http.StatusForbidden {
-			t.Fatalf("expected 403, got %d", resp.StatusCode)
-		}
+				resp, err := client.Do(req)
+				if err != nil {
+					t.Fatalf("do destructive request: %v", err)
+				}
+				defer resp.Body.Close()
 
-		var payload struct {
-			Status string `json:"status"`
-			Error  struct {
-				Code string `json:"code"`
-			} `json:"error"`
-		}
-		if err := json.NewDecoder(resp.Body).Decode(&payload); err != nil {
-			t.Fatalf("decode response: %v", err)
-		}
+				if resp.StatusCode != http.StatusForbidden {
+					t.Fatalf("expected 403, got %d", resp.StatusCode)
+				}
 
-		if payload.Error.Code != "operation_forbidden" {
-			t.Fatalf("unexpected error code: %s", payload.Error.Code)
+				var payload struct {
+					Status string `json:"status"`
+					Error  struct {
+						Code string `json:"code"`
+					} `json:"error"`
+				}
+				if err := json.NewDecoder(resp.Body).Decode(&payload); err != nil {
+					t.Fatalf("decode response: %v", err)
+				}
+
+				if payload.Error.Code != "operation_forbidden" {
+					t.Fatalf("unexpected error code: %s", payload.Error.Code)
+				}
+			})
 		}
 	})
 }
