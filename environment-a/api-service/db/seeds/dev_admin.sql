@@ -2,10 +2,24 @@
 -- Apply manually when you need a local bootstrap user:
 -- psql "$DATABASE_URL" -f db/seeds/dev_admin.sql
 
-INSERT INTO users (full_name, email, password_hash)
+INSERT INTO users (full_name, email, password_hash, role)
 VALUES (
-    'Administrator Local',
-    'admin@pui.local',
-    crypt('admin123', gen_salt('bf'))
+    'Alfian Gading',
+    'gading@gmail.com',
+    crypt('password', gen_salt('bf')),
+    'user'
 )
-ON CONFLICT (email) DO NOTHING;
+ON CONFLICT (email) DO UPDATE
+SET full_name = EXCLUDED.full_name,
+    role = EXCLUDED.role;
+
+INSERT INTO users (full_name, email, password_hash, role)
+VALUES (
+    'Admin HashBox',
+    'admin@gmail.com',
+    crypt('password', gen_salt('bf')),
+    'admin'
+)
+ON CONFLICT (email) DO UPDATE
+SET full_name = EXCLUDED.full_name,
+    role = EXCLUDED.role;

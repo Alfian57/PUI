@@ -84,6 +84,63 @@ const docTemplate = `{
                 }
             }
         },
+        "/admin/analytics": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Return aggregate, privacy-safe application analytics for admin users",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin"
+                ],
+                "summary": "Admin analytics",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Analytics range: 7d, 30d, or 90d",
+                        "name": "range",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.AdminAnalyticsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/auth/login": {
             "post": {
                 "description": "Create bearer access token for the active session from email and password",
@@ -202,6 +259,119 @@ const docTemplate = `{
                         }
                     }
                 }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Update authenticated user profile and optionally change password",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Update profile",
+                "parameters": [
+                    {
+                        "description": "Profile payload",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.UpdateProfileRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.MeResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/register": {
+            "post": {
+                "description": "Create a new user account with user role",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Register user",
+                "parameters": [
+                    {
+                        "description": "Register payload",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.RegisterRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.MeResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
             }
         },
         "/directories": {
@@ -311,6 +481,64 @@ const docTemplate = `{
                     },
                     "401": {
                         "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/directories/{id}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Soft-delete a directory subtree and move it to trash",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "directories"
+                ],
+                "summary": "Move directory to trash",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Directory UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.DirectoryMutationResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/dto.ErrorResponse"
                         }
@@ -440,7 +668,298 @@ const docTemplate = `{
                 }
             }
         },
+        "/directories/{id}/permanent": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Permanently remove a directory subtree from trash metadata",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "directories"
+                ],
+                "summary": "Permanently delete directory",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Directory UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.OKResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/directories/{id}/restore": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Restore a previously deleted directory subtree",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "directories"
+                ],
+                "summary": "Restore directory from trash",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Directory UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.DirectoryMutationResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/directories/{id}/star": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Mark a directory as starred",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "directories"
+                ],
+                "summary": "Star directory",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Directory UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.DirectoryMutationResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Remove starred marker from a directory",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "directories"
+                ],
+                "summary": "Unstar directory",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Directory UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.DirectoryMutationResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/files": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "List root files or files inside a directory when directory_id is provided",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "files"
+                ],
+                "summary": "List files",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Directory UUID; omit for root files",
+                        "name": "directory_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Include soft-deleted files",
+                        "name": "include_deleted",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.FileListResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            },
             "post": {
                 "security": [
                     {
@@ -461,10 +980,9 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Directory UUID",
+                        "description": "Directory UUID; omit for root upload",
                         "name": "directory_id",
-                        "in": "formData",
-                        "required": true
+                        "in": "formData"
                     },
                     {
                         "type": "file",
@@ -786,6 +1304,294 @@ const docTemplate = `{
                 }
             }
         },
+        "/files/{id}/manifest": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get immutable manifest details from vault-core for a file",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "files"
+                ],
+                "summary": "File manifest info",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "File UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.FileManifestResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "502": {
+                        "description": "Bad Gateway",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/files/{id}/permanent": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Permanently remove deleted file metadata from trash",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "files"
+                ],
+                "summary": "Permanently delete file",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "File UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.OKResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/files/{id}/restore": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Restore a previously deleted file",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "files"
+                ],
+                "summary": "Restore file from trash",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "File UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.FileMutationResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/files/{id}/star": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Mark a file as starred",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "files"
+                ],
+                "summary": "Star file",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "File UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.FileMutationResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Remove starred marker from a file",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "files"
+                ],
+                "summary": "Unstar file",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "File UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.FileMutationResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/health": {
             "get": {
                 "description": "Public liveness probe for API service",
@@ -807,6 +1613,43 @@ const docTemplate = `{
                 }
             }
         },
+        "/starred": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "List user's starred files and directories",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "workspace"
+                ],
+                "summary": "Starred items",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.StarredResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/status": {
             "get": {
                 "description": "Reports database and vault-core availability",
@@ -823,6 +1666,43 @@ const docTemplate = `{
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/trash": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "List user's deleted files and directory trash roots",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "workspace"
+                ],
+                "summary": "Trash",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.TrashResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     }
                 }
@@ -876,6 +1756,162 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.AdminActivityPointDTO": {
+            "type": "object",
+            "properties": {
+                "date": {
+                    "type": "string"
+                },
+                "deletes": {
+                    "type": "integer"
+                },
+                "downloads": {
+                    "type": "integer"
+                },
+                "logins": {
+                    "type": "integer"
+                },
+                "restores": {
+                    "type": "integer"
+                },
+                "stars": {
+                    "type": "integer"
+                },
+                "uploads": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.AdminAnalyticsResponse": {
+            "type": "object",
+            "properties": {
+                "activity": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.AdminActivityPointDTO"
+                    }
+                },
+                "depths": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.AdminDepthStatDTO"
+                    }
+                },
+                "file_types": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.AdminFileTypeStatDTO"
+                    }
+                },
+                "generated_at": {
+                    "type": "string"
+                },
+                "range": {
+                    "type": "string"
+                },
+                "size_buckets": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.AdminSizeBucketStatDTO"
+                    }
+                },
+                "status": {
+                    "type": "string"
+                },
+                "summary": {
+                    "$ref": "#/definitions/dto.AdminAnalyticsSummaryDTO"
+                }
+            }
+        },
+        "dto.AdminAnalyticsSummaryDTO": {
+            "type": "object",
+            "properties": {
+                "active_files": {
+                    "type": "integer"
+                },
+                "active_folders": {
+                    "type": "integer"
+                },
+                "active_storage_bytes": {
+                    "type": "integer"
+                },
+                "active_users": {
+                    "type": "integer"
+                },
+                "deleted_items_in_range": {
+                    "type": "integer"
+                },
+                "downloads_in_range": {
+                    "type": "integer"
+                },
+                "restored_items_in_range": {
+                    "type": "integer"
+                },
+                "starred_actions_in_range": {
+                    "type": "integer"
+                },
+                "starred_files": {
+                    "type": "integer"
+                },
+                "starred_folders": {
+                    "type": "integer"
+                },
+                "total_admins": {
+                    "type": "integer"
+                },
+                "total_users": {
+                    "type": "integer"
+                },
+                "trash_files": {
+                    "type": "integer"
+                },
+                "trash_folders": {
+                    "type": "integer"
+                },
+                "trash_storage_bytes": {
+                    "type": "integer"
+                },
+                "uploads_in_range": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.AdminDepthStatDTO": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer"
+                },
+                "depth": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.AdminFileTypeStatDTO": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer"
+                },
+                "total_bytes": {
+                    "type": "integer"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.AdminSizeBucketStatDTO": {
+            "type": "object",
+            "properties": {
+                "bucket": {
+                    "type": "string"
+                },
+                "count": {
+                    "type": "integer"
+                }
+            }
+        },
         "dto.BreadcrumbResponse": {
             "type": "object",
             "properties": {
@@ -914,6 +1950,9 @@ const docTemplate = `{
                 "created_at": {
                     "type": "string"
                 },
+                "deleted_at": {
+                    "type": "string"
+                },
                 "depth": {
                     "type": "integer"
                 },
@@ -924,6 +1963,20 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "parent_id": {
+                    "type": "string"
+                },
+                "starred_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.DirectoryMutationResponse": {
+            "type": "object",
+            "properties": {
+                "directory": {
+                    "$ref": "#/definitions/dto.DirectoryDTO"
+                },
+                "status": {
                     "type": "string"
                 }
             }
@@ -972,8 +2025,14 @@ const docTemplate = `{
         "dto.FileDTO": {
             "type": "object",
             "properties": {
+                "chunk_count": {
+                    "type": "integer"
+                },
                 "created_at": {
                     "type": "string"
+                },
+                "dedup_ratio": {
+                    "type": "number"
                 },
                 "deleted_at": {
                     "type": "string"
@@ -993,8 +2052,17 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
+                "new_chunk_count": {
+                    "type": "integer"
+                },
+                "reuse_chunk_count": {
+                    "type": "integer"
+                },
                 "size_bytes": {
                     "type": "integer"
+                },
+                "starred_at": {
+                    "type": "string"
                 }
             }
         },
@@ -1020,6 +2088,31 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/dto.FileDTO"
                     }
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.FileManifestResponse": {
+            "type": "object",
+            "properties": {
+                "file": {
+                    "$ref": "#/definitions/dto.FileDTO"
+                },
+                "manifest": {
+                    "$ref": "#/definitions/dto.ManifestInfoDTO"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.FileMutationResponse": {
+            "type": "object",
+            "properties": {
+                "file": {
+                    "$ref": "#/definitions/dto.FileDTO"
                 },
                 "status": {
                     "type": "string"
@@ -1090,6 +2183,29 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.ManifestInfoDTO": {
+            "type": "object",
+            "properties": {
+                "chunk_count": {
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "file_hash": {
+                    "type": "string"
+                },
+                "immutable": {
+                    "type": "boolean"
+                },
+                "manifest_id": {
+                    "type": "string"
+                },
+                "total_size_bytes": {
+                    "type": "integer"
+                }
+            }
+        },
         "dto.MeResponse": {
             "type": "object",
             "properties": {
@@ -1110,6 +2226,32 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.RegisterRequest": {
+            "type": "object",
+            "required": [
+                "confirm_password",
+                "email",
+                "full_name",
+                "password"
+            ],
+            "properties": {
+                "confirm_password": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "full_name": {
+                    "type": "string",
+                    "maxLength": 150,
+                    "minLength": 2
+                },
+                "password": {
+                    "type": "string",
+                    "minLength": 8
+                }
+            }
+        },
         "dto.SoftDeleteResponse": {
             "type": "object",
             "properties": {
@@ -1121,6 +2263,70 @@ const docTemplate = `{
                 },
                 "status": {
                     "type": "string"
+                }
+            }
+        },
+        "dto.StarredResponse": {
+            "type": "object",
+            "properties": {
+                "directories": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.DirectoryDTO"
+                    }
+                },
+                "files": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.FileDTO"
+                    }
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.TrashResponse": {
+            "type": "object",
+            "properties": {
+                "directories": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.DirectoryDTO"
+                    }
+                },
+                "files": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.FileDTO"
+                    }
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.UpdateProfileRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "full_name"
+            ],
+            "properties": {
+                "current_password": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "full_name": {
+                    "type": "string",
+                    "maxLength": 150,
+                    "minLength": 2
+                },
+                "new_password": {
+                    "type": "string",
+                    "minLength": 8
                 }
             }
         },
@@ -1178,6 +2384,9 @@ const docTemplate = `{
                 },
                 "id": {
                     "type": "string"
+                },
+                "role": {
+                    "type": "string"
                 }
             }
         }
@@ -1197,7 +2406,7 @@ var SwaggerInfo = &swag.Spec{
 	Host:             "",
 	BasePath:         "/api/v1",
 	Schemes:          []string{},
-	Title:            "PUI API Service",
+	Title:            "HashBox API Service",
 	Description:      "API service for authentication, directory hierarchy, and immutable file metadata.",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,

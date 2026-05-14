@@ -33,6 +33,7 @@ pnpm-debug.log*
 **/tmp/
 **/coverage.out
 **/*.test
+environment-a/api-service/api-service
 
 # Runtime volumes / socket outputs
 data/postgres/

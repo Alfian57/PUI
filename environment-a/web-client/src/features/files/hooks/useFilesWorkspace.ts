@@ -4,6 +4,9 @@ import {
   downloadFile,
   fileDetail,
   listFiles,
+  permanentDeleteFile,
+  restoreFile,
+  setFileStarred,
   softDelete,
   uploadFile
 } from "@/features/files/api/fileApi";
@@ -17,9 +20,9 @@ export function useFilesWorkspace(enabled: boolean, selectedDirectoryID: string 
   const [lastUploadResult, setLastUploadResult] = useState<UploadCommitResult | null>(null);
 
   const filesQuery = useQuery({
-    queryKey: queryKeys.files.byDirectory(selectedDirectoryID ?? "none"),
-    queryFn: () => listFiles(selectedDirectoryID as string),
-    enabled: enabled && Boolean(selectedDirectoryID)
+    queryKey: queryKeys.files.byDirectory(selectedDirectoryID ?? "root"),
+    queryFn: () => listFiles(selectedDirectoryID),
+    enabled
   });
 
   useEffect(() => {
@@ -49,7 +52,7 @@ export function useFilesWorkspace(enabled: boolean, selectedDirectoryID: string 
   });
 
   const uploadMutation = useMutation({
-    mutationFn: ({ directoryID, file }: { directoryID: string; file: File }) =>
+    mutationFn: ({ directoryID, file }: { directoryID: string | null; file: File }) =>
       uploadFile(directoryID, file, setUploadProgress),
     onSuccess: async (result) => {
       setLastUploadResult(result.upload_commit_result);
@@ -57,7 +60,7 @@ export function useFilesWorkspace(enabled: boolean, selectedDirectoryID: string 
       setUploadProgress(null);
       await queryClient.invalidateQueries({ queryKey: queryKeys.directories.tree });
       await queryClient.invalidateQueries({
-        queryKey: queryKeys.files.byDirectory(result.file.directory_id)
+        queryKey: queryKeys.files.byDirectory(result.file.directory_id ?? "root")
       });
     },
     onSettled: () => {
@@ -68,11 +71,11 @@ export function useFilesWorkspace(enabled: boolean, selectedDirectoryID: string 
   const softDeleteMutation = useMutation({
     mutationFn: (fileID: string) => softDelete(fileID),
     onSuccess: async () => {
-      if (selectedDirectoryID) {
-        await queryClient.invalidateQueries({
-          queryKey: queryKeys.files.byDirectory(selectedDirectoryID)
-        });
-      }
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.files.byDirectory(selectedDirectoryID ?? "root")
+      });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.workspace.trash });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.workspace.starred });
     }
   });
 
@@ -80,10 +83,40 @@ export function useFilesWorkspace(enabled: boolean, selectedDirectoryID: string 
     mutationFn: downloadFile
   });
 
+  async function invalidateFileWorkspace(directoryID?: string | null): Promise<void> {
+    await queryClient.invalidateQueries({
+      queryKey: queryKeys.files.byDirectory(directoryID ?? selectedDirectoryID ?? "root")
+    });
+    await queryClient.invalidateQueries({ queryKey: queryKeys.workspace.trash });
+    await queryClient.invalidateQueries({ queryKey: queryKeys.workspace.starred });
+  }
+
+  const restoreMutation = useMutation({
+    mutationFn: restoreFile,
+    onSuccess: async (file) => invalidateFileWorkspace(file.directory_id)
+  });
+
+  const permanentDeleteMutation = useMutation({
+    mutationFn: permanentDeleteFile,
+    onSuccess: async () => invalidateFileWorkspace()
+  });
+
+  const starMutation = useMutation({
+    mutationFn: ({ fileID, starred }: { fileID: string; starred: boolean }) =>
+      setFileStarred(fileID, starred),
+    onSuccess: async (file) => invalidateFileWorkspace(file.directory_id)
+  });
+
   const stats = useMemo(() => {
     const files = filesQuery.data ?? [];
     const totalBytes = files.reduce((sum, item) => sum + item.size_bytes, 0);
-    const dedup = lastUploadResult ? `${(lastUploadResult.dedup_ratio * 100).toFixed(2)}%` : "-";
+    const totalChunks = files.reduce((sum, item) => sum + (item.chunk_count || 0), 0);
+    const reusedChunks = files.reduce((sum, item) => sum + (item.reuse_chunk_count || 0), 0);
+    const dedup = totalChunks > 0
+      ? `${((reusedChunks / totalChunks) * 100).toFixed(2)}%`
+      : lastUploadResult
+        ? `${(lastUploadResult.dedup_ratio * 100).toFixed(2)}%`
+        : "-";
 
     return {
       totalFiles: files.length,
@@ -103,10 +136,6 @@ export function useFilesWorkspace(enabled: boolean, selectedDirectoryID: string 
     filesState: filesQuery,
     detailState: detailQuery,
     upload: (file: File) => {
-      if (!selectedDirectoryID) {
-        throw new Error("Pilih direktori sebelum upload file.");
-      }
-
       setUploadProgress(0);
       return uploadMutation.mutateAsync({
         directoryID: selectedDirectoryID,
@@ -116,6 +145,12 @@ export function useFilesWorkspace(enabled: boolean, selectedDirectoryID: string 
     uploadState: uploadMutation,
     softDelete: (fileID: string) => softDeleteMutation.mutateAsync(fileID),
     softDeleteState: softDeleteMutation,
+    restore: (fileID: string) => restoreMutation.mutateAsync(fileID),
+    restoreState: restoreMutation,
+    permanentDelete: (fileID: string) => permanentDeleteMutation.mutateAsync(fileID),
+    permanentDeleteState: permanentDeleteMutation,
+    setStarred: (fileID: string, starred: boolean) => starMutation.mutateAsync({ fileID, starred }),
+    starState: starMutation,
     download: downloadMutation.mutateAsync,
     downloadState: downloadMutation
   };

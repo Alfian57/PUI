@@ -1,6 +1,6 @@
-# Web Client (Environment A)
+# HashBox Web Client (Environment A)
 
-Web Client adalah antarmuka React untuk mengelola file immutable pada PUI.
+Web Client adalah antarmuka React untuk mengelola file immutable pada HashBox.
 
 ## Fitur Utama
 

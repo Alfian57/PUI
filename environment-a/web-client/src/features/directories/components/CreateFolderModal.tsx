@@ -20,6 +20,9 @@ export function CreateFolderModal({
 }: CreateFolderModalProps): JSX.Element | null {
     const [name, setName] = useState("");
     const [parentID, setParentID] = useState<string | null>(defaultParentID);
+    const defaultParentName = defaultParentID
+        ? directories.find((directory) => directory.id === defaultParentID)?.name ?? "folder saat ini"
+        : "File Saya";
 
     useEffect(() => {
         setParentID(defaultParentID);
@@ -39,7 +42,9 @@ export function CreateFolderModal({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-brand-ink/45 p-4 backdrop-blur-sm">
             <section className="w-full max-w-md rounded-2xl border border-brand-steel/20 bg-white p-6 shadow-deck">
                 <h3 className="font-display text-2xl text-brand-ink">Buat Folder</h3>
-                <p className="mt-2 text-sm text-brand-steel/80">Tambahkan direktori baru ke pohon kerja.</p>
+                <p className="mt-2 text-sm text-brand-steel/80">
+                    Folder baru akan dibuat di {defaultParentName}. Ubah lokasi jika ingin menyimpannya di tempat lain.
+                </p>
 
                 <form className="mt-5 space-y-4" onSubmit={(event) => void handleSubmit(event)}>
                     <label className="block">
@@ -48,19 +53,21 @@ export function CreateFolderModal({
                             type="text"
                             value={name}
                             onChange={(event) => setName(event.target.value)}
+                            placeholder="Contoh: Dokumen pribadi"
                             className="w-full rounded-xl border border-brand-steel/25 px-3 py-2.5 outline-none ring-brand-amber focus:ring-2"
                             required
                         />
                     </label>
 
                     <label className="block">
-                        <span className="mb-1 block text-sm font-medium text-brand-ink">Parent folder</span>
+                        <span className="mb-1 block text-sm font-medium text-brand-ink">Lokasi folder</span>
                         <select
                             value={parentID ?? ""}
                             onChange={(event) => setParentID(event.target.value || null)}
                             className="w-full rounded-xl border border-brand-steel/25 px-3 py-2.5 outline-none ring-brand-amber focus:ring-2"
+                            aria-label="Pilih parent folder"
                         >
-                            <option value="">Root</option>
+                            <option value="">File Saya (root)</option>
                             {directories.map((directory) => (
                                 <option key={directory.id} value={directory.id}>
                                     {`${"-".repeat(directory.depth)} ${directory.name}`}

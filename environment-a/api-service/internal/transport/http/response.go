@@ -16,6 +16,8 @@ func statusFromError(err error) int {
 	switch {
 	case errors.Is(err, domain.ErrUnauthorized):
 		return http.StatusUnauthorized
+	case errors.Is(err, domain.ErrForbidden):
+		return http.StatusForbidden
 	case errors.Is(err, domain.ErrConflict):
 		return http.StatusConflict
 	case errors.Is(err, domain.ErrNotFound):

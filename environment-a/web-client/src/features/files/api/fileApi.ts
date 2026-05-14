@@ -1,10 +1,11 @@
 import { http } from "@/shared/api/http";
-import type { FileRecord, UploadCommitResult } from "@/shared/types/domain";
+import type { FileRecord, ManifestInfo, UploadCommitResult } from "@/shared/types/domain";
 
-export async function listFiles(directoryID: string): Promise<FileRecord[]> {
-  const { data } = await http.get<{ files: FileRecord[] }>(
-    `/api/v1/directories/${encodeURIComponent(directoryID)}/files`
-  );
+export async function listFiles(directoryID: string | null): Promise<FileRecord[]> {
+  const params = new URLSearchParams();
+  if (directoryID) params.set("directory_id", directoryID);
+  const query = params.toString();
+  const { data } = await http.get<{ files: FileRecord[] }>(`/api/v1/files${query ? `?${query}` : ""}`);
 
   return data.files;
 }
@@ -18,13 +19,31 @@ export async function softDelete(fileID: string): Promise<void> {
   await http.delete(`/api/v1/files/${encodeURIComponent(fileID)}`);
 }
 
+export async function restoreFile(fileID: string): Promise<FileRecord> {
+  const { data } = await http.post<{ file: FileRecord }>(`/api/v1/files/${encodeURIComponent(fileID)}/restore`);
+  return data.file;
+}
+
+export async function permanentDeleteFile(fileID: string): Promise<void> {
+  await http.delete(`/api/v1/files/${encodeURIComponent(fileID)}/permanent`);
+}
+
+export async function setFileStarred(fileID: string, starred: boolean): Promise<FileRecord> {
+  const { data } = starred
+    ? await http.put<{ file: FileRecord }>(`/api/v1/files/${encodeURIComponent(fileID)}/star`)
+    : await http.delete<{ file: FileRecord }>(`/api/v1/files/${encodeURIComponent(fileID)}/star`);
+  return data.file;
+}
+
 export async function uploadFile(
-  directoryID: string,
+  directoryID: string | null,
   file: File,
   onProgress: (percentage: number) => void
 ): Promise<{ file: FileRecord; upload_commit_result: UploadCommitResult }> {
   const form = new FormData();
-  form.append("directory_id", directoryID);
+  if (directoryID) {
+    form.append("directory_id", directoryID);
+  }
   form.append("file", file);
 
   const { data } = await http.post<{ file: FileRecord; upload_commit_result: UploadCommitResult }>(
@@ -61,4 +80,35 @@ export async function downloadFile(file: FileRecord): Promise<void> {
   anchor.click();
   anchor.remove();
   URL.revokeObjectURL(href);
+}
+
+export async function fetchFileBlob(fileID: string): Promise<Blob> {
+  const response = await http.get<Blob>(`/api/v1/files/${encodeURIComponent(fileID)}/download`, {
+    responseType: "blob"
+  });
+
+  return response.data;
+}
+
+export async function getFileManifest(fileID: string): Promise<ManifestInfo> {
+  const { data } = await http.get<{ manifest: ManifestInfo }>(
+    `/api/v1/files/${encodeURIComponent(fileID)}/manifest`
+  );
+  return data.manifest;
+}
+
+export async function searchFiles(
+  query: string,
+  directoryID?: string,
+  limit?: number,
+  offset?: number
+): Promise<{ files: FileRecord[]; total: number; limit: number; offset: number }> {
+  const params = new URLSearchParams({ q: query });
+  if (directoryID) params.set("directory_id", directoryID);
+  if (limit) params.set("limit", String(limit));
+  if (offset) params.set("offset", String(offset));
+  const { data } = await http.get<{ files: FileRecord[]; total: number; limit: number; offset: number }>(
+    `/api/v1/files/search?${params.toString()}`
+  );
+  return data;
 }

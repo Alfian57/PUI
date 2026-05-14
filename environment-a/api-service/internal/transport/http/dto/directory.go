@@ -8,11 +8,13 @@ type CreateDirectoryRequest struct {
 }
 
 type DirectoryDTO struct {
-	ID        string    `json:"id"`
-	Name      string    `json:"name"`
-	Depth     int       `json:"depth"`
-	ParentID  *string   `json:"parent_id,omitempty"`
-	CreatedAt time.Time `json:"created_at"`
+	ID        string     `json:"id"`
+	Name      string     `json:"name"`
+	Depth     int        `json:"depth"`
+	ParentID  *string    `json:"parent_id,omitempty"`
+	CreatedAt time.Time  `json:"created_at"`
+	DeletedAt *time.Time `json:"deleted_at,omitempty"`
+	StarredAt *time.Time `json:"starred_at,omitempty"`
 }
 
 type DirectoryResponse struct {
@@ -30,4 +32,21 @@ type BreadcrumbResponse struct {
 	Status      string         `json:"status"`
 	DirectoryID string         `json:"directory_id"`
 	Breadcrumb  []DirectoryDTO `json:"breadcrumb"`
+}
+
+type DirectoryMutationResponse struct {
+	Status    string       `json:"status"`
+	Directory DirectoryDTO `json:"directory"`
+}
+
+type TrashResponse struct {
+	Status      string         `json:"status"`
+	Directories []DirectoryDTO `json:"directories"`
+	Files       []FileDTO      `json:"files"`
+}
+
+type StarredResponse struct {
+	Status      string         `json:"status"`
+	Directories []DirectoryDTO `json:"directories"`
+	Files       []FileDTO      `json:"files"`
 }

@@ -30,6 +30,108 @@ definitions:
       total:
         type: integer
     type: object
+  dto.AdminActivityPointDTO:
+    properties:
+      date:
+        type: string
+      deletes:
+        type: integer
+      downloads:
+        type: integer
+      logins:
+        type: integer
+      restores:
+        type: integer
+      stars:
+        type: integer
+      uploads:
+        type: integer
+    type: object
+  dto.AdminAnalyticsResponse:
+    properties:
+      activity:
+        items:
+          $ref: '#/definitions/dto.AdminActivityPointDTO'
+        type: array
+      depths:
+        items:
+          $ref: '#/definitions/dto.AdminDepthStatDTO'
+        type: array
+      file_types:
+        items:
+          $ref: '#/definitions/dto.AdminFileTypeStatDTO'
+        type: array
+      generated_at:
+        type: string
+      range:
+        type: string
+      size_buckets:
+        items:
+          $ref: '#/definitions/dto.AdminSizeBucketStatDTO'
+        type: array
+      status:
+        type: string
+      summary:
+        $ref: '#/definitions/dto.AdminAnalyticsSummaryDTO'
+    type: object
+  dto.AdminAnalyticsSummaryDTO:
+    properties:
+      active_files:
+        type: integer
+      active_folders:
+        type: integer
+      active_storage_bytes:
+        type: integer
+      active_users:
+        type: integer
+      deleted_items_in_range:
+        type: integer
+      downloads_in_range:
+        type: integer
+      restored_items_in_range:
+        type: integer
+      starred_actions_in_range:
+        type: integer
+      starred_files:
+        type: integer
+      starred_folders:
+        type: integer
+      total_admins:
+        type: integer
+      total_users:
+        type: integer
+      trash_files:
+        type: integer
+      trash_folders:
+        type: integer
+      trash_storage_bytes:
+        type: integer
+      uploads_in_range:
+        type: integer
+    type: object
+  dto.AdminDepthStatDTO:
+    properties:
+      count:
+        type: integer
+      depth:
+        type: integer
+    type: object
+  dto.AdminFileTypeStatDTO:
+    properties:
+      count:
+        type: integer
+      total_bytes:
+        type: integer
+      type:
+        type: string
+    type: object
+  dto.AdminSizeBucketStatDTO:
+    properties:
+      bucket:
+        type: string
+      count:
+        type: integer
+    type: object
   dto.BreadcrumbResponse:
     properties:
       breadcrumb:
@@ -55,6 +157,8 @@ definitions:
     properties:
       created_at:
         type: string
+      deleted_at:
+        type: string
       depth:
         type: integer
       id:
@@ -62,6 +166,15 @@ definitions:
       name:
         type: string
       parent_id:
+        type: string
+      starred_at:
+        type: string
+    type: object
+  dto.DirectoryMutationResponse:
+    properties:
+      directory:
+        $ref: '#/definitions/dto.DirectoryDTO'
+      status:
         type: string
     type: object
   dto.DirectoryResponse:
@@ -93,8 +206,12 @@ definitions:
     type: object
   dto.FileDTO:
     properties:
+      chunk_count:
+        type: integer
       created_at:
         type: string
+      dedup_ratio:
+        type: number
       deleted_at:
         type: string
       directory_id:
@@ -107,8 +224,14 @@ definitions:
         type: string
       name:
         type: string
+      new_chunk_count:
+        type: integer
+      reuse_chunk_count:
+        type: integer
       size_bytes:
         type: integer
+      starred_at:
+        type: string
     type: object
   dto.FileDetailResponse:
     properties:
@@ -125,6 +248,22 @@ definitions:
         items:
           $ref: '#/definitions/dto.FileDTO'
         type: array
+      status:
+        type: string
+    type: object
+  dto.FileManifestResponse:
+    properties:
+      file:
+        $ref: '#/definitions/dto.FileDTO'
+      manifest:
+        $ref: '#/definitions/dto.ManifestInfoDTO'
+      status:
+        type: string
+    type: object
+  dto.FileMutationResponse:
+    properties:
+      file:
+        $ref: '#/definitions/dto.FileDTO'
       status:
         type: string
     type: object
@@ -170,6 +309,21 @@ definitions:
       user:
         $ref: '#/definitions/dto.UserDTO'
     type: object
+  dto.ManifestInfoDTO:
+    properties:
+      chunk_count:
+        type: integer
+      created_at:
+        type: string
+      file_hash:
+        type: string
+      immutable:
+        type: boolean
+      manifest_id:
+        type: string
+      total_size_bytes:
+        type: integer
+    type: object
   dto.MeResponse:
     properties:
       status:
@@ -183,6 +337,25 @@ definitions:
         example: ok
         type: string
     type: object
+  dto.RegisterRequest:
+    properties:
+      confirm_password:
+        type: string
+      email:
+        type: string
+      full_name:
+        maxLength: 150
+        minLength: 2
+        type: string
+      password:
+        minLength: 8
+        type: string
+    required:
+    - confirm_password
+    - email
+    - full_name
+    - password
+    type: object
   dto.SoftDeleteResponse:
     properties:
       deleted_at:
@@ -191,6 +364,49 @@ definitions:
         type: string
       status:
         type: string
+    type: object
+  dto.StarredResponse:
+    properties:
+      directories:
+        items:
+          $ref: '#/definitions/dto.DirectoryDTO'
+        type: array
+      files:
+        items:
+          $ref: '#/definitions/dto.FileDTO'
+        type: array
+      status:
+        type: string
+    type: object
+  dto.TrashResponse:
+    properties:
+      directories:
+        items:
+          $ref: '#/definitions/dto.DirectoryDTO'
+        type: array
+      files:
+        items:
+          $ref: '#/definitions/dto.FileDTO'
+        type: array
+      status:
+        type: string
+    type: object
+  dto.UpdateProfileRequest:
+    properties:
+      current_password:
+        type: string
+      email:
+        type: string
+      full_name:
+        maxLength: 150
+        minLength: 2
+        type: string
+      new_password:
+        minLength: 8
+        type: string
+    required:
+    - email
+    - full_name
     type: object
   dto.UploadCommitResultDTO:
     properties:
@@ -228,12 +444,14 @@ definitions:
         type: string
       id:
         type: string
+      role:
+        type: string
     type: object
 info:
   contact: {}
   description: API service for authentication, directory hierarchy, and immutable
     file metadata.
-  title: PUI API Service
+  title: HashBox API Service
   version: "1.0"
 paths:
   /activity-logs:
@@ -280,6 +498,43 @@ paths:
       summary: Activity logs
       tags:
       - activity
+  /admin/analytics:
+    get:
+      description: Return aggregate, privacy-safe application analytics for admin
+        users
+      parameters:
+      - description: 'Analytics range: 7d, 30d, or 90d'
+        in: query
+        name: range
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.AdminAnalyticsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Admin analytics
+      tags:
+      - admin
   /auth/login:
     post:
       consumes:
@@ -357,6 +612,79 @@ paths:
       summary: Current user
       tags:
       - auth
+    patch:
+      consumes:
+      - application/json
+      description: Update authenticated user profile and optionally change password
+      parameters:
+      - description: Profile payload
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateProfileRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.MeResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update profile
+      tags:
+      - auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Create a new user account with user role
+      parameters:
+      - description: Register payload
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/dto.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.MeResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Register user
+      tags:
+      - auth
   /directories:
     post:
       consumes:
@@ -399,6 +727,43 @@ paths:
       security:
       - BearerAuth: []
       summary: Create directory
+      tags:
+      - directories
+  /directories/{id}:
+    delete:
+      description: Soft-delete a directory subtree and move it to trash
+      parameters:
+      - description: Directory UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.DirectoryMutationResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Move directory to trash
       tags:
       - directories
   /directories/{id}/breadcrumb:
@@ -475,6 +840,153 @@ paths:
       summary: Directory files
       tags:
       - directories
+  /directories/{id}/permanent:
+    delete:
+      description: Permanently remove a directory subtree from trash metadata
+      parameters:
+      - description: Directory UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.OKResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Permanently delete directory
+      tags:
+      - directories
+  /directories/{id}/restore:
+    post:
+      description: Restore a previously deleted directory subtree
+      parameters:
+      - description: Directory UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.DirectoryMutationResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Restore directory from trash
+      tags:
+      - directories
+  /directories/{id}/star:
+    delete:
+      description: Remove starred marker from a directory
+      parameters:
+      - description: Directory UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.DirectoryMutationResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Unstar directory
+      tags:
+      - directories
+    put:
+      description: Mark a directory as starred
+      parameters:
+      - description: Directory UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.DirectoryMutationResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Star directory
+      tags:
+      - directories
   /directories/tree:
     get:
       description: List root directories or subtree with root_id query
@@ -508,15 +1020,54 @@ paths:
       tags:
       - directories
   /files:
+    get:
+      description: List root files or files inside a directory when directory_id is
+        provided
+      parameters:
+      - description: Directory UUID; omit for root files
+        in: query
+        name: directory_id
+        type: string
+      - description: Include soft-deleted files
+        in: query
+        name: include_deleted
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.FileListResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List files
+      tags:
+      - files
     post:
       consumes:
       - multipart/form-data
       description: Stream multipart file upload to vault-core and persist metadata
       parameters:
-      - description: Directory UUID
+      - description: Directory UUID; omit for root upload
         in: formData
         name: directory_id
-        required: true
         type: string
       - description: File payload
         in: formData
@@ -677,6 +1228,190 @@ paths:
       summary: Download file
       tags:
       - files
+  /files/{id}/manifest:
+    get:
+      description: Get immutable manifest details from vault-core for a file
+      parameters:
+      - description: File UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.FileManifestResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "502":
+          description: Bad Gateway
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: File manifest info
+      tags:
+      - files
+  /files/{id}/permanent:
+    delete:
+      description: Permanently remove deleted file metadata from trash
+      parameters:
+      - description: File UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.OKResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Permanently delete file
+      tags:
+      - files
+  /files/{id}/restore:
+    post:
+      description: Restore a previously deleted file
+      parameters:
+      - description: File UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.FileMutationResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Restore file from trash
+      tags:
+      - files
+  /files/{id}/star:
+    delete:
+      description: Remove starred marker from a file
+      parameters:
+      - description: File UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.FileMutationResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Unstar file
+      tags:
+      - files
+    put:
+      description: Mark a file as starred
+      parameters:
+      - description: File UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.FileMutationResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Star file
+      tags:
+      - files
   /files/search:
     get:
       description: Search file metadata by query in user namespace with optional filters
@@ -745,6 +1480,29 @@ paths:
       summary: Health check
       tags:
       - system
+  /starred:
+    get:
+      description: List user's starred files and directories
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.StarredResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Starred items
+      tags:
+      - workspace
   /status:
     get:
       description: Reports database and vault-core availability
@@ -759,6 +1517,29 @@ paths:
       summary: Dependency status
       tags:
       - system
+  /trash:
+    get:
+      description: List user's deleted files and directory trash roots
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.TrashResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Trash
+      tags:
+      - workspace
 securityDefinitions:
   BearerAuth:
     in: header

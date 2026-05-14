@@ -16,6 +16,10 @@ services:
       - ./environment-a/web-client:/app
       - /app/node_modules
     restart: unless-stopped
+    develop:
+      watch:
+        - action: rebuild
+          path: ./environment-a/web-client/package.json
 
   api-service:
     build:
@@ -45,6 +49,12 @@ services:
     volumes:
       - ./shared/uds:/var/run/pui/uds
     restart: unless-stopped
+    develop:
+      watch:
+        - action: rebuild
+          path: ./environment-a/api-service
+          ignore:
+            - "**/*_test.go"
 
   postgres:
     image: postgres:16-alpine
@@ -96,6 +106,12 @@ services:
       - ./data/vault/badger:/var/lib/pui/badger
       - ./data/vault/chunks:/var/lib/pui/chunks
     restart: unless-stopped
+    develop:
+      watch:
+        - action: rebuild
+          path: ./environment-b/vault-core
+          ignore:
+            - "**/*_test.go"
 
 networks:
   public_net:

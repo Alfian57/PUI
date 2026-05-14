@@ -1,6 +1,6 @@
-# PUI - Public Upload Immutable
+# HashBox
 
-PUI adalah platform penyimpanan file immutable dengan arsitektur terpisah:
+HashBox adalah platform penyimpanan file immutable dengan arsitektur terpisah:
 - environment-a untuk antarmuka publik (web + API metadata)
 - environment-b untuk penyimpanan konten immutable (vault-core)
 - komunikasi antar service memakai Unix Domain Socket (UDS)
@@ -44,12 +44,18 @@ cp .env.example .env
 make compose-up
 ```
 
-3. Akses aplikasi:
+3. Seed user development (opsional):
+
+```bash
+docker exec -i pui-postgres psql -U pui -d pui < environment-a/api-service/db/seeds/dev_admin.sql
+```
+
+4. Akses aplikasi:
 - Web UI: http://localhost:5173
 - API base: http://localhost:8080/api/v1
 - Swagger: http://localhost:8080/api/v1/swagger/index.html
 
-4. Stop stack:
+5. Stop stack:
 
 ```bash
 make compose-down
@@ -106,5 +112,4 @@ Workflow: [.github/workflows/ci-cd.yml](.github/workflows/ci-cd.yml)
 
 ## Operasional dan Backup
 
-- Panduan backup lokal tersedia di [deploy/backup.md](deploy/backup.md).
 - Dokumentasi Swagger API tersedia di [environment-a/api-service/docs/README.md](environment-a/api-service/docs/README.md).

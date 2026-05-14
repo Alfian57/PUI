@@ -11,7 +11,7 @@ import (
 	"github.com/alfiang/pui/environment-a/api-service/internal/config"
 )
 
-// @title PUI API Service
+// @title HashBox API Service
 // @version 1.0
 // @description API service for authentication, directory hierarchy, and immutable file metadata.
 // @BasePath /api/v1

@@ -16,9 +16,11 @@ import (
 type API struct {
 	cfg              config.Config
 	authService      *service.AuthService
+	adminService     *service.AdminService
 	activityService  *service.ActivityService
 	directoryService *service.DirectoryService
 	fileService      *service.FileService
+	insightService   *service.InsightService
 	systemService    *service.SystemService
 	validator        *validator.Validate
 }
@@ -26,17 +28,21 @@ type API struct {
 func NewAPI(
 	cfg config.Config,
 	authService *service.AuthService,
+	adminService *service.AdminService,
 	activityService *service.ActivityService,
 	directoryService *service.DirectoryService,
 	fileService *service.FileService,
+	insightService *service.InsightService,
 	systemService *service.SystemService,
 ) *API {
 	return &API{
 		cfg:              cfg,
 		authService:      authService,
+		adminService:     adminService,
 		activityService:  activityService,
 		directoryService: directoryService,
 		fileService:      fileService,
+		insightService:   insightService,
 		systemService:    systemService,
 		validator:        validator.New(validator.WithRequiredStructEnabled()),
 	}

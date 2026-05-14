@@ -20,6 +20,7 @@ const (
 type VaultFileClient interface {
 	Upload(ctx context.Context, fileName string, reader io.Reader) (vaultclient.UploadCommitResult, error)
 	DownloadObject(ctx context.Context, manifestID string) (io.ReadCloser, int64, error)
+	GetManifest(ctx context.Context, manifestID string) (vaultclient.ManifestRecord, error)
 }
 
 type UploadOutcome struct {
@@ -50,24 +51,43 @@ func NewFileService(filesRepo *repository.FileRepository, directoryRepo *reposit
 }
 
 func (s *FileService) ListByDirectory(ctx context.Context, user domain.AuthUser, directoryID string, includeDeleted bool) ([]domain.FileRecord, error) {
+	directoryID = strings.TrimSpace(directoryID)
+	if directoryID == "" {
+		return s.filesRepo.ListByDirectory(ctx, user.UserID, "", includeDeleted)
+	}
+
 	if !IsUUID(directoryID) {
-		return nil, fmt.Errorf("directory id tidak valid")
+		return nil, domain.NewValidationError("directory id tidak valid")
+	}
+
+	owned, err := s.directoryRepo.IsOwnedByUser(ctx, directoryID, user.UserID)
+	if err != nil {
+		return nil, err
+	}
+	if !owned {
+		return nil, domain.ErrNotFound
 	}
 
 	return s.filesRepo.ListByDirectory(ctx, user.UserID, directoryID, includeDeleted)
 }
 
 func (s *FileService) Upload(ctx context.Context, user domain.AuthUser, directoryID, fileName, mimeType string, reader io.Reader) (UploadOutcome, error) {
-	if !IsUUID(directoryID) {
-		return UploadOutcome{}, fmt.Errorf("directory_id tidak valid")
-	}
+	directoryID = strings.TrimSpace(directoryID)
+	var activityResourceID *string
 
-	owned, err := s.directoryRepo.IsOwnedByUser(ctx, directoryID, user.UserID)
-	if err != nil {
-		return UploadOutcome{}, err
-	}
-	if !owned {
-		return UploadOutcome{}, domain.ErrNotFound
+	if directoryID != "" {
+		if !IsUUID(directoryID) {
+			return UploadOutcome{}, domain.NewValidationError("directory_id tidak valid")
+		}
+
+		owned, err := s.directoryRepo.IsOwnedByUser(ctx, directoryID, user.UserID)
+		if err != nil {
+			return UploadOutcome{}, err
+		}
+		if !owned {
+			return UploadOutcome{}, domain.ErrNotFound
+		}
+		activityResourceID = &directoryID
 	}
 
 	fileName = strings.TrimSpace(fileName)
@@ -75,7 +95,7 @@ func (s *FileService) Upload(ctx context.Context, user domain.AuthUser, director
 		fileName = "upload.bin"
 	}
 
-	exists, err := s.filesRepo.ExistsActiveByDirectoryAndName(ctx, directoryID, fileName)
+	exists, err := s.filesRepo.ExistsActiveByDirectoryAndName(ctx, user.UserID, directoryID, fileName)
 	if err != nil {
 		return UploadOutcome{}, err
 	}
@@ -90,13 +110,25 @@ func (s *FileService) Upload(ctx context.Context, user domain.AuthUser, director
 
 	uploadResult, err := s.vault.Upload(ctx, fileName, reader)
 	if err != nil {
-		if logErr := s.activityRepo.Log(ctx, user.UserID, "UPLOAD_FAILED", "DIRECTORY", &directoryID); logErr != nil {
+		if logErr := s.activityRepo.Log(ctx, user.UserID, "UPLOAD_FAILED", "DIRECTORY", activityResourceID); logErr != nil {
 			// Ignore logging errors to keep root cause intact.
 		}
 		return UploadOutcome{}, err
 	}
 
-	record, err := s.filesRepo.Create(ctx, directoryID, fileName, uploadResult.TotalSizeBytes, mimeType, uploadResult.ManifestID)
+	record, err := s.filesRepo.Create(
+		ctx,
+		user.UserID,
+		directoryID,
+		fileName,
+		uploadResult.TotalSizeBytes,
+		mimeType,
+		uploadResult.ManifestID,
+		uploadResult.ChunkCount,
+		uploadResult.NewChunkCount,
+		uploadResult.ReuseChunkCount,
+		uploadResult.DedupRatio,
+	)
 	if err != nil {
 		return UploadOutcome{}, fmt.Errorf("simpan metadata file gagal: %w", err)
 	}
@@ -110,7 +142,7 @@ func (s *FileService) Upload(ctx context.Context, user domain.AuthUser, director
 
 func (s *FileService) Detail(ctx context.Context, user domain.AuthUser, fileID string, includeDeleted bool) (domain.FileRecord, error) {
 	if !IsUUID(fileID) {
-		return domain.FileRecord{}, fmt.Errorf("file id tidak valid")
+		return domain.FileRecord{}, domain.NewValidationError("file id tidak valid")
 	}
 
 	return s.filesRepo.FindByIDForUser(ctx, fileID, user.UserID, includeDeleted)
@@ -141,7 +173,7 @@ func (s *FileService) Download(ctx context.Context, user domain.AuthUser, fileID
 
 func (s *FileService) SoftDelete(ctx context.Context, user domain.AuthUser, fileID string) (time.Time, error) {
 	if !IsUUID(fileID) {
-		return time.Time{}, fmt.Errorf("file id tidak valid")
+		return time.Time{}, domain.NewValidationError("file id tidak valid")
 	}
 
 	deletedAt, err := s.filesRepo.SoftDelete(ctx, fileID, user.UserID)
@@ -154,6 +186,60 @@ func (s *FileService) SoftDelete(ctx context.Context, user domain.AuthUser, file
 	}
 
 	return deletedAt, nil
+}
+
+func (s *FileService) Restore(ctx context.Context, user domain.AuthUser, fileID string) (domain.FileRecord, error) {
+	if !IsUUID(fileID) {
+		return domain.FileRecord{}, domain.NewValidationError("file id tidak valid")
+	}
+
+	record, err := s.filesRepo.Restore(ctx, fileID, user.UserID)
+	if err != nil {
+		return domain.FileRecord{}, err
+	}
+
+	if logErr := s.activityRepo.Log(ctx, user.UserID, "RESTORE_FILE", "FILE", &fileID); logErr != nil {
+		// Ignore log write error.
+	}
+
+	return record, nil
+}
+
+func (s *FileService) PermanentDelete(ctx context.Context, user domain.AuthUser, fileID string) error {
+	if !IsUUID(fileID) {
+		return domain.NewValidationError("file id tidak valid")
+	}
+
+	if err := s.filesRepo.PermanentDelete(ctx, fileID, user.UserID); err != nil {
+		return err
+	}
+
+	if logErr := s.activityRepo.Log(ctx, user.UserID, "DELETE_FILE_PERMANENT", "FILE", &fileID); logErr != nil {
+		// Ignore log write error.
+	}
+
+	return nil
+}
+
+func (s *FileService) SetStarred(ctx context.Context, user domain.AuthUser, fileID string, starred bool) (domain.FileRecord, error) {
+	if !IsUUID(fileID) {
+		return domain.FileRecord{}, domain.NewValidationError("file id tidak valid")
+	}
+
+	record, err := s.filesRepo.SetStarred(ctx, fileID, user.UserID, starred)
+	if err != nil {
+		return domain.FileRecord{}, err
+	}
+
+	action := "STAR_FILE"
+	if !starred {
+		action = "UNSTAR_FILE"
+	}
+	if logErr := s.activityRepo.Log(ctx, user.UserID, action, "FILE", &fileID); logErr != nil {
+		// Ignore log write error.
+	}
+
+	return record, nil
 }
 
 func (s *FileService) Search(
@@ -217,4 +303,16 @@ func (s *FileService) Search(
 	}
 
 	return files, total, limit, offset, nil
+}
+
+func (s *FileService) GetManifestInfo(ctx context.Context, manifestID string) (vaultclient.ManifestRecord, error) {
+	return s.vault.GetManifest(ctx, manifestID)
+}
+
+func (s *FileService) Trash(ctx context.Context, user domain.AuthUser) ([]domain.FileRecord, error) {
+	return s.filesRepo.ListTrash(ctx, user.UserID)
+}
+
+func (s *FileService) Starred(ctx context.Context, user domain.AuthUser) ([]domain.FileRecord, error) {
+	return s.filesRepo.ListStarred(ctx, user.UserID)
 }

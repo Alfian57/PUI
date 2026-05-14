@@ -12,8 +12,8 @@ export function NoticeToast({ notice, onClose }: NoticeToastProps): JSX.Element 
             className={clsx(
                 "fixed right-4 top-4 z-50 w-full max-w-sm animate-rise-in rounded-xl border px-4 py-3 shadow-deck",
                 notice.variant === "success"
-                    ? "border-emerald-300 bg-emerald-50 text-emerald-900"
-                    : "border-rose-300 bg-rose-50 text-rose-900"
+                    ? "border-brand-success/25 bg-brand-mint text-brand-ink"
+                    : "border-brand-coral/25 bg-brand-coral/10 text-brand-coral"
             )}
             role="status"
         >

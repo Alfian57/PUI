@@ -11,17 +11,20 @@ const config: Config = {
       },
       colors: {
         brand: {
-          ink: "#10202A",
-          steel: "#2A4F63",
-          mint: "#D4F4E6",
-          sky: "#E8F4FF",
-          amber: "#F7B267",
-          coral: "#E9724C"
+          ink: "#061B3A",
+          steel: "#24486B",
+          mint: "#E4F6F0",
+          success: "#16856E",
+          sky: "#EDF5FF",
+          amber: "#F0A000",
+          coral: "#D94A35",
+          blueprint: "#476C9B",
+          line: "#D7E4F2"
         }
       },
       boxShadow: {
-        deck: "0 16px 42px rgba(13, 29, 38, 0.14)",
-        soft: "0 8px 24px rgba(16, 32, 42, 0.08)"
+        deck: "0 16px 42px rgba(6, 27, 58, 0.16)",
+        soft: "0 8px 24px rgba(6, 27, 58, 0.08)"
       },
       keyframes: {
         "rise-in": {

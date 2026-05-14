@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/alfiang/pui/environment-a/api-service/internal/domain"
 	"github.com/alfiang/pui/environment-a/api-service/internal/transport/http/dto"
 	"github.com/gin-gonic/gin"
 )
@@ -37,14 +36,7 @@ func (a *API) handleCreateDirectory(c *gin.Context) {
 
 	directory, err := a.directoryService.Create(c.Request.Context(), user, req.Name, req.ParentID)
 	if err != nil {
-		status := statusFromError(err)
-		if status == http.StatusInternalServerError {
-			switch err.Error() {
-			case "nama direktori wajib diisi", "nama direktori terlalu panjang", "parent_id tidak valid":
-				status = http.StatusBadRequest
-			}
-		}
-		writeError(c, status, err)
+		writeError(c, statusFromError(err), err)
 		return
 	}
 
@@ -75,11 +67,7 @@ func (a *API) handleDirectoryTree(c *gin.Context) {
 	rootID := strings.TrimSpace(c.Query("root_id"))
 	directories, err := a.directoryService.Tree(c.Request.Context(), user, rootID)
 	if err != nil {
-		status := statusFromError(err)
-		if status == http.StatusInternalServerError && err.Error() == "root_id tidak valid" {
-			status = http.StatusBadRequest
-		}
-		writeError(c, status, err)
+		writeError(c, statusFromError(err), err)
 		return
 	}
 
@@ -113,11 +101,7 @@ func (a *API) handleDirectoryFiles(c *gin.Context) {
 	includeDeleted := parseBoolQuery(c.Query("include_deleted"))
 	files, err := a.fileService.ListByDirectory(c.Request.Context(), user, directoryID, includeDeleted)
 	if err != nil {
-		status := statusFromError(err)
-		if status == http.StatusInternalServerError && err.Error() == "directory id tidak valid" {
-			status = http.StatusBadRequest
-		}
-		writeError(c, status, err)
+		writeError(c, statusFromError(err), err)
 		return
 	}
 
@@ -150,14 +134,7 @@ func (a *API) handleDirectoryBreadcrumb(c *gin.Context) {
 	directoryID := strings.TrimSpace(c.Param("id"))
 	items, err := a.directoryService.Breadcrumb(c.Request.Context(), user, directoryID)
 	if err != nil {
-		status := statusFromError(err)
-		if status == http.StatusInternalServerError && err.Error() == "directory id tidak valid" {
-			status = http.StatusBadRequest
-		}
-		if err == domain.ErrNotFound {
-			status = http.StatusNotFound
-		}
-		writeError(c, status, err)
+		writeError(c, statusFromError(err), err)
 		return
 	}
 
@@ -165,5 +142,209 @@ func (a *API) handleDirectoryBreadcrumb(c *gin.Context) {
 		Status:      "ok",
 		DirectoryID: directoryID,
 		Breadcrumb:  toDirectoryDTOs(items),
+	})
+}
+
+// handleSoftDeleteDirectory godoc
+// @Summary Move directory to trash
+// @Description Soft-delete a directory subtree and move it to trash
+// @Tags directories
+// @Security BearerAuth
+// @Produce json
+// @Param id path string true "Directory UUID"
+// @Success 200 {object} dto.DirectoryMutationResponse
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 401 {object} dto.ErrorResponse
+// @Failure 404 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /directories/{id} [delete]
+func (a *API) handleSoftDeleteDirectory(c *gin.Context) {
+	user, ok := a.authUser(c)
+	if !ok {
+		return
+	}
+
+	directoryID := strings.TrimSpace(c.Param("id"))
+	directory, err := a.directoryService.SoftDelete(c.Request.Context(), user, directoryID)
+	if err != nil {
+		writeError(c, statusFromError(err), err)
+		return
+	}
+
+	c.JSON(http.StatusOK, dto.DirectoryMutationResponse{Status: "ok", Directory: toDirectoryDTO(directory)})
+}
+
+// handleRestoreDirectory godoc
+// @Summary Restore directory from trash
+// @Description Restore a previously deleted directory subtree
+// @Tags directories
+// @Security BearerAuth
+// @Produce json
+// @Param id path string true "Directory UUID"
+// @Success 200 {object} dto.DirectoryMutationResponse
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 401 {object} dto.ErrorResponse
+// @Failure 404 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /directories/{id}/restore [post]
+func (a *API) handleRestoreDirectory(c *gin.Context) {
+	user, ok := a.authUser(c)
+	if !ok {
+		return
+	}
+
+	directoryID := strings.TrimSpace(c.Param("id"))
+	directory, err := a.directoryService.Restore(c.Request.Context(), user, directoryID)
+	if err != nil {
+		writeError(c, statusFromError(err), err)
+		return
+	}
+
+	c.JSON(http.StatusOK, dto.DirectoryMutationResponse{Status: "ok", Directory: toDirectoryDTO(directory)})
+}
+
+// handlePermanentDeleteDirectory godoc
+// @Summary Permanently delete directory
+// @Description Permanently remove a directory subtree from trash metadata
+// @Tags directories
+// @Security BearerAuth
+// @Produce json
+// @Param id path string true "Directory UUID"
+// @Success 200 {object} dto.OKResponse
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 401 {object} dto.ErrorResponse
+// @Failure 404 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /directories/{id}/permanent [delete]
+func (a *API) handlePermanentDeleteDirectory(c *gin.Context) {
+	user, ok := a.authUser(c)
+	if !ok {
+		return
+	}
+
+	directoryID := strings.TrimSpace(c.Param("id"))
+	if err := a.directoryService.PermanentDelete(c.Request.Context(), user, directoryID); err != nil {
+		writeError(c, statusFromError(err), err)
+		return
+	}
+
+	c.JSON(http.StatusOK, dto.OKResponse{Status: "ok"})
+}
+
+// handleStarDirectory godoc
+// @Summary Star directory
+// @Description Mark a directory as starred
+// @Tags directories
+// @Security BearerAuth
+// @Produce json
+// @Param id path string true "Directory UUID"
+// @Success 200 {object} dto.DirectoryMutationResponse
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 401 {object} dto.ErrorResponse
+// @Failure 404 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /directories/{id}/star [put]
+func (a *API) handleStarDirectory(c *gin.Context) {
+	a.handleSetStarredDirectory(c, true)
+}
+
+// handleUnstarDirectory godoc
+// @Summary Unstar directory
+// @Description Remove starred marker from a directory
+// @Tags directories
+// @Security BearerAuth
+// @Produce json
+// @Param id path string true "Directory UUID"
+// @Success 200 {object} dto.DirectoryMutationResponse
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 401 {object} dto.ErrorResponse
+// @Failure 404 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /directories/{id}/star [delete]
+func (a *API) handleUnstarDirectory(c *gin.Context) {
+	a.handleSetStarredDirectory(c, false)
+}
+
+func (a *API) handleSetStarredDirectory(c *gin.Context, starred bool) {
+	user, ok := a.authUser(c)
+	if !ok {
+		return
+	}
+
+	directoryID := strings.TrimSpace(c.Param("id"))
+	directory, err := a.directoryService.SetStarred(c.Request.Context(), user, directoryID, starred)
+	if err != nil {
+		writeError(c, statusFromError(err), err)
+		return
+	}
+
+	c.JSON(http.StatusOK, dto.DirectoryMutationResponse{Status: "ok", Directory: toDirectoryDTO(directory)})
+}
+
+// handleTrash godoc
+// @Summary Trash
+// @Description List user's deleted files and directory trash roots
+// @Tags workspace
+// @Security BearerAuth
+// @Produce json
+// @Success 200 {object} dto.TrashResponse
+// @Failure 401 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /trash [get]
+func (a *API) handleTrash(c *gin.Context) {
+	user, ok := a.authUser(c)
+	if !ok {
+		return
+	}
+
+	directories, err := a.directoryService.Trash(c.Request.Context(), user)
+	if err != nil {
+		writeError(c, statusFromError(err), err)
+		return
+	}
+	files, err := a.fileService.Trash(c.Request.Context(), user)
+	if err != nil {
+		writeError(c, statusFromError(err), err)
+		return
+	}
+
+	c.JSON(http.StatusOK, dto.TrashResponse{
+		Status:      "ok",
+		Directories: toDirectoryDTOs(directories),
+		Files:       toFileDTOs(files),
+	})
+}
+
+// handleStarred godoc
+// @Summary Starred items
+// @Description List user's starred files and directories
+// @Tags workspace
+// @Security BearerAuth
+// @Produce json
+// @Success 200 {object} dto.StarredResponse
+// @Failure 401 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /starred [get]
+func (a *API) handleStarred(c *gin.Context) {
+	user, ok := a.authUser(c)
+	if !ok {
+		return
+	}
+
+	directories, err := a.directoryService.Starred(c.Request.Context(), user)
+	if err != nil {
+		writeError(c, statusFromError(err), err)
+		return
+	}
+	files, err := a.fileService.Starred(c.Request.Context(), user)
+	if err != nil {
+		writeError(c, statusFromError(err), err)
+		return
+	}
+
+	c.JSON(http.StatusOK, dto.StarredResponse{
+		Status:      "ok",
+		Directories: toDirectoryDTOs(directories),
+		Files:       toFileDTOs(files),
 	})
 }

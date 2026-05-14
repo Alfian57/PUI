@@ -34,6 +34,25 @@ func Auth(authService *service.AuthService) gin.HandlerFunc {
 	}
 }
 
+func RequireRole(role string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		user, ok := MustAuthUser(c)
+		if !ok {
+			c.JSON(http.StatusUnauthorized, gin.H{"status": "error", "error": domain.ErrUnauthorized.Error()})
+			c.Abort()
+			return
+		}
+
+		if !strings.EqualFold(user.Role, role) {
+			c.JSON(http.StatusForbidden, gin.H{"status": "error", "error": domain.ErrForbidden.Error()})
+			c.Abort()
+			return
+		}
+
+		c.Next()
+	}
+}
+
 func extractBearerToken(header string) string {
 	header = strings.TrimSpace(header)
 	if header == "" {
