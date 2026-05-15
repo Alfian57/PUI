@@ -27,6 +27,22 @@ const fileSelectColumns = `
 	f.dihapus_pada AS deleted_at,
 	f.dibintangi_pada AS starred_at`
 
+const fileReturningColumns = `
+	id_berkas::text AS id,
+	id_direktori::text AS directory_id,
+	nama AS name,
+	ukuran AS size_bytes,
+	mime_type,
+	COALESCE(id_manifest, '') AS manifest_id,
+	status_penyimpanan AS storage_status,
+	chunk_count,
+	new_chunk_count,
+	reuse_chunk_count,
+	dedup_ratio,
+	dibuat_pada AS created_at,
+	dihapus_pada AS deleted_at,
+	dibintangi_pada AS starred_at`
+
 type FileRepository struct {
 	db *gorm.DB
 }
@@ -40,7 +56,7 @@ func (r *FileRepository) CreatePending(ctx context.Context, userID, directoryID,
 	err := r.db.WithContext(ctx).Raw(
 		`INSERT INTO files (id_pengguna, id_direktori, nama, ukuran, mime_type, id_manifest, status_penyimpanan, chunk_count, new_chunk_count, reuse_chunk_count, dedup_ratio)
 		 VALUES (?::uuid, NULLIF(?, '')::uuid, ?, 0, ?, NULL, 'pending', 0, 0, 0, 0)
-		 RETURNING `+fileSelectColumns,
+		 RETURNING `+fileReturningColumns,
 		userID,
 		directoryID,
 		name,
