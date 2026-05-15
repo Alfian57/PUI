@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import clsx from "clsx";
-import { Download, FileText, Folder, Info, RotateCcw, Star, StarOff, Trash2 } from "lucide-react";
+import { Check, Download, FileText, Folder, Info, RotateCcw, Star, StarOff, Trash2 } from "lucide-react";
 import { formatBytes, formatDate } from "@/shared/lib/format";
 import type { DirectoryRecord, FileRecord } from "@/shared/types/domain";
 
@@ -121,10 +121,10 @@ export function WorkspaceItemsView({
         clearSelection();
     }
 
-    const bulkToolbar = bulkEnabled ? (
+    const bulkToolbar = bulkEnabled && selectedCount > 0 ? (
         <div className={clsx(
             "mb-3 flex flex-col gap-3 rounded-2xl border border-brand-steel/10 bg-brand-sky/55 px-4 py-3 sm:flex-row sm:items-center sm:justify-between",
-            selectedCount > 0 ? "border-brand-amber/40 bg-brand-amber/10" : ""
+            "border-brand-amber/40 bg-brand-amber/10"
         )}>
             <div className="flex flex-wrap items-center gap-2">
                 <button
@@ -135,78 +135,76 @@ export function WorkspaceItemsView({
                     {selectedCount === displayItems.length ? "Batalkan semua" : "Pilih semua"}
                 </button>
                 <p className="text-sm font-medium text-brand-steel">
-                    {selectedCount > 0 ? `${selectedCount} item dipilih` : "Pilih item untuk aksi massal"}
+                    {selectedCount} item dipilih
                 </p>
             </div>
 
-            {selectedCount > 0 ? (
-                <div className="flex flex-wrap items-center gap-2">
-                    {mode === "trash" ? (
-                        <>
-                            {onBulkRestore ? (
-                                <button
-                                    type="button"
-                                    onClick={() => void runBulkAction(onBulkRestore)}
-                                    className="inline-flex items-center gap-2 rounded-xl bg-brand-ink px-3 py-2 text-sm font-semibold text-white transition hover:bg-brand-steel"
-                                >
-                                    <RotateCcw className="h-4 w-4" aria-hidden="true" />
-                                    Pulihkan
-                                </button>
-                            ) : null}
-                            {onBulkPermanentDelete ? (
-                                <button
-                                    type="button"
-                                    onClick={() => void runBulkAction(onBulkPermanentDelete)}
-                                    className="inline-flex items-center gap-2 rounded-xl border border-brand-coral/25 bg-white px-3 py-2 text-sm font-semibold text-brand-coral transition hover:bg-brand-coral/10"
-                                >
-                                    <Trash2 className="h-4 w-4" aria-hidden="true" />
-                                    Hapus permanen
-                                </button>
-                            ) : null}
-                        </>
-                    ) : (
-                        <>
-                            {onBulkStar ? (
-                                <button
-                                    type="button"
-                                    onClick={() => void runBulkAction(onBulkStar)}
-                                    className="inline-flex items-center gap-2 rounded-xl bg-brand-ink px-3 py-2 text-sm font-semibold text-white transition hover:bg-brand-steel"
-                                >
-                                    <Star className="h-4 w-4" aria-hidden="true" />
-                                    Bintangi
-                                </button>
-                            ) : null}
-                            {onBulkUnstar ? (
-                                <button
-                                    type="button"
-                                    onClick={() => void runBulkAction(onBulkUnstar)}
-                                    className="inline-flex items-center gap-2 rounded-xl border border-brand-steel/15 bg-white px-3 py-2 text-sm font-semibold text-brand-ink transition hover:bg-brand-sky"
-                                >
-                                    <StarOff className="h-4 w-4" aria-hidden="true" />
-                                    Hapus bintang
-                                </button>
-                            ) : null}
-                            {onBulkSoftDelete ? (
-                                <button
-                                    type="button"
-                                    onClick={() => void runBulkAction(onBulkSoftDelete)}
-                                    className="inline-flex items-center gap-2 rounded-xl border border-brand-coral/25 bg-white px-3 py-2 text-sm font-semibold text-brand-coral transition hover:bg-brand-coral/10"
-                                >
-                                    <Trash2 className="h-4 w-4" aria-hidden="true" />
-                                    Hapus
-                                </button>
-                            ) : null}
-                        </>
-                    )}
-                    <button
-                        type="button"
-                        onClick={clearSelection}
-                        className="rounded-xl px-3 py-2 text-sm font-semibold text-brand-steel transition hover:bg-white"
-                    >
-                        Batal
-                    </button>
-                </div>
-            ) : null}
+            <div className="flex flex-wrap items-center gap-2">
+                {mode === "trash" ? (
+                    <>
+                        {onBulkRestore ? (
+                            <button
+                                type="button"
+                                onClick={() => void runBulkAction(onBulkRestore)}
+                                className="inline-flex items-center gap-2 rounded-xl bg-brand-ink px-3 py-2 text-sm font-semibold text-white transition hover:bg-brand-steel"
+                            >
+                                <RotateCcw className="h-4 w-4" aria-hidden="true" />
+                                Pulihkan
+                            </button>
+                        ) : null}
+                        {onBulkPermanentDelete ? (
+                            <button
+                                type="button"
+                                onClick={() => void runBulkAction(onBulkPermanentDelete)}
+                                className="inline-flex items-center gap-2 rounded-xl border border-brand-coral/25 bg-white px-3 py-2 text-sm font-semibold text-brand-coral transition hover:bg-brand-coral/10"
+                            >
+                                <Trash2 className="h-4 w-4" aria-hidden="true" />
+                                Hapus permanen
+                            </button>
+                        ) : null}
+                    </>
+                ) : (
+                    <>
+                        {onBulkStar ? (
+                            <button
+                                type="button"
+                                onClick={() => void runBulkAction(onBulkStar)}
+                                className="inline-flex items-center gap-2 rounded-xl bg-brand-ink px-3 py-2 text-sm font-semibold text-white transition hover:bg-brand-steel"
+                            >
+                                <Star className="h-4 w-4" aria-hidden="true" />
+                                Bintangi
+                            </button>
+                        ) : null}
+                        {onBulkUnstar ? (
+                            <button
+                                type="button"
+                                onClick={() => void runBulkAction(onBulkUnstar)}
+                                className="inline-flex items-center gap-2 rounded-xl border border-brand-steel/15 bg-white px-3 py-2 text-sm font-semibold text-brand-ink transition hover:bg-brand-sky"
+                            >
+                                <StarOff className="h-4 w-4" aria-hidden="true" />
+                                Hapus bintang
+                            </button>
+                        ) : null}
+                        {onBulkSoftDelete ? (
+                            <button
+                                type="button"
+                                onClick={() => void runBulkAction(onBulkSoftDelete)}
+                                className="inline-flex items-center gap-2 rounded-xl border border-brand-coral/25 bg-white px-3 py-2 text-sm font-semibold text-brand-coral transition hover:bg-brand-coral/10"
+                            >
+                                <Trash2 className="h-4 w-4" aria-hidden="true" />
+                                Hapus
+                            </button>
+                        ) : null}
+                    </>
+                )}
+                <button
+                    type="button"
+                    onClick={clearSelection}
+                    className="rounded-xl px-3 py-2 text-sm font-semibold text-brand-steel transition hover:bg-white"
+                >
+                    Batal
+                </button>
+            </div>
         </div>
     ) : null;
 
@@ -464,17 +462,18 @@ function SelectionToggle({ selected, label, onToggle, floating = false }: Select
                 onToggle();
             }}
             className={clsx(
-                "inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-xl border transition focus:outline-none focus:ring-2 focus:ring-brand-amber/40",
+                "inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border transition focus:outline-none focus:ring-2 focus:ring-brand-amber/35",
                 selected
-                    ? "border-brand-ink bg-brand-ink text-white"
-                    : "border-brand-steel/15 bg-white text-brand-steel hover:border-brand-amber/45 hover:text-brand-ink",
+                    ? "border-brand-ink bg-brand-ink text-white shadow-sm"
+                    : "border-brand-steel/20 bg-white/95 text-brand-steel hover:border-brand-amber/50 hover:bg-brand-sky/70",
                 floating ? "absolute left-3 top-3 z-10 shadow-soft" : ""
             )}
         >
-            <span className={clsx(
-                "h-3.5 w-3.5 rounded border transition",
-                selected ? "border-white bg-white" : "border-current"
-            )} />
+            {selected ? (
+                <Check className="h-3 w-3 stroke-[3]" aria-hidden="true" />
+            ) : (
+                <span className="h-2 w-2 rounded-sm bg-brand-steel/15 transition" aria-hidden="true" />
+            )}
         </button>
     );
 }

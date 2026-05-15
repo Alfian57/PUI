@@ -72,7 +72,7 @@ export function AdminTopbar({ user, onMenuClick, onLogout }: AdminTopbarProps): 
                                 className="flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left text-sm font-semibold text-brand-coral transition hover:bg-brand-coral/10 focus:outline-none focus:ring-2 focus:ring-brand-amber/70"
                             >
                                 <LogOut className="h-4 w-4" aria-hidden="true" />
-                                Logout
+                                Keluar
                             </button>
                         </div>
                     ) : null}

@@ -63,8 +63,12 @@ export function useAuthSession() {
   });
 
   const user: AuthUser | null = useMemo(() => {
+    if (!token) {
+      return null;
+    }
+
     return meQuery.data ?? loginMutation.data?.user ?? null;
-  }, [loginMutation.data?.user, meQuery.data]);
+  }, [loginMutation.data?.user, meQuery.data, token]);
 
   return {
     token,
