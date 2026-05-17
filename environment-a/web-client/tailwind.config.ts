@@ -11,12 +11,14 @@ const config: Config = {
       },
       colors: {
         brand: {
-          ink: "#061B3A",
+          ink: "#042351",
+          logoBlue: "#042351",
+          logoYellow: "#F79C05",
           steel: "#24486B",
           mint: "#E4F6F0",
           success: "#16856E",
           sky: "#EDF5FF",
-          amber: "#F0A000",
+          amber: "#F79C05",
           coral: "#D94A35",
           blueprint: "#476C9B",
           line: "#D7E4F2"

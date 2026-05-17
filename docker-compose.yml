@@ -48,7 +48,7 @@ services:
       - "${API_PORT:-8080}:8080"
     user: "10001:20000"
     volumes:
-      - ./shared/uds:/var/run/pui/uds
+      - ./data/uds:/var/run/pui/uds
       - ./data/vault/chunks:/var/lib/pui/chunks:ro
     restart: unless-stopped
     develop:
@@ -104,7 +104,7 @@ services:
       ]
     network_mode: "none"
     volumes:
-      - ./shared/uds:/var/run/pui/uds
+      - ./data/uds:/var/run/pui/uds
       - ./data/vault/badger:/var/lib/pui/badger
       - ./data/vault/chunks:/var/lib/pui/chunks
     restart: unless-stopped

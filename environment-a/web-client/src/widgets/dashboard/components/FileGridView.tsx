@@ -54,7 +54,7 @@ export function FileGridView({
                     key={file.id}
                     className={clsx(
                         "cursor-pointer rounded-[1.75rem] border bg-white p-4 shadow-soft transition duration-200 hover:-translate-y-0.5 hover:shadow-deck",
-                        selectedFileID === file.id ? "border-brand-ink" : "border-brand-steel/10"
+                        selectedFileID === file.id ? "border-brand-ink ring-2 ring-brand-amber/20" : "border-brand-steel/10"
                     )}
                     onClick={() => onSelect(file.id)}
                 >

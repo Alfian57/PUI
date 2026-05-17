@@ -62,7 +62,7 @@ export function FileListView({
                         key={file.id}
                         className={clsx(
                             "group grid cursor-pointer gap-3 px-4 py-3 transition duration-200 focus-within:bg-brand-sky/60 hover:bg-brand-sky/60 lg:grid-cols-[minmax(0,1.6fr)_8rem_11rem_8rem] lg:items-center",
-                            selectedFileID === file.id ? "bg-brand-sky" : "hover:bg-brand-sky/60"
+                            selectedFileID === file.id ? "bg-brand-sky" : ""
                         )}
                         onClick={() => onSelect(file.id)}
                     >

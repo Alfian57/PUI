@@ -200,7 +200,7 @@ export function WorkspaceItemsView({
                 <button
                     type="button"
                     onClick={clearSelection}
-                    className="rounded-xl px-3 py-2 text-sm font-semibold text-brand-steel transition hover:bg-white"
+                    className="rounded-xl px-3 py-2 text-sm font-semibold text-brand-steel transition hover:bg-white hover:text-brand-ink"
                 >
                     Batal
                 </button>

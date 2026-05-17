@@ -37,14 +37,11 @@ environment-a/api-service/api-service
 
 # Runtime volumes / socket outputs
 data/postgres/
+data/uds/
 
-data/vault/badger/*
-!data/vault/badger/.gitkeep
+data/vault/badger/
+data/vault/chunks/
 
-data/vault/chunks/*
-!data/vault/chunks/.gitkeep
-
-shared/uds/*
-!shared/uds/.gitkeep
-!shared/uds/go.mod
-!shared/uds/types.go
+# shared/uds is tracked, but older local compose runs may leave it owned by
+# the vault runtime user. Ignore the worktree path so git add . can proceed.
+shared/uds/

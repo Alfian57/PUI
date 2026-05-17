@@ -97,7 +97,7 @@ export function RegisterCard({ onSubmit, loading, errorMessage }: RegisterCardPr
                             </div>
                         </div>
 
-                        <p className="font-display text-xs uppercase tracking-[0.28em] text-brand-steel">Daftar Pengguna</p>
+                        <p className="font-display text-xs font-semibold uppercase tracking-[0.28em] text-brand-steel">Daftar Pengguna</p>
                         <h1 className="mt-2 font-display text-3xl font-semibold leading-tight text-brand-ink">
                             Buat akun HashBox
                         </h1>
@@ -162,7 +162,7 @@ export function RegisterCard({ onSubmit, loading, errorMessage }: RegisterCardPr
                                         required
                                     />
                                     <button
-                                        className="absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-xl text-brand-steel transition hover:bg-brand-sky focus:outline-none focus:ring-2 focus:ring-brand-amber disabled:cursor-not-allowed disabled:opacity-50"
+                                        className="absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-xl text-brand-steel transition hover:bg-brand-sky hover:text-brand-ink focus:outline-none focus:ring-2 focus:ring-brand-amber disabled:cursor-not-allowed disabled:opacity-50"
                                         type="button"
                                         onClick={() => setShowPassword((current) => !current)}
                                         aria-label={showPassword ? "Sembunyikan password" : "Tampilkan password"}
@@ -205,7 +205,7 @@ export function RegisterCard({ onSubmit, loading, errorMessage }: RegisterCardPr
 
                         <p className="mt-4 text-center text-sm text-brand-steel">
                             Sudah punya akun?{" "}
-                            <Link className="font-semibold text-brand-ink underline-offset-4 hover:underline" to="/login">
+                            <Link className="font-semibold text-brand-ink underline decoration-brand-amber/55 underline-offset-4 hover:decoration-brand-ink" to="/login">
                                 Masuk ke HashBox
                             </Link>
                         </p>

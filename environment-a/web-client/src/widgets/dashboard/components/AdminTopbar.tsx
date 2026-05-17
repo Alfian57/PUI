@@ -18,7 +18,7 @@ export function AdminTopbar({ user, onMenuClick, onLogout }: AdminTopbarProps): 
             <div className="flex items-center justify-between gap-3">
                 <button
                     type="button"
-                    className="inline-flex h-10 w-10 items-center justify-center rounded-2xl text-brand-steel hover:bg-brand-sky lg:hidden"
+                    className="inline-flex h-10 w-10 items-center justify-center rounded-2xl text-brand-steel hover:bg-brand-sky hover:text-brand-ink lg:hidden"
                     aria-label="Menu"
                     onClick={onMenuClick}
                 >

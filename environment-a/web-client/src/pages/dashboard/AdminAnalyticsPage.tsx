@@ -44,8 +44,8 @@ const RANGE_OPTIONS: Array<{ value: AdminAnalyticsRange; label: string }> = [
 ];
 
 const CHART = {
-    ink: "#061B3A",
-    amber: "#F0A000",
+    ink: "#042351",
+    amber: "#F79C05",
     success: "#16856E",
     coral: "#D94A35",
     steel: "#24486B",

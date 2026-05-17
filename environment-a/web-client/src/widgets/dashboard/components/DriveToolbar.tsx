@@ -169,7 +169,7 @@ export function DriveToolbar({
             {uploadProgress !== null ? (
                 <div className="mt-3">
                     <div className="h-2 overflow-hidden rounded-full bg-brand-steel/15">
-                        <div className="h-full rounded-full bg-brand-ink transition-all" style={{ width: `${uploadProgress}%` }} />
+                        <div className="h-full rounded-full bg-brand-amber transition-all" style={{ width: `${uploadProgress}%` }} />
                     </div>
                     <p className="mt-1 text-xs text-brand-steel">Unggah {uploadProgress}%</p>
                 </div>

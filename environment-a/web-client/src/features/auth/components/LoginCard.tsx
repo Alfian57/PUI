@@ -34,9 +34,7 @@ export function LoginCard({
         ? "Sebentar, kami sedang membuka kembali sesi Anda."
         : loading
             ? "Sedang memeriksa akun Anda dengan aman..."
-            : password
-                ? "Password sudah terisi. Tekan Masuk untuk melanjutkan."
-                : null;
+            : null;
 
     async function handleSubmit(event: FormEvent<HTMLFormElement>): Promise<void> {
         event.preventDefault();
@@ -106,7 +104,7 @@ export function LoginCard({
                             </div>
                         </div>
 
-                        <p className="font-display text-xs uppercase tracking-[0.28em] text-brand-steel">Akun Pengguna</p>
+                        <p className="font-display text-xs font-semibold uppercase tracking-[0.28em] text-brand-steel">Akun Pengguna</p>
                         <h1 className="mt-2 font-display text-3xl font-semibold leading-tight text-brand-ink">
                             Masuk ke HashBox
                         </h1>
@@ -171,7 +169,7 @@ export function LoginCard({
                                         required
                                     />
                                     <button
-                                        className="absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-xl text-brand-steel transition hover:bg-brand-sky focus:outline-none focus:ring-2 focus:ring-brand-amber disabled:cursor-not-allowed disabled:opacity-50"
+                                        className="absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-xl text-brand-steel transition hover:bg-brand-sky hover:text-brand-ink focus:outline-none focus:ring-2 focus:ring-brand-amber disabled:cursor-not-allowed disabled:opacity-50"
                                         type="button"
                                         onClick={() => setShowPassword((current) => !current)}
                                         aria-label={showPassword ? "Sembunyikan password" : "Tampilkan password"}
@@ -204,7 +202,7 @@ export function LoginCard({
 
                         <p className="mt-5 text-center text-sm text-brand-steel">
                             Belum punya akun?{" "}
-                            <Link className="font-semibold text-brand-ink underline-offset-4 hover:underline" to="/register">
+                            <Link className="font-semibold text-brand-ink underline decoration-brand-amber/55 underline-offset-4 hover:decoration-brand-ink" to="/register">
                                 Daftar sebagai pengguna
                             </Link>
                         </p>

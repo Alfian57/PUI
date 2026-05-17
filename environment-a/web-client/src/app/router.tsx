@@ -1,5 +1,6 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import { RequireAuth, PublicOnly, RequireRole, RoleIndexRedirect } from "@/app/routes/AuthGuards";
+import { LandingPage } from "@/pages/LandingPage";
 import { LoginPage } from "@/pages/LoginPage";
 import { RegisterPage } from "@/pages/RegisterPage";
 import { DashboardLayout } from "@/widgets/dashboard/DashboardLayout";
@@ -20,7 +21,7 @@ import {
 export const router = createBrowserRouter([
     {
         path: "/",
-        element: <Navigate to="/app/files" replace />
+        element: <LandingPage />
     },
     {
         element: <PublicOnly />,
