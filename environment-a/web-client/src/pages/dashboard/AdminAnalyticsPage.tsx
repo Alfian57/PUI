@@ -65,9 +65,9 @@ export function AdminAnalyticsPage(): JSX.Element {
 
     return (
         <div className="space-y-6">
-            <section className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <section className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between" data-tour="admin-analytics-header">
                 <div>
-                    <h1 className="font-display text-3xl font-semibold text-brand-ink">Analitik HashBox</h1>
+                    <h1 className="font-display text-3xl font-semibold text-brand-logoBlue">Analitik HashBox</h1>
                     <p className="mt-1 max-w-2xl text-sm leading-6 text-brand-steel">
                         Ringkasan penggunaan aplikasi secara agregat tanpa membuka identitas pengguna, nama berkas, atau struktur direktori pribadi.
                     </p>
@@ -80,7 +80,7 @@ export function AdminAnalyticsPage(): JSX.Element {
                             onClick={() => setRange(option.value)}
                             className={clsx(
                                 "rounded-xl px-4 py-2 text-sm font-semibold transition",
-                                range === option.value ? "bg-brand-ink text-white" : "text-brand-steel hover:bg-brand-sky hover:text-brand-ink"
+                                range === option.value ? "bg-brand-logoBlue text-white" : "text-brand-steel hover:bg-brand-sky hover:text-brand-logoBlue"
                             )}
                         >
                             {option.label}
@@ -121,7 +121,7 @@ function AdminAnalyticsContent({ analytics }: { analytics: AdminAnalytics }): JS
 
     return (
         <>
-            <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+            <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-4" data-tour="admin-analytics-metrics">
                 <MetricCard label="Pengguna" value={String(summary.total_users)} helper={`${summary.active_users} aktif`} icon={<UsersRound className="h-5 w-5" />} />
                 <MetricCard label="Item aktif" value={String(totalActiveItems)} helper={`${summary.active_files} berkas, ${summary.active_folders} direktori`} icon={<HardDrive className="h-5 w-5" />} />
                 <MetricCard label="Penyimpanan aktif" value={formatBytes(summary.active_storage_bytes)} helper={`${formatBytes(summary.trash_storage_bytes)} di Sampah`} icon={<Database className="h-5 w-5" />} />
@@ -321,7 +321,7 @@ export function AdminSystemPage(): JSX.Element {
     return (
         <div className="space-y-6">
             <section>
-                <h1 className="font-display text-3xl font-semibold text-brand-ink">Kesehatan Sistem</h1>
+                <h1 className="font-display text-3xl font-semibold text-brand-logoBlue">Kesehatan Sistem</h1>
                 <p className="mt-1 max-w-2xl text-sm leading-6 text-brand-steel">
                     Status layanan utama HashBox tanpa membuka data pribadi pengguna.
                 </p>
@@ -364,17 +364,17 @@ export function AdminReportsPage(): JSX.Element {
                 onRangeChange={setRange}
             />
             <section className="grid gap-4 md:grid-cols-2">
-                <article className="rounded-[1.75rem] border border-brand-steel/10 bg-white p-6 shadow-soft">
+                <article className="rounded-[1.75rem] bg-white p-6 shadow-soft ring-1 ring-brand-line/70">
                     <FileArchive className="h-8 w-8 text-brand-steel" aria-hidden="true" />
-                    <h2 className="mt-4 font-display text-xl font-semibold text-brand-ink">Laporan PDF</h2>
+                    <h2 className="mt-4 font-display text-xl font-semibold text-brand-logoBlue">Laporan PDF</h2>
                     <p className="mt-2 text-sm leading-6 text-brand-steel">Ringkasan siap baca untuk lampiran, demo, atau dokumentasi evaluasi.</p>
                     <Button className="mt-5" disabled={Boolean(downloading)} onClick={() => void handleDownload("pdf")}>
                         {downloading === "pdf" ? "Membuat..." : "Unduh PDF"}
                     </Button>
                 </article>
-                <article className="rounded-[1.75rem] border border-brand-steel/10 bg-white p-6 shadow-soft">
+                <article className="rounded-[1.75rem] bg-white p-6 shadow-soft ring-1 ring-brand-line/70">
                     <FileText className="h-8 w-8 text-brand-steel" aria-hidden="true" />
-                    <h2 className="mt-4 font-display text-xl font-semibold text-brand-ink">Laporan CSV</h2>
+                    <h2 className="mt-4 font-display text-xl font-semibold text-brand-logoBlue">Laporan CSV</h2>
                     <p className="mt-2 text-sm leading-6 text-brand-steel">Data tabular untuk pengecekan ulang dan pengolahan sederhana.</p>
                     <Button className="mt-5" variant="secondary" disabled={Boolean(downloading)} onClick={() => void handleDownload("csv")}>
                         {downloading === "csv" ? "Membuat..." : "Unduh CSV"}
@@ -399,7 +399,7 @@ function AdminPageHeader({
     return (
         <section className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
-                <h1 className="font-display text-3xl font-semibold text-brand-ink">{title}</h1>
+                <h1 className="font-display text-3xl font-semibold text-brand-logoBlue">{title}</h1>
                 <p className="mt-1 max-w-2xl text-sm leading-6 text-brand-steel">{description}</p>
             </div>
             <div className="flex rounded-2xl bg-white p-1 shadow-soft">
@@ -410,7 +410,7 @@ function AdminPageHeader({
                         onClick={() => onRangeChange(option.value)}
                         className={clsx(
                             "rounded-xl px-4 py-2 text-sm font-semibold transition",
-                            range === option.value ? "bg-brand-ink text-white" : "text-brand-steel hover:bg-brand-sky hover:text-brand-ink"
+                            range === option.value ? "bg-brand-logoBlue text-white" : "text-brand-steel hover:bg-brand-sky hover:text-brand-logoBlue"
                         )}
                     >
                         {option.label}
@@ -444,11 +444,11 @@ type MetricCardProps = {
 
 function MetricCard({ label, value, helper, icon }: MetricCardProps): JSX.Element {
     return (
-        <article className="rounded-[1.75rem] border border-brand-steel/10 bg-white p-5 shadow-soft">
+        <article className="rounded-[1.75rem] bg-white p-5 shadow-soft ring-1 ring-brand-line/70">
             <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0">
                     <p className="text-sm text-brand-steel">{label}</p>
-                    <p className="mt-2 truncate font-display text-3xl font-semibold text-brand-ink">{value}</p>
+                    <p className="mt-2 truncate font-display text-3xl font-semibold text-brand-logoBlue">{value}</p>
                     <p className="mt-2 text-sm text-brand-steel">{helper}</p>
                 </div>
                 <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-brand-sky text-brand-steel">
@@ -467,9 +467,9 @@ type ChartPanelProps = {
 
 function ChartPanel({ title, description, children }: ChartPanelProps): JSX.Element {
     return (
-        <section className="rounded-[1.75rem] border border-brand-steel/10 bg-white p-5 shadow-soft">
+        <section className="rounded-[1.75rem] bg-white p-5 shadow-soft ring-1 ring-brand-line/70">
             <div className="mb-5">
-                <h2 className="font-display text-xl font-semibold text-brand-ink">{title}</h2>
+                <h2 className="font-display text-xl font-semibold text-brand-logoBlue">{title}</h2>
                 <p className="mt-1 text-sm text-brand-steel">{description}</p>
             </div>
             {children}
@@ -479,13 +479,13 @@ function ChartPanel({ title, description, children }: ChartPanelProps): JSX.Elem
 
 function CompactStat({ label, value, icon }: { label: string; value: number; icon: JSX.Element }): JSX.Element {
     return (
-        <article className="flex items-center gap-3 rounded-3xl border border-brand-steel/10 bg-white p-4 shadow-soft">
+        <article className="flex items-center gap-3 rounded-3xl bg-white p-5 shadow-soft ring-1 ring-brand-line/70">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-brand-sky text-brand-steel">
                 {icon}
             </div>
             <div>
                 <p className="text-sm text-brand-steel">{label}</p>
-                <p className="font-display text-xl font-semibold text-brand-ink">{value}</p>
+                <p className="font-display text-xl font-semibold text-brand-logoBlue">{value}</p>
             </div>
         </article>
     );

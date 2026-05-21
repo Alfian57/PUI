@@ -361,38 +361,65 @@ function DetailPanel({ file, lastUploadResult, loading }: DetailPanelProps): JSX
     }
 
     return (
-        <section className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
-            <div className="rounded-[1.5rem] bg-white p-5 shadow-soft">
-                <p className="font-display text-[11px] uppercase tracking-[0.24em] text-brand-steel">Informasi Berkas</p>
-                <h3 className="mt-1 font-display text-xl font-semibold text-brand-ink">{file.name}</h3>
-                <dl className="mt-5 grid gap-4 text-sm sm:grid-cols-2">
-                    <InfoItem label="Nama" value={file.name} />
-                    <InfoItem label="Lokasi" value={breadcrumbQuery.isLoading ? "Memuat lokasi..." : locationPath} wide />
-                    <InfoItem label="Jenis Berkas" value={file.mime_type || "-"} />
-                    <InfoItem label="Ukuran" value={formatBytes(file.size_bytes)} />
-                    <InfoItem label="Dibuat" value={formatDate(file.created_at)} />
-                    <InfoItem label="Kode Penyimpanan" value={file.manifest_id} mono wide />
+        <section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_21rem]">
+            <div className="space-y-5">
+                <section className="overflow-hidden rounded-[1.75rem] bg-white shadow-soft ring-1 ring-brand-line/70">
+                    <div className="relative bg-brand-logoBlue p-5 text-white sm:p-6">
+                        <div className="absolute -right-12 -top-12 h-32 w-32 rounded-full bg-brand-logoYellow/20" />
+                        <div className="relative flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                            <div className="min-w-0">
+                                <p className="font-display text-[11px] font-semibold uppercase tracking-[0.24em] text-brand-logoYellow">Informasi Berkas</p>
+                                <h3 className="mt-2 break-words font-display text-2xl font-semibold leading-tight">{file.name}</h3>
+                                <p className="mt-2 text-sm text-white/70">{file.mime_type || "Berkas"} · {formatBytes(file.size_bytes)}</p>
+                            </div>
+                            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-white/12 text-brand-logoYellow">
+                                {getPreviewIcon(file)}
+                            </div>
+                        </div>
+                    </div>
+                    <dl className="grid gap-3 p-4 sm:grid-cols-2 sm:p-5">
+                        <InfoItem label="Nama" value={file.name} />
+                        <InfoItem label="Jenis Berkas" value={file.mime_type || "-"} />
+                        <InfoItem label="Ukuran" value={formatBytes(file.size_bytes)} />
+                        <InfoItem label="Dibuat" value={formatDate(file.created_at)} />
+                        <InfoItem label="Lokasi" value={breadcrumbQuery.isLoading ? "Memuat lokasi..." : locationPath} wide />
+                        <InfoItem label="Kode Penyimpanan" value={file.manifest_id} mono wide />
+                    </dl>
+                </section>
+
+                <section className="rounded-[1.75rem] bg-white p-4 shadow-soft ring-1 ring-brand-line/70 sm:p-5">
+                    <div className="flex items-center justify-between gap-3">
+                        <div>
+                            <p className="font-display text-lg font-semibold text-brand-logoBlue">Metadata Vault</p>
+                            <p className="mt-1 text-sm text-brand-steel">Identitas konten dan manifest immutable.</p>
+                        </div>
+                        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-brand-logoYellow/15 text-brand-logoBlue">
+                            <ShieldCheck className="h-5 w-5" aria-hidden="true" />
+                        </span>
+                    </div>
                     {manifest ? (
-                        <>
+                        <dl className="mt-4 grid gap-3 sm:grid-cols-2">
                             <InfoItem label="Kode Verifikasi" value={manifest.file_hash} mono wide />
                             <InfoItem label="Jumlah Bagian Berkas" value={`${manifest.chunk_count} bagian`} />
                             <InfoItem label="Dibuat di Penyimpanan" value={formatDate(manifest.created_at)} />
-                        </>
+                        </dl>
                     ) : manifestQuery.isLoading ? (
-                        <p className="text-sm text-brand-steel">Memuat info penyimpanan...</p>
-                    ) : null}
-                </dl>
+                        <p className="mt-4 rounded-2xl bg-brand-sky/70 px-4 py-3 text-sm text-brand-steel">Memuat info penyimpanan...</p>
+                    ) : (
+                        <p className="mt-4 rounded-2xl bg-brand-sky/70 px-4 py-3 text-sm text-brand-steel">Metadata vault belum tersedia.</p>
+                    )}
+                </section>
             </div>
 
             <aside className="space-y-4">
-                <section className="rounded-[1.5rem] border border-brand-steel/10 bg-white p-4 shadow-soft">
+                <section className="rounded-[1.75rem] bg-white p-4 shadow-soft ring-1 ring-brand-line/70">
                     <div className="flex items-start gap-3">
-                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-brand-sky text-brand-steel">
+                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-brand-sky text-brand-logoBlue">
                             <MapPin className="h-5 w-5" aria-hidden="true" />
                         </div>
                         <div className="min-w-0">
-                            <p className="text-sm font-semibold text-brand-ink">Lokasi Berkas</p>
-                            <p className="mt-1 break-words text-sm leading-5 text-brand-steel">
+                            <p className="font-display text-base font-semibold text-brand-logoBlue">Lokasi Berkas</p>
+                            <p className="mt-2 break-words text-sm leading-6 text-brand-steel">
                                 {breadcrumbQuery.isLoading ? "Memuat lokasi..." : locationPath}
                             </p>
                         </div>
@@ -400,26 +427,26 @@ function DetailPanel({ file, lastUploadResult, loading }: DetailPanelProps): JSX
                 </section>
 
                 {manifest ? (
-                    <section className="rounded-[1.5rem] border border-brand-mint/70 bg-brand-mint/20 p-4 shadow-soft">
+                    <section className="rounded-[1.75rem] bg-brand-mint/40 p-4 shadow-soft ring-1 ring-brand-mint">
                         <div className="flex items-center gap-3">
                             <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-brand-success">
                                 <ShieldCheck className="h-5 w-5" aria-hidden="true" />
                             </div>
                             <div>
-                                <p className="text-sm font-semibold text-brand-ink">Status Perlindungan</p>
-                                <p className="text-sm text-brand-steel">{manifest.immutable ? "Terkunci" : "Dapat berubah"}</p>
+                                <p className="font-display text-base font-semibold text-brand-logoBlue">Status Perlindungan</p>
+                                <p className="text-sm text-brand-steel">{manifest.immutable ? "Terkunci immutable" : "Dapat berubah"}</p>
                             </div>
                         </div>
                     </section>
                 ) : null}
 
                 {lastUploadResult ? (
-                    <section className="rounded-[1.5rem] border border-brand-amber/40 bg-brand-amber/10 p-4 shadow-soft">
-                        <p className="font-display text-[11px] uppercase tracking-[0.24em] text-brand-steel">Hasil Unggah Terakhir</p>
-                        <p className="mt-3 text-sm text-brand-ink">
+                    <section className="rounded-[1.75rem] bg-brand-logoYellow/12 p-4 shadow-soft ring-1 ring-brand-logoYellow/35">
+                        <p className="font-display text-[11px] font-semibold uppercase tracking-[0.24em] text-brand-logoBlue">Hasil Unggah Terakhir</p>
+                        <p className="mt-3 text-sm leading-6 text-brand-logoBlue">
                             Efisiensi {(lastUploadResult.dedup_ratio * 100).toFixed(2)}% dengan {lastUploadResult.chunk_count} bagian berkas.
                         </p>
-                        <p className="mt-2 break-all font-mono text-xs text-brand-steel">{lastUploadResult.file_hash}</p>
+                        <p className="mt-3 break-all rounded-2xl bg-white/70 px-3 py-2 font-mono text-xs text-brand-steel">{lastUploadResult.file_hash}</p>
                     </section>
                 ) : null}
             </aside>
@@ -436,9 +463,9 @@ type InfoItemProps = {
 
 function InfoItem({ label, value, mono = false, wide = false }: InfoItemProps): JSX.Element {
     return (
-        <div className={clsx("rounded-2xl bg-brand-sky/55 p-4", wide ? "sm:col-span-2" : "")}>
-            <dt className="text-xs font-semibold uppercase tracking-[0.14em] text-brand-steel">{label}</dt>
-            <dd className={clsx("mt-2 break-words text-sm text-brand-ink", mono ? "break-all font-mono text-xs" : "")}>{value}</dd>
+        <div className={clsx("rounded-2xl bg-brand-sky/70 p-4 ring-1 ring-brand-line/60", wide ? "sm:col-span-2" : "")}>
+            <dt className="text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-brand-steel/78">{label}</dt>
+            <dd className={clsx("mt-2 break-words text-sm font-semibold text-brand-logoBlue", mono ? "break-all font-mono text-xs font-medium leading-5" : "")}>{value}</dd>
         </div>
     );
 }

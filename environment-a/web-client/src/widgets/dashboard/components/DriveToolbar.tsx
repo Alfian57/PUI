@@ -96,7 +96,7 @@ export function DriveToolbar({
                             <select
                                 value={sortOption}
                                 onChange={(event) => onSortChange(event.target.value as WorkspaceSortOption)}
-                                className="h-11 rounded-2xl border border-brand-steel/15 bg-white px-3 pr-9 text-sm font-semibold text-brand-ink outline-none transition hover:bg-brand-sky focus:border-brand-amber focus:ring-2 focus:ring-brand-amber/30"
+                                className="h-11 rounded-2xl border border-brand-steel/15 bg-white px-3 pr-9 text-sm font-semibold text-brand-logoBlue outline-none transition hover:bg-brand-sky focus:border-brand-logoBlue/40 focus:ring-2 focus:ring-brand-logoYellow/35"
                             >
                                 <option value="newest">Terbaru</option>
                                 <option value="oldest">Terlama</option>
@@ -113,7 +113,7 @@ export function DriveToolbar({
                             <select
                                 value={timeFilter}
                                 onChange={(event) => onTimeFilterChange(event.target.value as WorkspaceTimeFilter)}
-                                className="h-11 rounded-2xl border border-brand-steel/15 bg-white px-3 pr-9 text-sm font-semibold text-brand-ink outline-none transition hover:bg-brand-sky focus:border-brand-amber focus:ring-2 focus:ring-brand-amber/30"
+                                className="h-11 rounded-2xl border border-brand-steel/15 bg-white px-3 pr-9 text-sm font-semibold text-brand-logoBlue outline-none transition hover:bg-brand-sky focus:border-brand-logoBlue/40 focus:ring-2 focus:ring-brand-logoYellow/35"
                             >
                                 <option value="all">Semua waktu</option>
                                 <option value="today">Hari ini</option>
@@ -133,7 +133,7 @@ export function DriveToolbar({
                                     type="date"
                                     value={customTimeRange.from}
                                     onChange={(event) => onCustomTimeRangeChange({ ...customTimeRange, from: event.target.value })}
-                                    className="h-11 rounded-2xl border border-brand-steel/15 bg-white px-3 text-sm font-semibold text-brand-ink outline-none transition hover:bg-brand-sky focus:border-brand-amber focus:ring-2 focus:ring-brand-amber/30"
+                                    className="h-11 rounded-2xl border border-brand-steel/15 bg-white px-3 text-sm font-semibold text-brand-logoBlue outline-none transition hover:bg-brand-sky focus:border-brand-logoBlue/40 focus:ring-2 focus:ring-brand-logoYellow/35"
                                 />
                             </label>
                             <label>
@@ -142,7 +142,7 @@ export function DriveToolbar({
                                     type="date"
                                     value={customTimeRange.to}
                                     onChange={(event) => onCustomTimeRangeChange({ ...customTimeRange, to: event.target.value })}
-                                    className="h-11 rounded-2xl border border-brand-steel/15 bg-white px-3 text-sm font-semibold text-brand-ink outline-none transition hover:bg-brand-sky focus:border-brand-amber focus:ring-2 focus:ring-brand-amber/30"
+                                    className="h-11 rounded-2xl border border-brand-steel/15 bg-white px-3 text-sm font-semibold text-brand-logoBlue outline-none transition hover:bg-brand-sky focus:border-brand-logoBlue/40 focus:ring-2 focus:ring-brand-logoYellow/35"
                                 />
                             </label>
                         </div>
@@ -169,7 +169,7 @@ export function DriveToolbar({
             {uploadProgress !== null ? (
                 <div className="mt-3">
                     <div className="h-2 overflow-hidden rounded-full bg-brand-steel/15">
-                        <div className="h-full rounded-full bg-brand-amber transition-all" style={{ width: `${uploadProgress}%` }} />
+                        <div className="h-full rounded-full bg-brand-logoYellow transition-all" style={{ width: `${uploadProgress}%` }} />
                     </div>
                     <p className="mt-1 text-xs text-brand-steel">Unggah {uploadProgress}%</p>
                 </div>

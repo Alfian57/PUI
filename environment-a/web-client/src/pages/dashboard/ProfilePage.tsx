@@ -121,21 +121,21 @@ export function ProfilePage(): JSX.Element {
     return (
         <div className="space-y-6">
             <section>
-                <h1 className="font-display text-3xl font-semibold text-brand-ink">Profil</h1>
+                <h1 className="font-display text-3xl font-semibold text-brand-logoBlue">Profil</h1>
                 <p className="mt-1 text-sm text-brand-steel">Perbarui identitas akun dan password HashBox Anda.</p>
             </section>
 
             <section className="grid gap-6 xl:grid-cols-[22rem_minmax(0,1fr)]">
-                <aside className="rounded-[1.75rem] border border-brand-steel/10 bg-white p-5 shadow-soft">
+                <aside className="rounded-[1.75rem] bg-white p-5 shadow-soft ring-1 ring-brand-line/70">
                     <div className="flex items-center gap-4">
                         <UserAvatar name={user?.full_name ?? "HashBox"} size="md" />
                         <div className="min-w-0">
-                            <p className="truncate font-display text-xl font-semibold text-brand-ink">{user?.full_name}</p>
+                            <p className="truncate font-display text-xl font-semibold text-brand-logoBlue">{user?.full_name}</p>
                             <p className="truncate text-sm text-brand-steel">{user?.email}</p>
                         </div>
                     </div>
                     <div className="mt-6 rounded-2xl bg-brand-sky/70 p-4">
-                        <div className="flex items-center gap-2 text-sm font-semibold text-brand-ink">
+                        <div className="flex items-center gap-2 text-sm font-semibold text-brand-logoBlue">
                             <UserCircle className="h-4 w-4" aria-hidden="true" />
                             Akun aktif
                         </div>
@@ -145,7 +145,7 @@ export function ProfilePage(): JSX.Element {
                     </div>
                 </aside>
 
-                <form className="rounded-[1.75rem] border border-brand-steel/10 bg-white p-5 shadow-soft" onSubmit={(event) => void handleSubmit(event)}>
+                <form className="rounded-[1.75rem] bg-white p-5 shadow-soft ring-1 ring-brand-line/70" onSubmit={(event) => void handleSubmit(event)}>
                     <div className="grid gap-4 sm:grid-cols-2">
                         <ProfileField label="Nama lengkap">
                             <input
@@ -156,7 +156,7 @@ export function ProfilePage(): JSX.Element {
                                 minLength={2}
                                 maxLength={150}
                                 required
-                                className="h-12 w-full rounded-2xl border border-brand-steel/15 bg-white px-4 text-sm outline-none transition focus:border-brand-amber focus:ring-2 focus:ring-brand-amber/30"
+                                className="h-12 w-full rounded-2xl border border-brand-steel/15 bg-white px-4 text-sm outline-none transition focus:border-brand-logoBlue/40 focus:ring-2 focus:ring-brand-logoYellow/35"
                             />
                         </ProfileField>
 
@@ -167,15 +167,15 @@ export function ProfilePage(): JSX.Element {
                                 onChange={(event) => setEmail(event.target.value)}
                                 placeholder="operator@gmail.com"
                                 required
-                                className="h-12 w-full rounded-2xl border border-brand-steel/15 bg-white px-4 text-sm outline-none transition focus:border-brand-amber focus:ring-2 focus:ring-brand-amber/30"
+                                className="h-12 w-full rounded-2xl border border-brand-steel/15 bg-white px-4 text-sm outline-none transition focus:border-brand-logoBlue/40 focus:ring-2 focus:ring-brand-logoYellow/35"
                             />
                         </ProfileField>
                     </div>
 
-                    <div className="mt-6 rounded-2xl border border-brand-steel/10 bg-brand-sky/55 p-4">
+                    <div className="mt-6 rounded-2xl bg-brand-sky/70 ring-1 ring-brand-line/70 p-4">
                         <div className="flex items-center gap-2">
                             <KeyRound className="h-4 w-4 text-brand-steel" aria-hidden="true" />
-                            <h2 className="font-display text-lg font-semibold text-brand-ink">Password</h2>
+                            <h2 className="font-display text-lg font-semibold text-brand-logoBlue">Password</h2>
                         </div>
                         <div className="mt-4 grid gap-4 sm:grid-cols-3">
                             <ProfileField label="Password saat ini">
@@ -184,7 +184,7 @@ export function ProfilePage(): JSX.Element {
                                     value={currentPassword}
                                     onChange={(event) => setCurrentPassword(event.target.value)}
                                     placeholder="Masukkan password saat ini"
-                                    className="h-12 w-full rounded-2xl border border-brand-steel/15 bg-white px-4 text-sm outline-none transition focus:border-brand-amber focus:ring-2 focus:ring-brand-amber/30"
+                                    className="h-12 w-full rounded-2xl border border-brand-steel/15 bg-white px-4 text-sm outline-none transition focus:border-brand-logoBlue/40 focus:ring-2 focus:ring-brand-logoYellow/35"
                                 />
                             </ProfileField>
                             <ProfileField label="Password baru">
@@ -194,7 +194,7 @@ export function ProfilePage(): JSX.Element {
                                     onChange={(event) => setNewPassword(event.target.value)}
                                     placeholder="Minimal 8 karakter"
                                     minLength={newPassword ? 8 : undefined}
-                                    className="h-12 w-full rounded-2xl border border-brand-steel/15 bg-white px-4 text-sm outline-none transition focus:border-brand-amber focus:ring-2 focus:ring-brand-amber/30"
+                                    className="h-12 w-full rounded-2xl border border-brand-steel/15 bg-white px-4 text-sm outline-none transition focus:border-brand-logoBlue/40 focus:ring-2 focus:ring-brand-logoYellow/35"
                                 />
                             </ProfileField>
                             <ProfileField label="Konfirmasi password">
@@ -203,7 +203,7 @@ export function ProfilePage(): JSX.Element {
                                     value={confirmPassword}
                                     onChange={(event) => setConfirmPassword(event.target.value)}
                                     placeholder="Ulangi password baru"
-                                    className="h-12 w-full rounded-2xl border border-brand-steel/15 bg-white px-4 text-sm outline-none transition focus:border-brand-amber focus:ring-2 focus:ring-brand-amber/30"
+                                    className="h-12 w-full rounded-2xl border border-brand-steel/15 bg-white px-4 text-sm outline-none transition focus:border-brand-logoBlue/40 focus:ring-2 focus:ring-brand-logoYellow/35"
                                 />
                             </ProfileField>
                         </div>
@@ -239,7 +239,7 @@ type ProfileFieldProps = {
 function ProfileField({ label, children }: ProfileFieldProps): JSX.Element {
     return (
         <label className="block">
-            <span className="mb-1.5 block text-sm font-semibold text-brand-ink">{label}</span>
+            <span className="mb-1.5 block text-sm font-semibold text-brand-logoBlue">{label}</span>
             {children}
         </label>
     );

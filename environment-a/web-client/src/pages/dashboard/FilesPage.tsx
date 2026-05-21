@@ -94,8 +94,8 @@ export function FilesPage(): JSX.Element {
             onDrop={(event) => void handleDrop(event)}
         >
             {dragActive ? (
-                <div className="pointer-events-none fixed inset-x-4 bottom-4 top-20 z-30 flex items-center justify-center rounded-[2rem] border-2 border-dashed border-brand-amber bg-white/75 shadow-deck backdrop-blur">
-                    <div className="rounded-3xl bg-brand-ink px-6 py-4 text-center text-white shadow-deck">
+                <div className="pointer-events-none fixed inset-x-4 bottom-4 top-20 z-30 flex items-center justify-center rounded-[2rem] border-2 border-dashed border-brand-logoYellow bg-white/75 shadow-deck backdrop-blur">
+                    <div className="rounded-3xl bg-brand-logoBlue px-6 py-4 text-center text-white shadow-deck">
                         <p className="font-display text-xl font-semibold">Lepaskan berkas untuk diunggah</p>
                         <p className="mt-1 text-sm text-white/75">
                             Berkas akan disimpan ke {directories.selectedDirectoryID ? "direktori yang sedang dibuka" : "Berkas Saya"}.
@@ -104,27 +104,30 @@ export function FilesPage(): JSX.Element {
                 </div>
             ) : null}
 
-            <section className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <section className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between" data-tour="files-header">
                 <div>
-                    <h1 className="font-display text-3xl font-semibold text-brand-ink">Berkas Saya</h1>
+                    <h1 className="font-display text-3xl font-semibold text-brand-logoBlue">Berkas Saya</h1>
                     <p className="mt-1 text-sm text-brand-steel">
                         Kelola direktori, unggah berkas, dan buka kembali berkas yang sudah tersimpan.
                     </p>
                 </div>
             </section>
 
-            <StorageSummary
-                totalFiles={files.stats.totalFiles}
+            <div data-tour="files-summary">
+                <StorageSummary
+                    totalFiles={files.stats.totalFiles}
                 totalBytes={files.stats.totalBytes}
                 dedup={files.stats.dedup}
-                folderCount={directories.directories.length}
-            />
+                    folderCount={directories.directories.length}
+                />
+            </div>
 
             <section className="grid gap-6">
                 <div className="min-w-0">
-                    <section className="space-y-6 rounded-[1.75rem] border border-brand-steel/10 bg-white/90 p-4 shadow-soft backdrop-blur sm:p-5">
-                        <DriveToolbar
-                            directoryID={directories.selectedDirectoryID}
+                    <section className="space-y-6 rounded-[1.75rem] bg-white p-5 shadow-soft ring-1 ring-brand-line/70 sm:p-6" data-tour="files-workspace">
+                        <div data-tour="files-toolbar">
+                            <DriveToolbar
+                                directoryID={directories.selectedDirectoryID}
                             uploadDisabled={files.uploadState.isPending}
                             uploadProgress={files.uploadProgress}
                             viewMode={viewMode}
@@ -138,12 +141,13 @@ export function FilesPage(): JSX.Element {
                             onNavigate={onSelectDirectory}
                             onCreateFolder={onCreateFolder}
                             onUpload={onUpload}
-                            embedded
-                        />
+                                embedded
+                            />
+                        </div>
 
                         {!visibleIsEmpty ? (
                             <div className="flex items-center justify-between gap-3">
-                                <p className="text-sm font-semibold text-brand-ink">
+                                <p className="text-sm font-semibold text-brand-logoBlue">
                                     {directories.selectedDirectoryID ? "Isi direktori" : "Isi Berkas Saya"}
                                 </p>
                                 <p className="text-xs font-medium text-brand-steel">

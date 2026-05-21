@@ -27,12 +27,14 @@ const userMenuGroups = [
             {
                 to: "/app/files",
                 label: "Berkas Saya",
-                icon: <HardDrive className="h-4 w-4" aria-hidden="true" />
+                icon: <HardDrive className="h-4 w-4" aria-hidden="true" />,
+                tourId: "sidebar-files"
             },
             {
                 to: "/app/starred",
                 label: "Berbintang",
-                icon: <Star className="h-4 w-4" aria-hidden="true" />
+                icon: <Star className="h-4 w-4" aria-hidden="true" />,
+                tourId: "sidebar-starred"
             }
         ]
     },
@@ -42,7 +44,8 @@ const userMenuGroups = [
             {
                 to: "/app/trash",
                 label: "Sampah",
-                icon: <Trash2 className="h-4 w-4" aria-hidden="true" />
+                icon: <Trash2 className="h-4 w-4" aria-hidden="true" />,
+                tourId: "sidebar-trash"
             }
         ]
     },
@@ -52,12 +55,14 @@ const userMenuGroups = [
             {
                 to: "/app/activity",
                 label: "Riwayat",
-                icon: <Clock3 className="h-4 w-4" aria-hidden="true" />
+                icon: <Clock3 className="h-4 w-4" aria-hidden="true" />,
+                tourId: "sidebar-activity"
             },
             {
                 to: "/app/insights",
                 label: "Insight",
-                icon: <LineChart className="h-4 w-4" aria-hidden="true" />
+                icon: <LineChart className="h-4 w-4" aria-hidden="true" />,
+                tourId: "sidebar-insights"
             }
         ]
     }
@@ -70,17 +75,20 @@ const adminMenuGroups = [
             {
                 to: "/app/analytics/overview",
                 label: "Ikhtisar",
-                icon: <BarChart3 className="h-4 w-4" aria-hidden="true" />
+                icon: <BarChart3 className="h-4 w-4" aria-hidden="true" />,
+                tourId: "sidebar-admin-overview"
             },
             {
                 to: "/app/analytics/storage",
                 label: "Penyimpanan",
-                icon: <Database className="h-4 w-4" aria-hidden="true" />
+                icon: <Database className="h-4 w-4" aria-hidden="true" />,
+                tourId: "sidebar-admin-storage"
             },
             {
                 to: "/app/analytics/activity",
                 label: "Aktivitas",
-                icon: <Activity className="h-4 w-4" aria-hidden="true" />
+                icon: <Activity className="h-4 w-4" aria-hidden="true" />,
+                tourId: "sidebar-admin-activity"
             }
         ]
     },
@@ -90,12 +98,14 @@ const adminMenuGroups = [
             {
                 to: "/app/analytics/system",
                 label: "Kesehatan Sistem",
-                icon: <Server className="h-4 w-4" aria-hidden="true" />
+                icon: <Server className="h-4 w-4" aria-hidden="true" />,
+                tourId: "sidebar-admin-system"
             },
             {
                 to: "/app/analytics/reports",
                 label: "Laporan",
-                icon: <FileArchive className="h-4 w-4" aria-hidden="true" />
+                icon: <FileArchive className="h-4 w-4" aria-hidden="true" />,
+                tourId: "sidebar-admin-reports"
             }
         ]
     }
@@ -108,24 +118,23 @@ export function DashboardSidebar({
     const menuGroups = role === "admin" ? adminMenuGroups : userMenuGroups;
 
     return (
-        <aside className="h-screen overflow-hidden border-b border-brand-steel/10 bg-white lg:border-b-0 lg:border-r">
+        <aside className="h-full overflow-hidden bg-brand-logoBlue text-white shadow-deck lg:rounded-[1.75rem] xl:rounded-[2rem]" data-tour="dashboard-sidebar">
             <div className="flex h-full min-h-0 flex-col">
-                <div className="h-1 shrink-0 bg-brand-amber" />
-                <div className="shrink-0 px-4 pb-4 pt-5">
+                <div className="shrink-0 px-4 pb-5 pt-5">
                     <div className="flex items-center justify-between gap-3">
                         <div className="flex items-center gap-3">
-                            <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-2xl bg-white shadow-soft">
+                            <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl bg-white shadow-soft">
                                 <img src="/hashbox-logo.png" alt="HashBox" className="h-full w-full object-cover" />
                             </div>
                             <div>
-                                <p className="font-display text-xl font-semibold text-brand-ink">HashBox</p>
-                                <p className="text-xs text-brand-steel">{role === "admin" ? "Analitik aplikasi" : "Berkas pribadi"}</p>
+                                <p className="font-display text-xl font-semibold text-white">HashBox</p>
+                                <p className="text-xs font-medium text-white/58">{role === "admin" ? "Analitik aplikasi" : "Berkas pribadi"}</p>
                             </div>
                         </div>
                         {onClose ? (
                             <IconButton
                                 label="Tutup menu"
-                                className="lg:hidden"
+                                className="bg-white/10 text-white hover:bg-white/15 lg:hidden"
                                 icon={<X className="h-4 w-4" aria-hidden="true" />}
                                 onClick={onClose}
                             />
@@ -133,7 +142,7 @@ export function DashboardSidebar({
                     </div>
                 </div>
 
-                <nav className="shrink-0 space-y-5 px-3" aria-label="Menu dashboard">
+                <nav className="min-h-0 flex-1 space-y-5 overflow-y-auto overscroll-contain px-3 pb-5" aria-label="Menu dashboard" data-tour="dashboard-nav">
                     {menuGroups.map((group) => (
                         <SidebarGroup key={group.label} label={group.label}>
                             {group.items.map((item) => (
@@ -141,6 +150,7 @@ export function DashboardSidebar({
                                     key={item.to}
                                     to={item.to}
                                     icon={item.icon}
+                                    tourId={item.tourId}
                                     onClick={onClose}
                                 >
                                     {item.label}
@@ -162,7 +172,7 @@ type SidebarGroupProps = {
 function SidebarGroup({ label, children }: SidebarGroupProps): JSX.Element {
     return (
         <section aria-label={label}>
-            <p className="px-4 pb-2 font-display text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-brand-steel/60">
+            <p className="px-4 pb-2 font-display text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-brand-logoYellow/80">
                 {label}
             </p>
             <div className="space-y-1">{children}</div>
@@ -173,20 +183,22 @@ function SidebarGroup({ label, children }: SidebarGroupProps): JSX.Element {
 type SidebarLinkProps = {
     to: string;
     icon: JSX.Element;
+    tourId?: string;
     onClick?: () => void;
     children: string;
 };
 
-function SidebarLink({ to, icon, onClick, children }: SidebarLinkProps): JSX.Element {
+function SidebarLink({ to, icon, tourId, onClick, children }: SidebarLinkProps): JSX.Element {
     return (
         <NavLink
             to={to}
             onClick={onClick}
+            data-tour={tourId}
             className={({ isActive }) => clsx(
-                "relative flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm transition focus:outline-none focus:ring-2 focus:ring-brand-amber/70",
+                "relative flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-brand-logoYellow/80",
                 isActive
-                    ? "bg-brand-ink text-white shadow-soft before:absolute before:left-2 before:h-6 before:w-1 before:rounded-full before:bg-brand-amber"
-                    : "text-brand-steel hover:bg-brand-sky/70 hover:text-brand-ink"
+                    ? "bg-white/14 text-white shadow-soft before:absolute before:left-2 before:h-6 before:w-1 before:rounded-full before:bg-brand-logoYellow"
+                    : "text-white/68 hover:bg-white/10 hover:text-white"
             )}
         >
             {icon}

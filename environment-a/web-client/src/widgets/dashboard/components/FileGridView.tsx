@@ -27,7 +27,7 @@ export function FileGridView({
         return (
             <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
                 {Array.from({ length: 8 }).map((_, index) => (
-                    <div key={index} className="h-52 rounded-[1.75rem] border border-brand-steel/10 bg-white p-4 shadow-soft">
+                    <div key={index} className="h-52 rounded-[1.75rem] bg-white p-5 shadow-soft ring-1 ring-brand-line/70">
                         <div className="h-full animate-pulse rounded-2xl bg-gradient-to-r from-white via-brand-sky/70 to-white bg-[length:200%_100%]" />
                     </div>
                 ))}
@@ -62,14 +62,14 @@ export function FileGridView({
                         <FileText className="h-10 w-10" aria-hidden="true" />
                     </div>
                     <div className="mt-4 min-w-0">
-                        <p className="truncate text-sm font-semibold text-brand-ink">{file.name}</p>
+                        <p className="truncate text-sm font-semibold text-brand-logoBlue">{file.name}</p>
                         <p className="mt-1 text-xs text-brand-steel">{formatBytes(file.size_bytes)}</p>
                         <p className="text-xs text-brand-steel/80">{formatDate(file.created_at)}</p>
                     </div>
                     <div className="mt-4 flex items-center justify-end gap-2">
                         <button
                             type="button"
-                            className="inline-flex h-9 w-9 items-center justify-center rounded-xl text-brand-steel hover:bg-brand-sky hover:text-brand-ink"
+                            className="inline-flex h-9 w-9 items-center justify-center rounded-xl text-brand-steel hover:bg-brand-sky hover:text-brand-logoBlue"
                             aria-label={`Lihat detail ${file.name}`}
                             title="Detail"
                             onClick={(event) => {
@@ -82,7 +82,7 @@ export function FileGridView({
                         </button>
                         <button
                             type="button"
-                            className="inline-flex h-9 w-9 items-center justify-center rounded-xl text-brand-steel hover:bg-brand-sky hover:text-brand-ink"
+                            className="inline-flex h-9 w-9 items-center justify-center rounded-xl text-brand-steel hover:bg-brand-sky hover:text-brand-logoBlue"
                             aria-label={`Unduh ${file.name}`}
                             title="Unduh"
                             onClick={(event) => {

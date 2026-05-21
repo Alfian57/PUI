@@ -25,7 +25,7 @@ export function FileListView({
 }: FileListViewProps): JSX.Element {
     if (loading) {
         return (
-            <section className="overflow-hidden rounded-[1.75rem] border border-brand-steel/10 bg-white shadow-soft">
+            <section className="overflow-hidden rounded-[1.75rem] bg-white ring-1 ring-brand-line/70 shadow-soft">
                 {Array.from({ length: 5 }).map((_, index) => (
                     <div key={index} className="border-b border-brand-steel/10 px-4 py-3 last:border-b-0">
                         <div className="h-11 animate-pulse rounded-2xl bg-gradient-to-r from-white via-brand-sky/70 to-white bg-[length:200%_100%]" />
@@ -48,7 +48,7 @@ export function FileListView({
     }
 
     return (
-        <section className="overflow-hidden rounded-3xl border border-brand-steel/10 bg-white shadow-soft">
+        <section className="overflow-hidden rounded-3xl bg-white ring-1 ring-brand-line/70 shadow-soft">
             <div className="grid grid-cols-[minmax(0,1.6fr)_8rem_11rem_8rem] border-b border-brand-steel/10 px-4 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-brand-steel max-lg:hidden">
                 <span>Nama</span>
                 <span>Ukuran</span>
@@ -67,11 +67,11 @@ export function FileListView({
                         onClick={() => onSelect(file.id)}
                     >
                         <div className="flex min-w-0 items-center gap-3">
-                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-brand-mint/70 text-brand-ink transition group-hover:bg-brand-mint">
+                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-brand-mint/70 text-brand-logoBlue transition group-hover:bg-brand-mint">
                                 <FileText className="h-5 w-5" aria-hidden="true" />
                             </div>
                             <div className="min-w-0">
-                                <p className="truncate text-sm font-semibold text-brand-ink">{file.name}</p>
+                                <p className="truncate text-sm font-semibold text-brand-logoBlue">{file.name}</p>
                                 <p className="text-xs text-brand-steel lg:hidden">
                                     {formatBytes(file.size_bytes)} · {formatDate(file.created_at)}
                                 </p>
@@ -83,7 +83,7 @@ export function FileListView({
                         <div className="flex items-center gap-2">
                             <button
                                 type="button"
-                                className="inline-flex h-9 w-9 items-center justify-center rounded-xl text-brand-steel hover:bg-white hover:text-brand-ink"
+                                className="inline-flex h-9 w-9 items-center justify-center rounded-xl text-brand-steel hover:bg-white hover:text-brand-logoBlue"
                                 aria-label={`Lihat detail ${file.name}`}
                                 title="Detail"
                                 onClick={(event) => {
@@ -96,7 +96,7 @@ export function FileListView({
                             </button>
                             <button
                                 type="button"
-                                className="inline-flex h-9 w-9 items-center justify-center rounded-xl text-brand-steel hover:bg-white hover:text-brand-ink"
+                                className="inline-flex h-9 w-9 items-center justify-center rounded-xl text-brand-steel hover:bg-white hover:text-brand-logoBlue"
                                 aria-label={`Unduh ${file.name}`}
                                 title="Unduh"
                                 onClick={(event) => {

@@ -123,14 +123,14 @@ export function WorkspaceItemsView({
 
     const bulkToolbar = bulkEnabled && selectedCount > 0 ? (
         <div className={clsx(
-            "mb-3 flex flex-col gap-3 rounded-2xl border border-brand-steel/10 bg-brand-sky/55 px-4 py-3 sm:flex-row sm:items-center sm:justify-between",
-            "border-brand-amber/40 bg-brand-amber/10"
+            "mb-3 flex flex-col gap-3 rounded-2xl bg-brand-sky/70 ring-1 ring-brand-line/70 px-4 py-3 sm:flex-row sm:items-center sm:justify-between",
+            "border-brand-logoYellow/40 bg-brand-logoYellow/10"
         )}>
             <div className="flex flex-wrap items-center gap-2">
                 <button
                     type="button"
                     onClick={toggleSelectAll}
-                    className="rounded-xl border border-brand-steel/15 bg-white px-3 py-2 text-sm font-semibold text-brand-ink transition hover:bg-brand-sky"
+                    className="rounded-xl border border-brand-steel/15 bg-white px-3 py-2 text-sm font-semibold text-brand-logoBlue transition hover:bg-brand-sky"
                 >
                     {selectedCount === displayItems.length ? "Batalkan semua" : "Pilih semua"}
                 </button>
@@ -146,7 +146,7 @@ export function WorkspaceItemsView({
                             <button
                                 type="button"
                                 onClick={() => void runBulkAction(onBulkRestore)}
-                                className="inline-flex items-center gap-2 rounded-xl bg-brand-ink px-3 py-2 text-sm font-semibold text-white transition hover:bg-brand-steel"
+                                className="inline-flex items-center gap-2 rounded-xl bg-brand-logoBlue px-3 py-2 text-sm font-semibold text-white transition hover:bg-brand-ink"
                             >
                                 <RotateCcw className="h-4 w-4" aria-hidden="true" />
                                 Pulihkan
@@ -169,7 +169,7 @@ export function WorkspaceItemsView({
                             <button
                                 type="button"
                                 onClick={() => void runBulkAction(onBulkStar)}
-                                className="inline-flex items-center gap-2 rounded-xl bg-brand-ink px-3 py-2 text-sm font-semibold text-white transition hover:bg-brand-steel"
+                                className="inline-flex items-center gap-2 rounded-xl bg-brand-logoBlue px-3 py-2 text-sm font-semibold text-white transition hover:bg-brand-ink"
                             >
                                 <Star className="h-4 w-4" aria-hidden="true" />
                                 Bintangi
@@ -179,7 +179,7 @@ export function WorkspaceItemsView({
                             <button
                                 type="button"
                                 onClick={() => void runBulkAction(onBulkUnstar)}
-                                className="inline-flex items-center gap-2 rounded-xl border border-brand-steel/15 bg-white px-3 py-2 text-sm font-semibold text-brand-ink transition hover:bg-brand-sky"
+                                className="inline-flex items-center gap-2 rounded-xl border border-brand-steel/15 bg-white px-3 py-2 text-sm font-semibold text-brand-logoBlue transition hover:bg-brand-sky"
                             >
                                 <StarOff className="h-4 w-4" aria-hidden="true" />
                                 Hapus bintang
@@ -200,7 +200,7 @@ export function WorkspaceItemsView({
                 <button
                     type="button"
                     onClick={clearSelection}
-                    className="rounded-xl px-3 py-2 text-sm font-semibold text-brand-steel transition hover:bg-white hover:text-brand-ink"
+                    className="rounded-xl px-3 py-2 text-sm font-semibold text-brand-steel transition hover:bg-white hover:text-brand-logoBlue"
                 >
                     Batal
                 </button>
@@ -220,7 +220,7 @@ export function WorkspaceItemsView({
                                 if (mode === "normal") onOpenFolder(item.folder.id);
                             }}
                             className={clsx(
-                                "group relative overflow-hidden rounded-[1.4rem] border border-brand-steel/10 bg-brand-sky/55 text-left shadow-soft transition duration-200 hover:border-brand-amber/45 hover:bg-white hover:shadow-deck",
+                                "group relative overflow-hidden rounded-[1.4rem] bg-brand-sky/70 ring-1 ring-brand-line/70 text-left shadow-soft transition duration-200 hover:border-brand-logoYellow/45 hover:bg-white hover:shadow-deck",
                                 mode === "normal" ? "cursor-pointer hover:-translate-y-0.5" : "cursor-default"
                             )}
                         >
@@ -230,11 +230,11 @@ export function WorkspaceItemsView({
                                 onToggle={() => toggleSelected(item)}
                                 floating
                             />
-                            <div className="flex h-24 items-center justify-center bg-brand-amber/10 text-brand-amber transition group-hover:bg-brand-amber/15">
+                            <div className="flex h-24 items-center justify-center bg-brand-logoYellow/10 text-brand-logoYellow transition group-hover:bg-brand-logoYellow/15">
                                 <Folder className="h-10 w-10" aria-hidden="true" />
                             </div>
                             <div className="p-4">
-                                <p className="truncate text-sm font-semibold text-brand-ink">{item.folder.name}</p>
+                                <p className="truncate text-sm font-semibold text-brand-logoBlue">{item.folder.name}</p>
                                 <p className="mt-1 text-xs text-brand-steel">Direktori · {formatDate(item.folder.created_at)}</p>
                                 <FolderActions
                                     folder={item.folder}
@@ -268,7 +268,7 @@ export function WorkspaceItemsView({
                                 <FileText className="h-10 w-10" aria-hidden="true" />
                             </div>
                             <div className="p-4">
-                                <p className="truncate text-sm font-semibold text-brand-ink">{item.file.name}</p>
+                                <p className="truncate text-sm font-semibold text-brand-logoBlue">{item.file.name}</p>
                                 <p className="mt-1 text-xs text-brand-steel">{formatBytes(item.file.size_bytes)} · {formatDate(item.file.created_at)}</p>
                                 <FileActions
                                     file={item.file}
@@ -293,7 +293,7 @@ export function WorkspaceItemsView({
     return (
         <>
             {bulkToolbar}
-            <section className="overflow-hidden rounded-[1.5rem] border border-brand-steel/10 bg-white">
+            <section className="overflow-hidden rounded-[1.5rem] bg-white ring-1 ring-brand-line/70">
                 <div className="grid grid-cols-[2.5rem_minmax(0,1.6fr)_8rem_11rem_11rem] border-b border-brand-steel/10 px-4 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-brand-steel max-lg:hidden">
                     <span aria-hidden="true" />
                     <span>Nama</span>
@@ -320,11 +320,11 @@ export function WorkspaceItemsView({
                             onToggle={() => toggleSelected(item)}
                         />
                         <span className="flex min-w-0 items-center gap-3">
-                            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-brand-amber/15 text-brand-amber">
+                            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-brand-logoYellow/15 text-brand-logoYellow">
                                 <Folder className="h-5 w-5" aria-hidden="true" />
                             </span>
                             <span className="min-w-0">
-                                <span className="block truncate text-sm font-semibold text-brand-ink">{item.folder.name}</span>
+                                <span className="block truncate text-sm font-semibold text-brand-logoBlue">{item.folder.name}</span>
                                 <span className="text-xs text-brand-steel lg:hidden">Direktori · {formatDate(item.folder.created_at)}</span>
                             </span>
                         </span>
@@ -356,11 +356,11 @@ export function WorkspaceItemsView({
                             onToggle={() => toggleSelected(item)}
                         />
                         <div className="flex min-w-0 items-center gap-3">
-                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-brand-mint/70 text-brand-ink">
+                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-brand-mint/70 text-brand-logoBlue">
                                 <FileText className="h-5 w-5" aria-hidden="true" />
                             </div>
                             <div className="min-w-0">
-                                <p className="truncate text-sm font-semibold text-brand-ink">{item.file.name}</p>
+                                <p className="truncate text-sm font-semibold text-brand-logoBlue">{item.file.name}</p>
                                 <p className="text-xs text-brand-steel lg:hidden">
                                     Berkas · {formatBytes(item.file.size_bytes)} · {formatDate(item.file.created_at)}
                                 </p>
@@ -462,10 +462,10 @@ function SelectionToggle({ selected, label, onToggle, floating = false }: Select
                 onToggle();
             }}
             className={clsx(
-                "inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border transition focus:outline-none focus:ring-2 focus:ring-brand-amber/35",
+                "inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border transition focus:outline-none focus:ring-2 focus:ring-brand-logoYellow/35",
                 selected
-                    ? "border-brand-ink bg-brand-ink text-white shadow-sm"
-                    : "border-brand-steel/20 bg-white/95 text-brand-steel hover:border-brand-amber/50 hover:bg-brand-sky/70",
+                    ? "border-brand-ink bg-brand-logoBlue text-white shadow-sm"
+                    : "border-brand-steel/20 bg-white/95 text-brand-steel hover:border-brand-logoYellow/50 hover:bg-brand-sky/70",
                 floating ? "absolute left-3 top-3 z-10 shadow-soft" : ""
             )}
         >
@@ -509,7 +509,7 @@ function FileActions({
                 <>
                     <button
                         type="button"
-                        className="inline-flex h-9 w-9 items-center justify-center rounded-xl text-brand-steel hover:bg-brand-sky hover:text-brand-ink"
+                        className="inline-flex h-9 w-9 items-center justify-center rounded-xl text-brand-steel hover:bg-brand-sky hover:text-brand-logoBlue"
                         aria-label={`Pulihkan ${file.name}`}
                         title="Pulihkan"
                         onClick={(event) => {
@@ -538,7 +538,7 @@ function FileActions({
                         type="button"
                         className={clsx(
                             "inline-flex h-9 w-9 items-center justify-center rounded-xl hover:bg-brand-sky",
-                            file.starred_at ? "text-brand-amber" : "text-brand-steel hover:text-brand-ink"
+                            file.starred_at ? "text-brand-logoYellow" : "text-brand-steel hover:text-brand-logoBlue"
                         )}
                         aria-label={file.starred_at ? `Hapus bintang ${file.name}` : `Beri bintang ${file.name}`}
                         title={file.starred_at ? "Hapus bintang" : "Beri bintang"}
@@ -551,7 +551,7 @@ function FileActions({
                     </button>
                     <button
                         type="button"
-                        className="inline-flex h-9 w-9 items-center justify-center rounded-xl text-brand-steel hover:bg-brand-sky hover:text-brand-ink"
+                        className="inline-flex h-9 w-9 items-center justify-center rounded-xl text-brand-steel hover:bg-brand-sky hover:text-brand-logoBlue"
                         aria-label={`Lihat detail ${file.name}`}
                         title="Detail"
                         onClick={(event) => {
@@ -564,7 +564,7 @@ function FileActions({
                     </button>
                     <button
                         type="button"
-                        className="inline-flex h-9 w-9 items-center justify-center rounded-xl text-brand-steel hover:bg-brand-sky hover:text-brand-ink"
+                        className="inline-flex h-9 w-9 items-center justify-center rounded-xl text-brand-steel hover:bg-brand-sky hover:text-brand-logoBlue"
                         aria-label={`Unduh ${file.name}`}
                         title="Unduh"
                         onClick={(event) => {
@@ -617,7 +617,7 @@ function FolderActions({
                 <>
                     <button
                         type="button"
-                        className="inline-flex h-9 w-9 items-center justify-center rounded-xl text-brand-steel hover:bg-brand-sky hover:text-brand-ink"
+                        className="inline-flex h-9 w-9 items-center justify-center rounded-xl text-brand-steel hover:bg-brand-sky hover:text-brand-logoBlue"
                         aria-label={`Pulihkan ${folder.name}`}
                         title="Pulihkan"
                         onClick={(event) => {
@@ -646,7 +646,7 @@ function FolderActions({
                         type="button"
                         className={clsx(
                             "inline-flex h-9 w-9 items-center justify-center rounded-xl hover:bg-brand-sky",
-                            folder.starred_at ? "text-brand-amber" : "text-brand-steel hover:text-brand-ink"
+                            folder.starred_at ? "text-brand-logoYellow" : "text-brand-steel hover:text-brand-logoBlue"
                         )}
                         aria-label={folder.starred_at ? `Hapus bintang ${folder.name}` : `Beri bintang ${folder.name}`}
                         title={folder.starred_at ? "Hapus bintang" : "Beri bintang"}
@@ -681,7 +681,7 @@ function GridSkeleton(): JSX.Element {
     return (
         <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5">
             {Array.from({ length: 10 }).map((_, index) => (
-                <div key={index} className="h-40 rounded-[1.4rem] border border-brand-steel/10 bg-white p-4 shadow-soft">
+                <div key={index} className="h-40 rounded-[1.4rem] bg-white p-5 shadow-soft ring-1 ring-brand-line/70">
                     <div className="h-full animate-pulse rounded-2xl bg-gradient-to-r from-white via-brand-sky/70 to-white bg-[length:200%_100%]" />
                 </div>
             ))}
@@ -691,7 +691,7 @@ function GridSkeleton(): JSX.Element {
 
 function ListSkeleton(): JSX.Element {
     return (
-        <section className="overflow-hidden rounded-[1.5rem] border border-brand-steel/10 bg-white">
+        <section className="overflow-hidden rounded-[1.5rem] bg-white ring-1 ring-brand-line/70">
             {Array.from({ length: 6 }).map((_, index) => (
                 <div key={index} className="border-b border-brand-steel/10 px-4 py-3 last:border-b-0">
                     <div className="h-11 animate-pulse rounded-2xl bg-gradient-to-r from-white via-brand-sky/70 to-white bg-[length:200%_100%]" />

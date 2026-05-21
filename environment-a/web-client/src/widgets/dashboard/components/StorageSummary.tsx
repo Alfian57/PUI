@@ -47,7 +47,7 @@ function SummaryItem({ label, value, icon }: SummaryItemProps): JSX.Element {
     const showEfficiencyInfo = label === "Efisiensi";
 
     return (
-        <article className="relative rounded-3xl border border-brand-steel/10 bg-white p-4 shadow-soft">
+        <article className="relative rounded-3xl bg-white p-5 shadow-soft ring-1 ring-brand-line/70">
             <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0">
                     <div className="flex items-center gap-2">
@@ -56,7 +56,7 @@ function SummaryItem({ label, value, icon }: SummaryItemProps): JSX.Element {
                             <button
                                 type="button"
                                 onClick={() => setInfoOpen((current) => !current)}
-                                className="inline-flex h-6 w-6 items-center justify-center rounded-full text-brand-steel transition hover:bg-brand-sky hover:text-brand-ink focus:outline-none focus:ring-2 focus:ring-brand-amber/40"
+                                className="inline-flex h-6 w-6 items-center justify-center rounded-full text-brand-steel transition hover:bg-brand-sky hover:text-brand-logoBlue focus:outline-none focus:ring-2 focus:ring-brand-logoYellow/40"
                                 aria-label="Penjelasan efisiensi penyimpanan"
                                 aria-expanded={infoOpen}
                             >
@@ -64,14 +64,14 @@ function SummaryItem({ label, value, icon }: SummaryItemProps): JSX.Element {
                             </button>
                         ) : null}
                     </div>
-                    <p className="mt-1 truncate font-display text-2xl font-semibold text-brand-ink">{value}</p>
+                    <p className="mt-1 truncate font-display text-2xl font-semibold text-brand-logoBlue">{value}</p>
                 </div>
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-brand-sky text-brand-steel">
                     {icon}
                 </div>
             </div>
             {showEfficiencyInfo && infoOpen ? (
-                <div className="absolute right-4 top-16 z-20 w-72 rounded-2xl border border-brand-steel/10 bg-white p-4 text-sm leading-6 text-brand-steel shadow-deck">
+                <div className="absolute right-4 top-16 z-20 w-72 rounded-2xl bg-white ring-1 ring-brand-line/70 p-4 text-sm leading-6 text-brand-steel shadow-deck">
                     Efisiensi menunjukkan seberapa banyak ruang penyimpanan yang berhasil dihemat saat HashBox menemukan bagian berkas yang sudah pernah tersimpan sebelumnya.
                 </div>
             ) : null}

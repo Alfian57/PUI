@@ -32,7 +32,7 @@ export function TrashPage(): JSX.Element {
         <div className="space-y-5">
             <section className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                 <div>
-                    <h1 className="font-display text-3xl font-semibold text-brand-ink">Sampah</h1>
+                    <h1 className="font-display text-3xl font-semibold text-brand-logoBlue">Sampah</h1>
                     <p className="mt-1 text-sm text-brand-steel">
                         Pulihkan item yang masih dibutuhkan atau hapus permanen jika sudah tidak diperlukan.
                     </p>
@@ -42,7 +42,7 @@ export function TrashPage(): JSX.Element {
                 </p>
             </section>
 
-            <section className="rounded-[1.75rem] border border-brand-steel/10 bg-white/90 p-4 shadow-soft backdrop-blur sm:p-5">
+            <section className="rounded-[1.75rem] bg-white p-5 shadow-soft ring-1 ring-brand-line/70 sm:p-6">
                 {isEmpty ? (
                     <EmptyState
                         icon={<Trash2 className="h-7 w-7" aria-hidden="true" />}

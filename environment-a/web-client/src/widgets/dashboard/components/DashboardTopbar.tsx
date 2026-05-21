@@ -35,25 +35,25 @@ export function DashboardTopbar({ user, onSelectFile, onMenuClick, onLogout }: D
     const showResults = query.length >= 2 && (isLoading || results.length > 0 || data);
 
     return (
-        <header className="sticky top-0 z-20 border-b border-brand-steel/10 bg-white/95 px-4 py-3 backdrop-blur sm:px-6">
+        <header className="relative z-20 rounded-[1.75rem] bg-white/92 p-3 shadow-soft ring-1 ring-brand-line/70 backdrop-blur sm:p-4" data-tour="dashboard-topbar">
             <div className="flex items-center justify-between gap-3">
                 <button
                     type="button"
-                    className="inline-flex h-10 w-10 items-center justify-center rounded-2xl text-brand-steel hover:bg-brand-sky hover:text-brand-ink lg:hidden"
+                    className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-brand-sky text-brand-steel hover:bg-brand-logoBlue hover:text-white lg:hidden"
                     aria-label="Menu"
                     onClick={onMenuClick}
                 >
                     <Menu className="h-5 w-5" aria-hidden="true" />
                 </button>
 
-                <div className="relative w-full max-w-xl">
+                <div className="relative w-full max-w-xl" data-tour="dashboard-search">
                     <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-brand-steel" aria-hidden="true" />
                     <input
                         type="text"
                         value={input}
                         onChange={(event) => setInput(event.target.value)}
                         placeholder="Telusuri berkas di HashBox"
-                        className="h-10 w-full rounded-2xl border border-transparent bg-brand-sky/75 px-10 text-sm text-brand-ink outline-none ring-brand-amber transition placeholder:text-brand-steel/70 focus:border-brand-steel/20 focus:bg-white focus:ring-2"
+                        className="h-11 w-full rounded-2xl border border-transparent bg-brand-sky px-10 text-sm text-brand-ink outline-none ring-brand-logoYellow transition placeholder:text-brand-steel/70 focus:border-brand-logoBlue/20 focus:bg-white focus:ring-2"
                     />
                     {input ? (
                         <button
@@ -111,9 +111,10 @@ export function DashboardTopbar({ user, onSelectFile, onMenuClick, onLogout }: D
                     <button
                         type="button"
                         onClick={() => setAccountOpen((current) => !current)}
-                        className="flex h-10 w-10 items-center justify-center rounded-full outline-none ring-brand-amber transition hover:ring-2 focus:ring-2"
+                        className="flex h-11 w-11 items-center justify-center rounded-2xl bg-brand-sky outline-none ring-brand-logoYellow transition hover:ring-2 focus:ring-2"
                         aria-label="Menu akun"
                         aria-expanded={accountOpen}
+                        data-tour="dashboard-account"
                     >
                         <UserAvatar name={user.full_name} size="sm" />
                     </button>

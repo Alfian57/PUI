@@ -59,9 +59,9 @@ export function InsightPage(): JSX.Element {
 
     return (
         <div className="space-y-6">
-            <section className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <section className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between" data-tour="insight-header">
                 <div>
-                    <h1 className="font-display text-3xl font-semibold text-brand-ink">Insight</h1>
+                    <h1 className="font-display text-3xl font-semibold text-brand-logoBlue">Insight</h1>
                     <p className="mt-1 max-w-2xl text-sm leading-6 text-brand-steel">
                         Ringkasan penyimpanan pribadi, efisiensi deduplikasi, dan aktivitas berkas Anda.
                     </p>
@@ -104,7 +104,7 @@ function InsightContent({ insight }: { insight: UserInsight }): JSX.Element {
 
     return (
         <>
-            <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+            <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-4" data-tour="insight-metrics">
                 <MetricCard label="Item aktif" value={String(totalItems)} helper={`${summary.active_files} berkas, ${summary.active_folders} direktori`} icon={<FileText className="h-5 w-5" />} />
                 <MetricCard label="Penyimpanan" value={formatBytes(summary.active_storage_bytes)} helper={`${formatBytes(summary.trash_storage_bytes)} berada di Sampah`} icon={<Database className="h-5 w-5" />} />
                 <MetricCard label="Efisiensi" value={`${(summary.dedup_ratio * 100).toFixed(2)}%`} helper={`${summary.reuse_chunks} dari ${summary.total_chunks} chunk digunakan ulang`} icon={<Sparkles className="h-5 w-5" />} />
@@ -170,7 +170,7 @@ function RangeTabs({ range, onChange }: { range: InsightRange; onChange: (range:
                     onClick={() => onChange(option.value)}
                     className={clsx(
                         "rounded-xl px-4 py-2 text-sm font-semibold transition",
-                        range === option.value ? "bg-brand-ink text-white" : "text-brand-steel hover:bg-brand-sky hover:text-brand-ink"
+                        range === option.value ? "bg-brand-logoBlue text-white" : "text-brand-steel hover:bg-brand-sky hover:text-brand-logoBlue"
                     )}
                 >
                     {option.label}
@@ -182,11 +182,11 @@ function RangeTabs({ range, onChange }: { range: InsightRange; onChange: (range:
 
 function MetricCard({ label, value, helper, icon }: { label: string; value: string; helper: string; icon: JSX.Element }): JSX.Element {
     return (
-        <article className="rounded-[1.75rem] border border-brand-steel/10 bg-white p-5 shadow-soft">
+        <article className="rounded-[1.75rem] bg-white p-5 shadow-soft ring-1 ring-brand-line/70">
             <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0">
                     <p className="text-sm text-brand-steel">{label}</p>
-                    <p className="mt-2 truncate font-display text-3xl font-semibold text-brand-ink">{value}</p>
+                    <p className="mt-2 truncate font-display text-3xl font-semibold text-brand-logoBlue">{value}</p>
                     <p className="mt-2 text-sm text-brand-steel">{helper}</p>
                 </div>
                 <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-brand-sky text-brand-steel">
@@ -199,9 +199,9 @@ function MetricCard({ label, value, helper, icon }: { label: string; value: stri
 
 function ChartPanel({ title, description, children }: { title: string; description: string; children: JSX.Element }): JSX.Element {
     return (
-        <section className="rounded-[1.75rem] border border-brand-steel/10 bg-white p-5 shadow-soft">
+        <section className="rounded-[1.75rem] bg-white p-5 shadow-soft ring-1 ring-brand-line/70">
             <div className="mb-5">
-                <h2 className="font-display text-xl font-semibold text-brand-ink">{title}</h2>
+                <h2 className="font-display text-xl font-semibold text-brand-logoBlue">{title}</h2>
                 <p className="mt-1 text-sm text-brand-steel">{description}</p>
             </div>
             {children}
@@ -211,8 +211,8 @@ function ChartPanel({ title, description, children }: { title: string; descripti
 
 function ListPanel({ title, empty, children }: { title: string; empty: string; children: JSX.Element[] }): JSX.Element {
     return (
-        <section className="rounded-[1.75rem] border border-brand-steel/10 bg-white p-5 shadow-soft">
-            <h2 className="font-display text-xl font-semibold text-brand-ink">{title}</h2>
+        <section className="rounded-[1.75rem] bg-white p-5 shadow-soft ring-1 ring-brand-line/70">
+            <h2 className="font-display text-xl font-semibold text-brand-logoBlue">{title}</h2>
             <div className="mt-4 space-y-2">
                 {children.length > 0 ? children : <p className="rounded-2xl bg-brand-sky/60 px-4 py-3 text-sm text-brand-steel">{empty}</p>}
             </div>
@@ -225,7 +225,7 @@ function ListItem({ icon, title, meta }: { icon: JSX.Element; title: string; met
         <div className="flex items-center gap-3 rounded-2xl border border-brand-steel/10 px-3 py-3">
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-sky text-brand-steel">{icon}</div>
             <div className="min-w-0">
-                <p className="truncate text-sm font-semibold text-brand-ink">{title}</p>
+                <p className="truncate text-sm font-semibold text-brand-logoBlue">{title}</p>
                 <p className="truncate text-xs text-brand-steel">{meta}</p>
             </div>
         </div>
