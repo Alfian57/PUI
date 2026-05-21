@@ -19,6 +19,14 @@ type Config struct {
 	MaxUploadSizeBytes int64
 	RateLimitPerMinute int
 	SessionTTLMinutes  int
+	SMTPHost           string
+	SMTPPort           int
+	SMTPUsername       string
+	SMTPPassword       string
+	SMTPFromEmail      string
+	SMTPFromName       string
+	PublicWebURL       string
+	PasswordResetTTLMinutes int
 }
 
 func Load() (Config, error) {
@@ -33,6 +41,10 @@ func Load() (Config, error) {
 	viper.SetDefault("MAX_UPLOAD_SIZE_BYTES", int64(536870912))
 	viper.SetDefault("RATE_LIMIT_PER_MINUTE", 120)
 	viper.SetDefault("SESSION_TTL_MINUTES", 1440)
+	viper.SetDefault("SMTP_PORT", 587)
+	viper.SetDefault("SMTP_FROM_NAME", "HashBox")
+	viper.SetDefault("PUBLIC_WEB_URL", "http://localhost:5173")
+	viper.SetDefault("PASSWORD_RESET_TTL_MINUTES", 30)
 	viper.SetDefault("MIGRATIONS_PATH", "db/migrations")
 
 	migrationsPath := filepath.Clean(viper.GetString("MIGRATIONS_PATH"))
@@ -48,6 +60,14 @@ func Load() (Config, error) {
 		MaxUploadSizeBytes: viper.GetInt64("MAX_UPLOAD_SIZE_BYTES"),
 		RateLimitPerMinute: viper.GetInt("RATE_LIMIT_PER_MINUTE"),
 		SessionTTLMinutes:  viper.GetInt("SESSION_TTL_MINUTES"),
+		SMTPHost:           viper.GetString("SMTP_HOST"),
+		SMTPPort:           viper.GetInt("SMTP_PORT"),
+		SMTPUsername:       viper.GetString("SMTP_USERNAME"),
+		SMTPPassword:       viper.GetString("SMTP_PASSWORD"),
+		SMTPFromEmail:      viper.GetString("SMTP_FROM_EMAIL"),
+		SMTPFromName:       viper.GetString("SMTP_FROM_NAME"),
+		PublicWebURL:       viper.GetString("PUBLIC_WEB_URL"),
+		PasswordResetTTLMinutes: viper.GetInt("PASSWORD_RESET_TTL_MINUTES"),
 	}
 
 	if cfg.DatabaseURL == "" {
@@ -64,6 +84,18 @@ func Load() (Config, error) {
 
 	if cfg.SessionTTLMinutes <= 0 {
 		return Config{}, fmt.Errorf("SESSION_TTL_MINUTES must be positive")
+	}
+
+	if cfg.SMTPPort <= 0 {
+		return Config{}, fmt.Errorf("SMTP_PORT must be positive")
+	}
+
+	if cfg.PublicWebURL == "" {
+		return Config{}, fmt.Errorf("PUBLIC_WEB_URL is required")
+	}
+
+	if cfg.PasswordResetTTLMinutes <= 0 {
+		return Config{}, fmt.Errorf("PASSWORD_RESET_TTL_MINUTES must be positive")
 	}
 
 	return cfg, nil

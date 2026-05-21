@@ -65,6 +65,56 @@ func (a *API) handleRegister(c *gin.Context) {
 	})
 }
 
+// handlePasswordResetRequest godoc
+// @Summary Minta reset password
+// @Description Mengirim tautan reset password ke email bila akun ditemukan
+// @Tags autentikasi
+// @Accept json
+// @Produce json
+// @Param payload body dto.PasswordResetRequest true "Payload permintaan reset password"
+// @Success 200 {object} dto.OKResponse
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /auth/password-reset/request [post]
+func (a *API) handlePasswordResetRequest(c *gin.Context) {
+	var req dto.PasswordResetRequest
+	if !a.bindAndValidateJSON(c, &req) {
+		return
+	}
+
+	if err := a.authService.RequestPasswordReset(c.Request.Context(), req.Email); err != nil {
+		writeError(c, statusFromError(err), err)
+		return
+	}
+
+	c.JSON(http.StatusOK, dto.OKResponse{Status: "ok"})
+}
+
+// handlePasswordResetConfirm godoc
+// @Summary Konfirmasi reset password
+// @Description Mengganti password menggunakan token reset yang valid
+// @Tags autentikasi
+// @Accept json
+// @Produce json
+// @Param payload body dto.PasswordResetConfirmRequest true "Payload konfirmasi reset password"
+// @Success 200 {object} dto.OKResponse
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /auth/password-reset/confirm [post]
+func (a *API) handlePasswordResetConfirm(c *gin.Context) {
+	var req dto.PasswordResetConfirmRequest
+	if !a.bindAndValidateJSON(c, &req) {
+		return
+	}
+
+	if err := a.authService.ConfirmPasswordReset(c.Request.Context(), req.Token, req.NewPassword, req.ConfirmPassword); err != nil {
+		writeError(c, statusFromError(err), err)
+		return
+	}
+
+	c.JSON(http.StatusOK, dto.OKResponse{Status: "ok"})
+}
+
 // handleLogout godoc
 // @Summary Keluar
 // @Description Mencabut sesi akses saat ini

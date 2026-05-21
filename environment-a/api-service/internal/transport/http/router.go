@@ -24,6 +24,8 @@ func NewRouter(cfg config.Config, api *API, authService *service.AuthService) *g
 
 		v1.POST("/auth/login", api.handleLogin)
 		v1.POST("/auth/register", api.handleRegister)
+		v1.POST("/auth/password-reset/request", api.handlePasswordResetRequest)
+		v1.POST("/auth/password-reset/confirm", api.handlePasswordResetConfirm)
 
 		authorized := v1.Group("")
 		authorized.Use(middleware.Auth(authService))

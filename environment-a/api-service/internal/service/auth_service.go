@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"net/url"
 	"strings"
 	"time"
 
@@ -14,13 +15,30 @@ type AuthService struct {
 	authRepo         *repository.AuthRepository
 	activityRepo     *repository.ActivityRepository
 	sessionTTLMinute int
+	resetTTLMinute   int
+	publicWebURL     string
+	resetMailer      PasswordResetMailer
 }
 
-func NewAuthService(authRepo *repository.AuthRepository, activityRepo *repository.ActivityRepository, sessionTTLMinute int) *AuthService {
+type PasswordResetMailer interface {
+	SendPasswordReset(ctx context.Context, toEmail, toName, resetURL string) error
+}
+
+func NewAuthService(
+	authRepo *repository.AuthRepository,
+	activityRepo *repository.ActivityRepository,
+	sessionTTLMinute int,
+	resetTTLMinute int,
+	publicWebURL string,
+	resetMailer PasswordResetMailer,
+) *AuthService {
 	return &AuthService{
 		authRepo:         authRepo,
 		activityRepo:     activityRepo,
 		sessionTTLMinute: sessionTTLMinute,
+		resetTTLMinute:   resetTTLMinute,
+		publicWebURL:     strings.TrimRight(strings.TrimSpace(publicWebURL), "/"),
+		resetMailer:      resetMailer,
 	}
 }
 
@@ -99,6 +117,85 @@ func (s *AuthService) Register(ctx context.Context, fullName, email, password, c
 	}
 
 	return user, nil
+}
+
+func (s *AuthService) RequestPasswordReset(ctx context.Context, email string) error {
+	email = strings.TrimSpace(strings.ToLower(email))
+	if email == "" {
+		return domain.NewValidationError("email wajib diisi")
+	}
+
+	user, found, err := s.authRepo.FindUserByEmail(ctx, email)
+	if err != nil {
+		return err
+	}
+	if !found {
+		return nil
+	}
+	if s.resetMailer == nil {
+		return fmt.Errorf("password reset mailer is not configured")
+	}
+	if s.publicWebURL == "" {
+		return fmt.Errorf("PUBLIC_WEB_URL is required for password reset")
+	}
+
+	token, tokenHash, err := NewSessionToken()
+	if err != nil {
+		return fmt.Errorf("generate password reset token: %w", err)
+	}
+
+	expiresAt := time.Now().UTC().Add(time.Duration(s.resetTTLMinute) * time.Minute)
+	resetID, err := s.authRepo.CreatePasswordResetToken(ctx, user.UserID, tokenHash, expiresAt)
+	if err != nil {
+		return err
+	}
+
+	resetURL := s.publicWebURL + "/reset-password?token=" + url.QueryEscape(token)
+	if err := s.resetMailer.SendPasswordReset(ctx, user.Email, user.FullName, resetURL); err != nil {
+		return err
+	}
+
+	if logErr := s.activityRepo.Log(ctx, user.UserID, "REQUEST_PASSWORD_RESET", "PASSWORD_RESET_TOKEN", &resetID); logErr != nil {
+		// Keep reset request resilient to audit insertion failure.
+	}
+
+	return nil
+}
+
+func (s *AuthService) ConfirmPasswordReset(ctx context.Context, token, newPassword, confirmPassword string) error {
+	token = strings.TrimSpace(token)
+	newPassword = strings.TrimSpace(newPassword)
+	confirmPassword = strings.TrimSpace(confirmPassword)
+	if token == "" || newPassword == "" || confirmPassword == "" {
+		return domain.NewValidationError("token, password baru, dan konfirmasi password wajib diisi")
+	}
+	if len(newPassword) < 8 {
+		return domain.NewValidationError("password baru minimal 8 karakter")
+	}
+	if newPassword != confirmPassword {
+		return domain.NewValidationError("konfirmasi password belum sama")
+	}
+
+	resetToken, err := s.authRepo.FindPasswordResetToken(ctx, HashToken(token))
+	if err != nil {
+		if err == domain.ErrNotFound {
+			return domain.NewValidationError("token reset password tidak valid atau sudah kedaluwarsa")
+		}
+		return err
+	}
+	if resetToken.UsedAt != nil || time.Now().UTC().After(resetToken.ExpiresAt) {
+		return domain.NewValidationError("token reset password tidak valid atau sudah kedaluwarsa")
+	}
+
+	if err := s.authRepo.CompletePasswordReset(ctx, resetToken.ID, resetToken.UserID, newPassword); err != nil {
+		return err
+	}
+
+	if logErr := s.activityRepo.Log(ctx, resetToken.UserID, "CONFIRM_PASSWORD_RESET", "PASSWORD_RESET_TOKEN", &resetToken.ID); logErr != nil {
+		// Keep reset confirmation resilient to audit insertion failure.
+	}
+
+	return nil
 }
 
 func (s *AuthService) AuthenticateToken(ctx context.Context, bearerToken string) (domain.AuthUser, error) {

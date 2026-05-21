@@ -1,5 +1,11 @@
 import { http } from "@/shared/api/http";
-import type { AuthUser, LoginResponse, RegisterRequest, UpdateProfileRequest } from "@/shared/types/domain";
+import type {
+  AuthUser,
+  LoginResponse,
+  PasswordResetConfirmRequest,
+  RegisterRequest,
+  UpdateProfileRequest
+} from "@/shared/types/domain";
 
 export async function login(email: string, password: string): Promise<LoginResponse> {
   const { data } = await http.post<LoginResponse>("/api/v1/auth/login", {
@@ -18,6 +24,14 @@ export async function whoAmI(): Promise<AuthUser> {
 export async function register(payload: RegisterRequest): Promise<AuthUser> {
   const { data } = await http.post<{ user: AuthUser }>("/api/v1/auth/register", payload);
   return data.user;
+}
+
+export async function requestPasswordReset(email: string): Promise<void> {
+  await http.post("/api/v1/auth/password-reset/request", { email });
+}
+
+export async function confirmPasswordReset(payload: PasswordResetConfirmRequest): Promise<void> {
+  await http.post("/api/v1/auth/password-reset/confirm", payload);
 }
 
 export async function logout(): Promise<void> {

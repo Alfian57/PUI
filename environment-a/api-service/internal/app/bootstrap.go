@@ -42,7 +42,22 @@ func Build(ctx context.Context, cfg config.Config) (*App, error) {
 	adminRepo := repository.NewAdminRepository(gormDB)
 	insightRepo := repository.NewInsightRepository(gormDB)
 
-	authService := service.NewAuthService(authRepo, activityRepo, cfg.SessionTTLMinutes)
+	resetMailer := service.NewSMTPMailer(service.SMTPConfig{
+		Host:      cfg.SMTPHost,
+		Port:      cfg.SMTPPort,
+		Username:  cfg.SMTPUsername,
+		Password:  cfg.SMTPPassword,
+		FromEmail: cfg.SMTPFromEmail,
+		FromName:  cfg.SMTPFromName,
+	})
+	authService := service.NewAuthService(
+		authRepo,
+		activityRepo,
+		cfg.SessionTTLMinutes,
+		cfg.PasswordResetTTLMinutes,
+		cfg.PublicWebURL,
+		resetMailer,
+	)
 	adminService := service.NewAdminService(adminRepo)
 	activityService := service.NewActivityService(activityRepo)
 	directoryService := service.NewDirectoryService(directoryRepo, activityRepo)

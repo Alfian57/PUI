@@ -1,8 +1,10 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import { RequireAuth, PublicOnly, RequireRole, RoleIndexRedirect } from "@/app/routes/AuthGuards";
 import { LandingPage } from "@/pages/LandingPage";
+import { ForgotPasswordPage } from "@/pages/ForgotPasswordPage";
 import { LoginPage } from "@/pages/LoginPage";
 import { RegisterPage } from "@/pages/RegisterPage";
+import { ResetPasswordPage } from "@/pages/ResetPasswordPage";
 import { DashboardLayout } from "@/widgets/dashboard/DashboardLayout";
 import { FilesPage } from "@/pages/dashboard/FilesPage";
 import { ActivityPage } from "@/pages/dashboard/ActivityPage";
@@ -33,6 +35,14 @@ export const router = createBrowserRouter([
             {
                 path: "/register",
                 element: <RegisterPage />
+            },
+            {
+                path: "/forgot-password",
+                element: <ForgotPasswordPage />
+            },
+            {
+                path: "/reset-password",
+                element: <ResetPasswordPage />
             }
         ]
     },

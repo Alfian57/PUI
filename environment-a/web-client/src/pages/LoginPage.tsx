@@ -10,6 +10,7 @@ type LocationState = {
         pathname?: string;
     };
     registerSuccess?: boolean;
+    resetSuccess?: boolean;
 };
 
 export function LoginPage(): JSX.Element {
@@ -39,22 +40,20 @@ export function LoginPage(): JSX.Element {
     const state = location.state as LocationState | null;
 
     return (
-        <main className="h-[100dvh] overflow-hidden bg-brand-sky text-brand-ink">
-            <div className="pointer-events-none fixed inset-0 overflow-hidden">
-                <div className="absolute -left-16 top-0 h-72 w-72 rounded-full bg-brand-amber/25 blur-3xl" />
-                <div className="absolute -right-16 bottom-0 h-80 w-80 rounded-full bg-brand-mint/55 blur-3xl" />
-                <div className="absolute left-1/2 top-1/3 h-56 w-56 -translate-x-1/2 rounded-full bg-brand-sky/65 blur-3xl" />
-            </div>
-
-            <div className="relative mx-auto h-full max-w-7xl px-3 py-3 sm:px-5 lg:px-7">
-                <LoginCard
-                    loading={auth.loginState.isPending}
-                    restoringSession={auth.isRestoringSession}
-                    errorMessage={loginError}
-                    successMessage={state?.registerSuccess ? "Akun berhasil dibuat. Silakan masuk menggunakan email dan password Anda." : null}
-                    onSubmit={handleLogin}
-                />
-            </div>
+        <main className="min-h-[100dvh] overflow-x-hidden bg-brand-sky text-brand-ink">
+            <LoginCard
+                loading={auth.loginState.isPending}
+                restoringSession={auth.isRestoringSession}
+                errorMessage={loginError}
+                successMessage={
+                    state?.resetSuccess
+                        ? "Password berhasil diperbarui. Silakan masuk menggunakan password baru Anda."
+                        : state?.registerSuccess
+                            ? "Akun berhasil dibuat. Silakan masuk menggunakan email dan password Anda."
+                            : null
+                }
+                onSubmit={handleLogin}
+            />
         </main>
     );
 }

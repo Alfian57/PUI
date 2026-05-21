@@ -66,6 +66,12 @@ export type RegisterRequest = {
   confirm_password: string;
 };
 
+export type PasswordResetConfirmRequest = {
+  token: string;
+  new_password: string;
+  confirm_password: string;
+};
+
 export type UpdateProfileRequest = {
   full_name: string;
   email: string;

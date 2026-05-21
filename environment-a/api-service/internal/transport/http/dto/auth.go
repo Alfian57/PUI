@@ -19,6 +19,16 @@ type UpdateProfileRequest struct {
 	NewPassword     string `json:"new_password,omitempty" validate:"omitempty,min=8"`
 }
 
+type PasswordResetRequest struct {
+	Email string `json:"email" validate:"required,email"`
+}
+
+type PasswordResetConfirmRequest struct {
+	Token           string `json:"token" validate:"required"`
+	NewPassword     string `json:"new_password" validate:"required,min=8"`
+	ConfirmPassword string `json:"confirm_password" validate:"required"`
+}
+
 type UserDTO struct {
 	ID       string `json:"id"`
 	FullName string `json:"full_name"`

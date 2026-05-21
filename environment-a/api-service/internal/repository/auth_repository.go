@@ -81,6 +81,126 @@ func (r *AuthRepository) CreateUser(ctx context.Context, fullName, email, passwo
 	return user, nil
 }
 
+func (r *AuthRepository) FindUserByEmail(ctx context.Context, email string) (domain.AuthUser, bool, error) {
+	var user domain.AuthUser
+	err := r.db.WithContext(ctx).Raw(
+		`SELECT id_pengguna::text AS user_id, nama AS full_name, email, peran AS role
+		 FROM users
+		 WHERE email = ?`,
+		email,
+	).Scan(&user).Error
+	if err != nil {
+		return domain.AuthUser{}, false, fmt.Errorf("query user by email: %w", err)
+	}
+
+	if user.UserID == "" {
+		return domain.AuthUser{}, false, nil
+	}
+
+	return user, true, nil
+}
+
+func (r *AuthRepository) CreatePasswordResetToken(ctx context.Context, userID, tokenHash string, expiresAt time.Time) (string, error) {
+	var resetID string
+	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := tx.Exec(
+			`UPDATE password_reset_tokens
+			 SET used_at = NOW()
+			 WHERE user_id = ?
+			   AND used_at IS NULL
+			   AND expires_at > NOW()`,
+			userID,
+		).Error; err != nil {
+			return fmt.Errorf("expire previous password reset tokens: %w", err)
+		}
+
+		if err := tx.Raw(
+			`INSERT INTO password_reset_tokens (user_id, token_hash, expires_at)
+			 VALUES (?, ?, ?)
+			 RETURNING id::text`,
+			userID,
+			tokenHash,
+			expiresAt,
+		).Scan(&resetID).Error; err != nil {
+			return fmt.Errorf("insert password reset token: %w", err)
+		}
+
+		return nil
+	})
+	if err != nil {
+		return "", err
+	}
+
+	if resetID == "" {
+		return "", errors.New("empty password reset token id from insert")
+	}
+
+	return resetID, nil
+}
+
+func (r *AuthRepository) FindPasswordResetToken(ctx context.Context, tokenHash string) (domain.PasswordResetToken, error) {
+	var resetToken domain.PasswordResetToken
+	err := r.db.WithContext(ctx).Raw(
+		`SELECT id::text, user_id::text, token_hash, expires_at, used_at
+		 FROM password_reset_tokens
+		 WHERE token_hash = ?`,
+		tokenHash,
+	).Scan(&resetToken).Error
+	if err != nil {
+		return domain.PasswordResetToken{}, fmt.Errorf("query password reset token: %w", err)
+	}
+
+	if resetToken.ID == "" {
+		return domain.PasswordResetToken{}, domain.ErrNotFound
+	}
+
+	return resetToken, nil
+}
+
+func (r *AuthRepository) CompletePasswordReset(ctx context.Context, resetID, userID, newPassword string) error {
+	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		result := tx.Exec(
+			`UPDATE users
+			 SET password_hash = crypt(?, gen_salt('bf'))
+			 WHERE id_pengguna = ?`,
+			newPassword,
+			userID,
+		)
+		if result.Error != nil {
+			return fmt.Errorf("update password reset user: %w", result.Error)
+		}
+		if result.RowsAffected == 0 {
+			return domain.ErrNotFound
+		}
+
+		result = tx.Exec(
+			`UPDATE password_reset_tokens
+			 SET used_at = NOW()
+			 WHERE id = ?
+			   AND used_at IS NULL`,
+			resetID,
+		)
+		if result.Error != nil {
+			return fmt.Errorf("mark password reset token used: %w", result.Error)
+		}
+		if result.RowsAffected == 0 {
+			return domain.ErrInvalidInput
+		}
+
+		if err := tx.Exec(
+			`UPDATE access_sessions
+			 SET revoked_at = NOW()
+			 WHERE user_id = ?
+			   AND revoked_at IS NULL`,
+			userID,
+		).Error; err != nil {
+			return fmt.Errorf("revoke sessions after password reset: %w", err)
+		}
+
+		return nil
+	})
+}
+
 func (r *AuthRepository) FindSessionUserByTokenHash(ctx context.Context, tokenHash string) (domain.AuthUser, error) {
 	var user domain.AuthUser
 	err := r.db.WithContext(ctx).Raw(
