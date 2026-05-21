@@ -9,23 +9,23 @@ import (
 )
 
 type Config struct {
-	AppEnv             string
-	HTTPAddr           string
-	AllowedOrigin      string
-	DatabaseURL        string
-	VaultUDSPath       string
-	VaultChunkRoot     string
-	MigrationsPath     string
-	MaxUploadSizeBytes int64
-	RateLimitPerMinute int
-	SessionTTLMinutes  int
-	SMTPHost           string
-	SMTPPort           int
-	SMTPUsername       string
-	SMTPPassword       string
-	SMTPFromEmail      string
-	SMTPFromName       string
-	PublicWebURL       string
+	AppEnv                  string
+	HTTPAddr                string
+	AllowedOrigin           string
+	DatabaseURL             string
+	VaultUDSPath            string
+	VaultChunkRoot          string
+	MigrationsPath          string
+	MaxUploadSizeBytes      int64
+	RateLimitPerMinute      int
+	SessionTTLMinutes       int
+	SMTPHost                string
+	SMTPPort                int
+	SMTPUsername            string
+	SMTPPassword            string
+	SMTPFromEmail           string
+	SMTPFromName            string
+	PublicWebURL            string
 	PasswordResetTTLMinutes int
 }
 
@@ -50,23 +50,23 @@ func Load() (Config, error) {
 	migrationsPath := filepath.Clean(viper.GetString("MIGRATIONS_PATH"))
 
 	cfg := Config{
-		AppEnv:             viper.GetString("APP_ENV"),
-		HTTPAddr:           viper.GetString("HTTP_ADDR"),
-		AllowedOrigin:      viper.GetString("ALLOWED_ORIGIN"),
-		DatabaseURL:        viper.GetString("DATABASE_URL"),
-		VaultUDSPath:       viper.GetString("VAULT_UDS_PATH"),
-		VaultChunkRoot:     filepath.Clean(viper.GetString("VAULT_CHUNK_ROOT")),
-		MigrationsPath:     migrationsPath,
-		MaxUploadSizeBytes: viper.GetInt64("MAX_UPLOAD_SIZE_BYTES"),
-		RateLimitPerMinute: viper.GetInt("RATE_LIMIT_PER_MINUTE"),
-		SessionTTLMinutes:  viper.GetInt("SESSION_TTL_MINUTES"),
-		SMTPHost:           viper.GetString("SMTP_HOST"),
-		SMTPPort:           viper.GetInt("SMTP_PORT"),
-		SMTPUsername:       viper.GetString("SMTP_USERNAME"),
-		SMTPPassword:       viper.GetString("SMTP_PASSWORD"),
-		SMTPFromEmail:      viper.GetString("SMTP_FROM_EMAIL"),
-		SMTPFromName:       viper.GetString("SMTP_FROM_NAME"),
-		PublicWebURL:       viper.GetString("PUBLIC_WEB_URL"),
+		AppEnv:                  viper.GetString("APP_ENV"),
+		HTTPAddr:                viper.GetString("HTTP_ADDR"),
+		AllowedOrigin:           viper.GetString("ALLOWED_ORIGIN"),
+		DatabaseURL:             viper.GetString("DATABASE_URL"),
+		VaultUDSPath:            viper.GetString("VAULT_UDS_PATH"),
+		VaultChunkRoot:          filepath.Clean(viper.GetString("VAULT_CHUNK_ROOT")),
+		MigrationsPath:          migrationsPath,
+		MaxUploadSizeBytes:      viper.GetInt64("MAX_UPLOAD_SIZE_BYTES"),
+		RateLimitPerMinute:      viper.GetInt("RATE_LIMIT_PER_MINUTE"),
+		SessionTTLMinutes:       viper.GetInt("SESSION_TTL_MINUTES"),
+		SMTPHost:                viper.GetString("SMTP_HOST"),
+		SMTPPort:                viper.GetInt("SMTP_PORT"),
+		SMTPUsername:            viper.GetString("SMTP_USERNAME"),
+		SMTPPassword:            viper.GetString("SMTP_PASSWORD"),
+		SMTPFromEmail:           viper.GetString("SMTP_FROM_EMAIL"),
+		SMTPFromName:            viper.GetString("SMTP_FROM_NAME"),
+		PublicWebURL:            viper.GetString("PUBLIC_WEB_URL"),
 		PasswordResetTTLMinutes: viper.GetInt("PASSWORD_RESET_TTL_MINUTES"),
 	}
 

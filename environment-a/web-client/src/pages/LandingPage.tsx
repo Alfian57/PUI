@@ -39,6 +39,18 @@ type IconCard = {
 const sectionHeadingClass = "mt-3 max-w-3xl break-words font-display text-[clamp(1.55rem,6vw,2.65rem)] font-semibold leading-[1.14] text-brand-logoBlue sm:leading-tight lg:text-5xl";
 const darkSectionHeadingClass = "mt-3 max-w-3xl break-words font-display text-[clamp(1.55rem,6vw,2.65rem)] font-semibold leading-[1.14] text-white sm:leading-tight lg:text-5xl";
 
+
+function handleSectionNavigation(event: React.MouseEvent<HTMLAnchorElement>, href: string, onAfterNavigate?: () => void): void {
+    if (!href.startsWith("#")) return;
+    event.preventDefault();
+    const target = document.querySelector(href);
+    if (target) {
+        target.scrollIntoView({ behavior: "smooth", block: "start" });
+        window.history.replaceState(null, "", href);
+    }
+    onAfterNavigate?.();
+}
+
 const navItems = [
     { label: "Solusi", href: "#solusi" },
     { label: "Fitur", href: "#fitur" },
@@ -287,6 +299,7 @@ export function LandingPage(): JSX.Element {
                                         className="rounded-xl px-3 py-2 transition hover:bg-white hover:text-brand-logoBlue focus:outline-none focus:ring-2 focus:ring-brand-logoYellow"
                                         href={item.href}
                                         key={item.href}
+                                        onClick={(event) => handleSectionNavigation(event, item.href)}
                                     >
                                         {item.label}
                                     </a>
@@ -333,7 +346,7 @@ export function LandingPage(): JSX.Element {
                                             className="rounded-2xl bg-brand-sky px-4 py-3 hover:text-brand-logoBlue"
                                             href={item.href}
                                             key={item.href}
-                                            onClick={() => setMobileMenuOpen(false)}
+                                            onClick={(event) => handleSectionNavigation(event, item.href, () => setMobileMenuOpen(false))}
                                         >
                                             {item.label}
                                         </a>
@@ -739,6 +752,7 @@ export function LandingPage(): JSX.Element {
                                     className={`rounded-2xl bg-white/8 px-4 py-2 text-center transition hover:bg-white/12 hover:text-white sm:bg-transparent sm:p-0 ${index === navItems.length - 1 ? "col-span-2" : ""}`}
                                     href={item.href}
                                     key={item.href}
+                                    onClick={(event) => handleSectionNavigation(event, item.href)}
                                 >
                                     {item.label}
                                 </a>

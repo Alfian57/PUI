@@ -1,4 +1,4 @@
-import { ArrowRight, LifeBuoy, X } from "lucide-react";
+import { ArrowRight, CircleHelp, X } from "lucide-react";
 import type { AuthUser } from "@/shared/types/domain";
 import { useState } from "react";
 
@@ -98,7 +98,7 @@ export function DashboardUtilityRail({ user, onStartTour }: DashboardUtilityRail
                     title={`Butuh bantuan, ${firstName}?`}
                     onClick={() => setOpen((current) => !current)}
                 >
-                    <LifeBuoy className="h-6 w-6" aria-hidden="true" />
+                    <CircleHelp className="h-6 w-6" aria-hidden="true" />
                 </button>
             </div>
         </>

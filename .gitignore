@@ -45,3 +45,8 @@ data/vault/chunks/
 # shared/uds is tracked, but older local compose runs may leave it owned by
 # the vault runtime user. Ignore the worktree path so git add . can proceed.
 shared/uds/
+
+# Local AI assistant state
+.claude/
+.codex/
+skills-lock.json
