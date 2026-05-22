@@ -61,7 +61,7 @@ func Build(ctx context.Context, cfg config.Config) (*App, error) {
 	adminService := service.NewAdminService(adminRepo)
 	activityService := service.NewActivityService(activityRepo)
 	directoryService := service.NewDirectoryService(directoryRepo, activityRepo)
-	fileService := service.NewFileService(fileRepo, directoryRepo, activityRepo, vault, cfg.VaultChunkRoot)
+	fileService := service.NewFileService(fileRepo, directoryRepo, activityRepo, vault)
 	insightService := service.NewInsightService(insightRepo)
 	systemService := service.NewSystemService(sqlDB, vault, cfg.AppEnv)
 

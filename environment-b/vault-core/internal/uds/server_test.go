@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"io"
 	"net"
 	"net/http"
 	"os"
@@ -95,6 +96,53 @@ func TestUDSHealthAndForbiddenOperation(t *testing.T) {
 		}
 	})
 
+	t.Run("object stream over uds", func(t *testing.T) {
+		content := bytes.Repeat([]byte("object-over-uds-"), 1024)
+		uploadReq, err := http.NewRequestWithContext(context.Background(), http.MethodPost, "http://unix/internal/v1/uploads", bytes.NewReader(content))
+		if err != nil {
+			t.Fatalf("build upload request: %v", err)
+		}
+
+		uploadResp, err := client.Do(uploadReq)
+		if err != nil {
+			t.Fatalf("do upload request: %v", err)
+		}
+		defer uploadResp.Body.Close()
+		if uploadResp.StatusCode != http.StatusCreated {
+			t.Fatalf("unexpected upload status code: %d", uploadResp.StatusCode)
+		}
+
+		var uploadPayload struct {
+			UploadCommitResult struct {
+				ManifestID string `json:"manifest_id"`
+			} `json:"upload_commit_result"`
+		}
+		if err := json.NewDecoder(uploadResp.Body).Decode(&uploadPayload); err != nil {
+			t.Fatalf("decode upload response: %v", err)
+		}
+
+		objectReq, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "http://unix/internal/v1/objects/"+uploadPayload.UploadCommitResult.ManifestID, nil)
+		if err != nil {
+			t.Fatalf("build object request: %v", err)
+		}
+		objectResp, err := client.Do(objectReq)
+		if err != nil {
+			t.Fatalf("do object request: %v", err)
+		}
+		defer objectResp.Body.Close()
+		if objectResp.StatusCode != http.StatusOK {
+			t.Fatalf("unexpected object status code: %d", objectResp.StatusCode)
+		}
+
+		reconstructed, err := io.ReadAll(objectResp.Body)
+		if err != nil {
+			t.Fatalf("read object response: %v", err)
+		}
+		if !bytes.Equal(reconstructed, content) {
+			t.Fatalf("object response mismatch")
+		}
+	})
+
 	t.Run("destructive internal operations rejected", func(t *testing.T) {
 		manifestID := "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 		chunkHash := "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
@@ -108,6 +156,9 @@ func TestUDSHealthAndForbiddenOperation(t *testing.T) {
 			{method: http.MethodDelete, path: "/internal/v1/manifests/" + manifestID},
 			{method: http.MethodPut, path: "/internal/v1/manifests/" + manifestID},
 			{method: http.MethodPatch, path: "/internal/v1/manifests/" + manifestID},
+			{method: http.MethodDelete, path: "/internal/v1/objects/" + manifestID},
+			{method: http.MethodPut, path: "/internal/v1/objects/" + manifestID},
+			{method: http.MethodPatch, path: "/internal/v1/objects/" + manifestID},
 			{method: http.MethodDelete, path: "/internal/v1/chunks/" + chunkHash + "/status"},
 			{method: http.MethodPut, path: "/internal/v1/chunks/" + chunkHash + "/status"},
 			{method: http.MethodPatch, path: "/internal/v1/chunks/" + chunkHash + "/status"},

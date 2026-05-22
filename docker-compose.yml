@@ -36,7 +36,6 @@ services:
       ALLOWED_ORIGIN: ${API_ALLOWED_ORIGIN}
       DATABASE_URL: ${API_DATABASE_URL}
       VAULT_UDS_PATH: ${VAULT_UDS_PATH}
-      VAULT_CHUNK_ROOT: ${VAULT_CHUNK_ROOT:-/var/lib/pui/chunks}
       MIGRATIONS_PATH: ${API_MIGRATIONS_PATH}
       MAX_UPLOAD_SIZE_BYTES: ${MAX_UPLOAD_SIZE_BYTES}
       RATE_LIMIT_PER_MINUTE: ${RATE_LIMIT_PER_MINUTE}
@@ -49,7 +48,6 @@ services:
     user: "10001:20000"
     volumes:
       - ./data/uds:/var/run/pui/uds
-      - ./data/vault/chunks:/var/lib/pui/chunks:ro
     restart: unless-stopped
     develop:
       watch:

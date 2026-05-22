@@ -46,7 +46,7 @@ Contoh env: [.env.example](.env.example)
 | HTTP_ADDR | :8080 | bind address API |
 | ALLOWED_ORIGIN | http://localhost:5173 | CORS origin |
 | DATABASE_URL | postgres://...@localhost:5432/... | koneksi PostgreSQL lokal |
-| VAULT_UDS_PATH | ../../shared/uds/vault-core.sock | path socket lokal ke vault-core |
+| VAULT_UDS_PATH | ../../data/uds/vault-core.sock | path socket lokal ke vault-core |
 | MIGRATIONS_PATH | db/migrations | lokasi file migration |
 | MAX_UPLOAD_SIZE_BYTES | 536870912 | batas upload |
 | RATE_LIMIT_PER_MINUTE | 120 | rate limit request |

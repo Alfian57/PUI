@@ -167,6 +167,31 @@ func (c *Client) GetManifest(ctx context.Context, manifestID string) (ManifestRe
 	return payload.ManifestRecord, nil
 }
 
+func (c *Client) DownloadObject(ctx context.Context, manifestID string) (io.ReadCloser, int64, error) {
+	requestURL := fmt.Sprintf("http://unix/internal/v1/objects/%s", url.PathEscape(manifestID))
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, requestURL, nil)
+	if err != nil {
+		return nil, 0, fmt.Errorf("build object request: %w", err)
+	}
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return nil, 0, fmt.Errorf("call vault object over uds %s: %w", c.socketPath, err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		defer resp.Body.Close()
+		message, readErr := io.ReadAll(io.LimitReader(resp.Body, 8*1024))
+		if readErr != nil {
+			return nil, 0, fmt.Errorf("vault object returned status %d", resp.StatusCode)
+		}
+
+		return nil, 0, fmt.Errorf("vault object returned status %d: %s", resp.StatusCode, strings.TrimSpace(string(message)))
+	}
+
+	return resp.Body, resp.ContentLength, nil
+}
+
 func (c *Client) GetChunkStatus(ctx context.Context, chunkHash string) (ChunkStatusResponse, error) {
 	requestURL := fmt.Sprintf("http://unix/internal/v1/chunks/%s/status", url.PathEscape(chunkHash))
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, requestURL, nil)

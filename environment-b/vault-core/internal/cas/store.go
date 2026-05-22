@@ -231,6 +231,79 @@ func (s *Store) GetManifest(ctx context.Context, manifestID string) (ManifestRec
 	return out, nil
 }
 
+func (s *Store) OpenObject(ctx context.Context, manifestID string) (io.ReadCloser, int64, error) {
+	manifest, err := s.GetManifest(ctx, manifestID)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	tempFile, err := os.CreateTemp("", "pui-vault-object-*.bin")
+	if err != nil {
+		return nil, 0, fmt.Errorf("create temp object file: %w", err)
+	}
+	cleanup := func() {
+		_ = tempFile.Close()
+		_ = os.Remove(tempFile.Name())
+	}
+
+	fileHasher := blake3.New()
+	multiWriter := io.MultiWriter(tempFile, fileHasher)
+	var totalSize int64
+
+	for _, chunkHash := range manifest.ChunkHashes {
+		if err := contextErr(ctx); err != nil {
+			cleanup()
+			return nil, 0, err
+		}
+
+		_, absolutePath, err := s.chunkPaths(chunkHash)
+		if err != nil {
+			cleanup()
+			return nil, 0, err
+		}
+
+		chunkFile, err := os.Open(absolutePath)
+		if err != nil {
+			cleanup()
+			return nil, 0, fmt.Errorf("open chunk %s: %w", chunkHash, err)
+		}
+
+		chunkHasher := blake3.New()
+		written, copyErr := io.Copy(io.MultiWriter(multiWriter, chunkHasher), chunkFile)
+		_ = chunkFile.Close()
+		if copyErr != nil {
+			cleanup()
+			return nil, 0, fmt.Errorf("copy chunk %s: %w", chunkHash, copyErr)
+		}
+
+		computedChunkHash := hex.EncodeToString(chunkHasher.Sum(nil))
+		if !strings.EqualFold(computedChunkHash, chunkHash) {
+			cleanup()
+			return nil, 0, fmt.Errorf("chunk hash mismatch for %s", chunkHash)
+		}
+
+		totalSize += written
+	}
+
+	if totalSize != manifest.TotalSizeBytes {
+		cleanup()
+		return nil, 0, fmt.Errorf("object size does not match manifest")
+	}
+
+	computedFileHash := hex.EncodeToString(fileHasher.Sum(nil))
+	if !strings.EqualFold(computedFileHash, manifest.FileHash) {
+		cleanup()
+		return nil, 0, fmt.Errorf("object hash does not match manifest")
+	}
+
+	if _, err := tempFile.Seek(0, io.SeekStart); err != nil {
+		cleanup()
+		return nil, 0, fmt.Errorf("rewind temp object file: %w", err)
+	}
+
+	return &deleteOnCloseFile{File: tempFile}, manifest.TotalSizeBytes, nil
+}
+
 func (s *Store) GetChunk(ctx context.Context, chunkHash string) (ChunkRecord, bool, error) {
 	chunkHash, err := normalizeHash(chunkHash)
 	if err != nil {
@@ -677,4 +750,18 @@ func (s *Store) putUploadSession(ctx context.Context, session UploadSessionRecor
 	}
 
 	return nil
+}
+
+type deleteOnCloseFile struct {
+	*os.File
+}
+
+func (f *deleteOnCloseFile) Close() error {
+	name := f.Name()
+	err := f.File.Close()
+	removeErr := os.Remove(name)
+	if err != nil {
+		return err
+	}
+	return removeErr
 }

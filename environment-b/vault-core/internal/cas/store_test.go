@@ -105,6 +105,102 @@ func TestProcessUploadReusesExistingChunks(t *testing.T) {
 	}
 }
 
+func TestOpenObjectReconstructsVerifiedContent(t *testing.T) {
+	t.Parallel()
+
+	store := newTestStore(t)
+	ctx := context.Background()
+	content := bytes.Repeat([]byte("verified-object-"), 12*1024)
+
+	upload, err := store.ProcessUpload(ctx, "object.bin", bytes.NewReader(content))
+	if err != nil {
+		t.Fatalf("upload: %v", err)
+	}
+
+	body, contentLength, err := store.OpenObject(ctx, upload.ManifestID)
+	if err != nil {
+		t.Fatalf("open object: %v", err)
+	}
+	defer body.Close()
+
+	reconstructed, err := io.ReadAll(body)
+	if err != nil {
+		t.Fatalf("read object: %v", err)
+	}
+	if !bytes.Equal(reconstructed, content) {
+		t.Fatalf("reconstructed content mismatch")
+	}
+	if contentLength != int64(len(content)) {
+		t.Fatalf("content length mismatch: %d", contentLength)
+	}
+}
+
+func TestOpenObjectFailsForMissingManifest(t *testing.T) {
+	t.Parallel()
+
+	store := newTestStore(t)
+
+	if _, _, err := store.OpenObject(context.Background(), strings.Repeat("d", 64)); !errors.Is(err, ErrNotFound) {
+		t.Fatalf("expected ErrNotFound, got %v", err)
+	}
+}
+
+func TestOpenObjectFailsForMissingChunk(t *testing.T) {
+	t.Parallel()
+
+	store := newTestStore(t)
+	ctx := context.Background()
+	content := bytes.Repeat([]byte("missing-chunk-"), 12*1024)
+
+	upload, err := store.ProcessUpload(ctx, "missing.bin", bytes.NewReader(content))
+	if err != nil {
+		t.Fatalf("upload: %v", err)
+	}
+	manifest, err := store.GetManifest(ctx, upload.ManifestID)
+	if err != nil {
+		t.Fatalf("get manifest: %v", err)
+	}
+	_, chunkPath, err := store.chunkPaths(manifest.ChunkHashes[0])
+	if err != nil {
+		t.Fatalf("chunk path: %v", err)
+	}
+	if err := os.Remove(chunkPath); err != nil {
+		t.Fatalf("remove chunk: %v", err)
+	}
+
+	if _, _, err := store.OpenObject(ctx, upload.ManifestID); err == nil {
+		t.Fatalf("expected missing chunk error")
+	}
+}
+
+func TestOpenObjectFailsForCorruptedChunk(t *testing.T) {
+	t.Parallel()
+
+	store := newTestStore(t)
+	ctx := context.Background()
+	content := bytes.Repeat([]byte("corrupted-chunk-"), 12*1024)
+
+	upload, err := store.ProcessUpload(ctx, "corrupted.bin", bytes.NewReader(content))
+	if err != nil {
+		t.Fatalf("upload: %v", err)
+	}
+	manifest, err := store.GetManifest(ctx, upload.ManifestID)
+	if err != nil {
+		t.Fatalf("get manifest: %v", err)
+	}
+	_, chunkPath, err := store.chunkPaths(manifest.ChunkHashes[0])
+	if err != nil {
+		t.Fatalf("chunk path: %v", err)
+	}
+	if err := os.WriteFile(chunkPath, []byte("tampered"), 0o640); err != nil {
+		t.Fatalf("corrupt chunk: %v", err)
+	}
+
+	if _, _, err := store.OpenObject(ctx, upload.ManifestID); err == nil {
+		t.Fatalf("expected corrupted chunk error")
+	}
+}
+
 func TestProcessUploadPartiallyChangedFileReusesUnchangedChunks(t *testing.T) {
 	t.Parallel()
 

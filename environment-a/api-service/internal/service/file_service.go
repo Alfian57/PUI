@@ -2,17 +2,13 @@ package service
 
 import (
 	"context"
-	"encoding/hex"
 	"fmt"
 	"io"
-	"os"
-	"path/filepath"
 	"strings"
 	"time"
 
 	"github.com/alfiang/pui/environment-a/api-service/internal/domain"
 	"github.com/alfiang/pui/environment-a/api-service/internal/vaultclient"
-	"github.com/zeebo/blake3"
 )
 
 const (
@@ -23,6 +19,7 @@ const (
 type VaultFileClient interface {
 	Upload(ctx context.Context, fileName string, reader io.Reader) (vaultclient.UploadCommitResult, error)
 	GetManifest(ctx context.Context, manifestID string) (vaultclient.ManifestRecord, error)
+	DownloadObject(ctx context.Context, manifestID string) (io.ReadCloser, int64, error)
 }
 
 type fileMetadataRepository interface {
@@ -65,16 +62,14 @@ type FileService struct {
 	directoryRepo directoryOwnershipRepository
 	activityRepo  activityLogger
 	vault         VaultFileClient
-	chunkRoot     string
 }
 
-func NewFileService(filesRepo fileMetadataRepository, directoryRepo directoryOwnershipRepository, activityRepo activityLogger, vault VaultFileClient, chunkRoot string) *FileService {
+func NewFileService(filesRepo fileMetadataRepository, directoryRepo directoryOwnershipRepository, activityRepo activityLogger, vault VaultFileClient) *FileService {
 	return &FileService{
 		filesRepo:     filesRepo,
 		directoryRepo: directoryRepo,
 		activityRepo:  activityRepo,
 		vault:         vault,
-		chunkRoot:     filepath.Clean(strings.TrimSpace(chunkRoot)),
 	}
 }
 
@@ -177,7 +172,7 @@ func (s *FileService) Download(ctx context.Context, user domain.AuthUser, fileID
 		return DownloadOutcome{}, err
 	}
 
-	body, contentLength, err := s.openObjectFromChunks(ctx, record.ManifestID)
+	body, contentLength, err := s.vault.DownloadObject(ctx, record.ManifestID)
 	if err != nil {
 		return DownloadOutcome{}, err
 	}
@@ -338,107 +333,4 @@ func (s *FileService) Trash(ctx context.Context, user domain.AuthUser) ([]domain
 
 func (s *FileService) Starred(ctx context.Context, user domain.AuthUser) ([]domain.FileRecord, error) {
 	return s.filesRepo.ListStarred(ctx, user.UserID)
-}
-
-func (s *FileService) openObjectFromChunks(ctx context.Context, manifestID string) (io.ReadCloser, int64, error) {
-	if strings.TrimSpace(s.chunkRoot) == "" || s.chunkRoot == "." {
-		return nil, 0, fmt.Errorf("VAULT_CHUNK_ROOT belum dikonfigurasi")
-	}
-
-	manifest, err := s.vault.GetManifest(ctx, manifestID)
-	if err != nil {
-		return nil, 0, err
-	}
-
-	tempFile, err := os.CreateTemp("", "pui-api-download-*.bin")
-	if err != nil {
-		return nil, 0, fmt.Errorf("buat temp object file: %w", err)
-	}
-	cleanup := func() {
-		_ = tempFile.Close()
-		_ = os.Remove(tempFile.Name())
-	}
-
-	fileHasher := blake3.New()
-	multiWriter := io.MultiWriter(tempFile, fileHasher)
-	var totalSize int64
-
-	for _, chunkHash := range manifest.ChunkHashes {
-		if err := ctx.Err(); err != nil {
-			cleanup()
-			return nil, 0, err
-		}
-
-		chunkPath, err := s.chunkPath(chunkHash)
-		if err != nil {
-			cleanup()
-			return nil, 0, err
-		}
-
-		chunkFile, err := os.Open(chunkPath)
-		if err != nil {
-			cleanup()
-			return nil, 0, fmt.Errorf("buka chunk %s: %w", chunkHash, err)
-		}
-
-		chunkHasher := blake3.New()
-		written, copyErr := io.Copy(io.MultiWriter(multiWriter, chunkHasher), chunkFile)
-		_ = chunkFile.Close()
-		if copyErr != nil {
-			cleanup()
-			return nil, 0, fmt.Errorf("salin chunk %s: %w", chunkHash, copyErr)
-		}
-
-		computedChunkHash := hex.EncodeToString(chunkHasher.Sum(nil))
-		if !strings.EqualFold(computedChunkHash, chunkHash) {
-			cleanup()
-			return nil, 0, fmt.Errorf("hash chunk %s tidak sesuai", chunkHash)
-		}
-
-		totalSize += written
-	}
-
-	if totalSize != manifest.TotalSizeBytes {
-		cleanup()
-		return nil, 0, fmt.Errorf("ukuran rekonstruksi objek tidak sesuai manifest")
-	}
-
-	computedFileHash := hex.EncodeToString(fileHasher.Sum(nil))
-	if !strings.EqualFold(computedFileHash, manifest.FileHash) {
-		cleanup()
-		return nil, 0, fmt.Errorf("hash rekonstruksi objek tidak sesuai manifest")
-	}
-
-	if _, err := tempFile.Seek(0, io.SeekStart); err != nil {
-		cleanup()
-		return nil, 0, fmt.Errorf("rewind temp object file: %w", err)
-	}
-
-	return &deleteOnCloseFile{File: tempFile}, manifest.TotalSizeBytes, nil
-}
-
-func (s *FileService) chunkPath(chunkHash string) (string, error) {
-	normalized := strings.ToLower(strings.TrimSpace(chunkHash))
-	if len(normalized) != 64 {
-		return "", fmt.Errorf("hash chunk tidak valid")
-	}
-	if _, err := hex.DecodeString(normalized); err != nil {
-		return "", fmt.Errorf("hash chunk tidak valid")
-	}
-
-	return filepath.Join(s.chunkRoot, normalized[0:2], normalized[2:4], normalized+".bin"), nil
-}
-
-type deleteOnCloseFile struct {
-	*os.File
-}
-
-func (f *deleteOnCloseFile) Close() error {
-	name := f.Name()
-	err := f.File.Close()
-	removeErr := os.Remove(name)
-	if err != nil {
-		return err
-	}
-	return removeErr
 }

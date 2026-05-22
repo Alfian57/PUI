@@ -5,11 +5,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"net"
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"sync/atomic"
 
@@ -55,6 +57,7 @@ func NewHandler(cfg config.Config, db *badger.DB) http.Handler {
 	mux.HandleFunc("/internal/v1/health", h.handleHealth)
 	mux.HandleFunc("/internal/v1/uploads", h.handleUpload)
 	mux.HandleFunc("/internal/v1/manifests/", h.handleManifest)
+	mux.HandleFunc("/internal/v1/objects/", h.handleObject)
 	mux.HandleFunc("/internal/v1/chunks/", h.handleChunkStatus)
 
 	return h.withPeerCredentialAuth(mux)
@@ -191,6 +194,43 @@ func (h handler) handleManifest(w http.ResponseWriter, r *http.Request) {
 		"status":          "ok",
 		"manifest_record": manifest,
 	})
+}
+
+func (h handler) handleObject(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		if isDestructiveMethod(r.Method) {
+			writeForbiddenOperation(w, r.Method, r.URL.Path)
+			return
+		}
+
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	manifestID := strings.TrimPrefix(r.URL.Path, "/internal/v1/objects/")
+	if manifestID == "" {
+		http.Error(w, "manifest id is required", http.StatusBadRequest)
+		return
+	}
+
+	body, contentLength, err := h.store.OpenObject(r.Context(), manifestID)
+	if err != nil {
+		log.Printf("event=object_open_failed manifest_id=%s error=%v", manifestID, err)
+		writeJSON(w, statusCodeFromError(err), map[string]any{
+			"status":      "error",
+			"manifest_id": manifestID,
+			"error":       err.Error(),
+		})
+		return
+	}
+	defer body.Close()
+
+	w.Header().Set("Content-Type", "application/octet-stream")
+	w.Header().Set("Content-Length", strconv.FormatInt(contentLength, 10))
+	w.Header().Set("X-PUI-Manifest-ID", manifestID)
+	if _, err := io.Copy(w, body); err != nil {
+		log.Printf("event=object_stream_failed manifest_id=%s error=%v", manifestID, err)
+	}
 }
 
 func (h handler) handleChunkStatus(w http.ResponseWriter, r *http.Request) {

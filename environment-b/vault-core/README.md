@@ -26,6 +26,7 @@ Base internal path:
 - `GET /internal/v1/health`
 - `POST /internal/v1/uploads`
 - `GET /internal/v1/manifests/{manifest_id}`
+- `GET /internal/v1/objects/{manifest_id}`
 - `GET /internal/v1/chunks/{chunk_hash}/status`
 
 Catatan: handler memblokir method destruktif (`DELETE`, `PUT`, `PATCH`).

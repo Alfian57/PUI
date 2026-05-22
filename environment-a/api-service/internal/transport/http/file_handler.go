@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"strings"
 
@@ -264,7 +265,14 @@ func (a *API) handleDownloadFile(c *gin.Context) {
 	fileID := strings.TrimSpace(c.Param("id"))
 	result, err := a.fileService.Download(c.Request.Context(), user, fileID, true)
 	if err != nil {
-		writeError(c, statusFromError(err), err)
+		status := statusFromError(err)
+		if status == http.StatusInternalServerError {
+			status = http.StatusBadGateway
+			log.Printf("event=file_download_failed file_id=%s user_id=%s error=%v", fileID, user.UserID, err)
+			writeError(c, status, fmt.Errorf("berkas tidak dapat direkonstruksi dari vault"))
+			return
+		}
+		writeError(c, status, err)
 		return
 	}
 	defer result.Body.Close()

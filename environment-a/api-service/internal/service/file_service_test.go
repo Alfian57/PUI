@@ -4,17 +4,13 @@ import (
 	"bytes"
 	"context"
 	"errors"
-	"fmt"
 	"io"
-	"os"
-	"path/filepath"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/alfiang/pui/environment-a/api-service/internal/domain"
 	"github.com/alfiang/pui/environment-a/api-service/internal/vaultclient"
-	"github.com/zeebo/blake3"
 )
 
 const (
@@ -39,7 +35,7 @@ func TestFileServiceUploadCommitsPendingMetadata(t *testing.T) {
 		},
 	}
 	activity := &fakeActivityLogger{}
-	svc := NewFileService(files, fakeDirectoryRepo{}, activity, vault, t.TempDir())
+	svc := NewFileService(files, fakeDirectoryRepo{}, activity, vault)
 
 	outcome, err := svc.Upload(context.Background(), testUser(), "", "backup.txt", "text/plain", strings.NewReader("hello backup"))
 	if err != nil {
@@ -72,7 +68,7 @@ func TestFileServiceUploadFailureMarksPendingMetadataFailed(t *testing.T) {
 	files := newFakeFileRepo()
 	vaultErr := errors.New("injected vault failure")
 	activity := &fakeActivityLogger{}
-	svc := NewFileService(files, fakeDirectoryRepo{}, activity, &fakeVaultClient{uploadErr: vaultErr}, t.TempDir())
+	svc := NewFileService(files, fakeDirectoryRepo{}, activity, &fakeVaultClient{uploadErr: vaultErr})
 
 	if _, err := svc.Upload(context.Background(), testUser(), "", "broken.txt", "text/plain", strings.NewReader("partial")); !errors.Is(err, vaultErr) {
 		t.Fatalf("expected vault error, got %v", err)
@@ -95,27 +91,28 @@ func TestFileServiceUploadFailureMarksPendingMetadataFailed(t *testing.T) {
 func TestFileServiceDownloadReconstructsObjectFromManifestChunks(t *testing.T) {
 	t.Parallel()
 
-	chunkRoot := t.TempDir()
 	chunks := [][]byte{
 		[]byte("chunk-one-"),
 		[]byte("chunk-two"),
 	}
-	manifest := writeChunksAndManifest(t, chunkRoot, chunks)
+	payload := bytes.Join(chunks, nil)
+	manifestID := strings.Repeat("a", 64)
 
 	files := newFakeFileRepo()
 	files.records[testFileID] = domain.FileRecord{
 		ID:            testFileID,
 		Name:          "restored.txt",
-		SizeBytes:     manifest.TotalSizeBytes,
+		SizeBytes:     int64(len(payload)),
 		MIMEType:      "text/plain",
-		ManifestID:    manifest.ManifestID,
+		ManifestID:    manifestID,
 		StorageStatus: "committed",
 		CreatedAt:     time.Now().UTC(),
 	}
 	activity := &fakeActivityLogger{}
-	svc := NewFileService(files, fakeDirectoryRepo{}, activity, &fakeVaultClient{manifests: map[string]vaultclient.ManifestRecord{
-		manifest.ManifestID: manifest,
-	}}, chunkRoot)
+	svc := NewFileService(files, fakeDirectoryRepo{}, activity, &fakeVaultClient{
+		downloadBody:   payload,
+		downloadLength: int64(len(payload)),
+	})
 
 	outcome, err := svc.Download(context.Background(), testUser(), testFileID, false)
 	if err != nil {
@@ -123,14 +120,14 @@ func TestFileServiceDownloadReconstructsObjectFromManifestChunks(t *testing.T) {
 	}
 	defer outcome.Body.Close()
 
-	payload, err := io.ReadAll(outcome.Body)
+	reconstructed, err := io.ReadAll(outcome.Body)
 	if err != nil {
 		t.Fatalf("read reconstructed body: %v", err)
 	}
-	if !bytes.Equal(payload, bytes.Join(chunks, nil)) {
+	if !bytes.Equal(reconstructed, bytes.Join(chunks, nil)) {
 		t.Fatalf("reconstructed payload mismatch")
 	}
-	if outcome.ContentLength != manifest.TotalSizeBytes {
+	if outcome.ContentLength != int64(len(reconstructed)) {
 		t.Fatalf("content length mismatch")
 	}
 	if !activity.contains("DOWNLOAD") {
@@ -138,30 +135,25 @@ func TestFileServiceDownloadReconstructsObjectFromManifestChunks(t *testing.T) {
 	}
 }
 
-func TestFileServiceDownloadRejectsInvalidManifestOrMissingChunk(t *testing.T) {
+func TestFileServiceDownloadReturnsVaultObjectError(t *testing.T) {
 	t.Parallel()
 
-	chunkRoot := t.TempDir()
-	chunk := []byte("available chunk")
-	manifest := writeChunksAndManifest(t, chunkRoot, [][]byte{chunk})
-	manifest.ChunkHashes = []string{strings.Repeat("b", 64)}
+	vaultErr := errors.New("vault object unavailable")
 
 	files := newFakeFileRepo()
 	files.records[testFileID] = domain.FileRecord{
 		ID:            testFileID,
 		Name:          "missing.bin",
-		SizeBytes:     int64(len(chunk)),
+		SizeBytes:     15,
 		MIMEType:      "application/octet-stream",
-		ManifestID:    manifest.ManifestID,
+		ManifestID:    strings.Repeat("b", 64),
 		StorageStatus: "committed",
 		CreatedAt:     time.Now().UTC(),
 	}
-	svc := NewFileService(files, fakeDirectoryRepo{}, &fakeActivityLogger{}, &fakeVaultClient{manifests: map[string]vaultclient.ManifestRecord{
-		manifest.ManifestID: manifest,
-	}}, chunkRoot)
+	svc := NewFileService(files, fakeDirectoryRepo{}, &fakeActivityLogger{}, &fakeVaultClient{downloadErr: vaultErr})
 
-	if _, err := svc.Download(context.Background(), testUser(), testFileID, false); err == nil {
-		t.Fatalf("expected download error for missing chunk")
+	if _, err := svc.Download(context.Background(), testUser(), testFileID, false); !errors.Is(err, vaultErr) {
+		t.Fatalf("expected vault object error, got %v", err)
 	}
 }
 
@@ -179,7 +171,7 @@ func TestFileServiceSoftDeleteAndRestoreOnlyChangeLogicalMetadata(t *testing.T) 
 		CreatedAt:     time.Now().UTC(),
 	}
 	activity := &fakeActivityLogger{}
-	svc := NewFileService(files, fakeDirectoryRepo{}, activity, &fakeVaultClient{}, t.TempDir())
+	svc := NewFileService(files, fakeDirectoryRepo{}, activity, &fakeVaultClient{})
 
 	if _, err := svc.SoftDelete(context.Background(), testUser(), testFileID); err != nil {
 		t.Fatalf("soft delete: %v", err)
@@ -207,47 +199,14 @@ func testUser() domain.AuthUser {
 	return domain.AuthUser{UserID: testUserID, Role: "user"}
 }
 
-func writeChunksAndManifest(t *testing.T, chunkRoot string, chunks [][]byte) vaultclient.ManifestRecord {
-	t.Helper()
-
-	fileHasher := blake3.New()
-	hashes := make([]string, 0, len(chunks))
-	var total int64
-	for _, chunk := range chunks {
-		if _, err := fileHasher.Write(chunk); err != nil {
-			t.Fatalf("hash file chunk: %v", err)
-		}
-		sum := blake3.Sum256(chunk)
-		chunkHash := fmt.Sprintf("%x", sum[:])
-		hashes = append(hashes, chunkHash)
-		total += int64(len(chunk))
-
-		chunkPath := filepath.Join(chunkRoot, chunkHash[0:2], chunkHash[2:4], chunkHash+".bin")
-		if err := os.MkdirAll(filepath.Dir(chunkPath), 0o750); err != nil {
-			t.Fatalf("mkdir chunk path: %v", err)
-		}
-		if err := os.WriteFile(chunkPath, chunk, 0o640); err != nil {
-			t.Fatalf("write chunk: %v", err)
-		}
-	}
-
-	fileHash := fmt.Sprintf("%x", fileHasher.Sum(nil))
-	return vaultclient.ManifestRecord{
-		ManifestID:     fileHash,
-		FileHash:       fileHash,
-		ChunkHashes:    hashes,
-		TotalSizeBytes: total,
-		ChunkCount:     len(hashes),
-		CreatedAt:      time.Now().UTC(),
-		Immutable:      true,
-	}
-}
-
 type fakeVaultClient struct {
-	uploadResult vaultclient.UploadCommitResult
-	uploadErr    error
-	manifests    map[string]vaultclient.ManifestRecord
-	manifestErr  error
+	uploadResult   vaultclient.UploadCommitResult
+	uploadErr      error
+	manifests      map[string]vaultclient.ManifestRecord
+	manifestErr    error
+	downloadBody   []byte
+	downloadLength int64
+	downloadErr    error
 }
 
 func (f *fakeVaultClient) Upload(ctx context.Context, fileName string, reader io.Reader) (vaultclient.UploadCommitResult, error) {
@@ -269,6 +228,13 @@ func (f *fakeVaultClient) GetManifest(ctx context.Context, manifestID string) (v
 		return vaultclient.ManifestRecord{}, domain.ErrNotFound
 	}
 	return manifest, nil
+}
+
+func (f *fakeVaultClient) DownloadObject(ctx context.Context, manifestID string) (io.ReadCloser, int64, error) {
+	if f.downloadErr != nil {
+		return nil, 0, f.downloadErr
+	}
+	return io.NopCloser(bytes.NewReader(f.downloadBody)), f.downloadLength, nil
 }
 
 type fakeDirectoryRepo struct{}
