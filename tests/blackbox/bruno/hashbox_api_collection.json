@@ -1,0 +1,638 @@
+{
+  "info": {
+    "_postman_id": "8b9e691a-7b3d-4c3e-8e5f-1555df3b8a1c",
+    "name": "HashBox API Collection",
+    "description": "Koleksi API E2E untuk HashBox (PUI) - Mendukung Fungsionalitas Login, Manajemen Direktori Bertingkat, Upload/Download File, dan Deduplikasi.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "01. Login Pengguna",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "var jsonData = pm.response.json();",
+              "pm.test(\"Token akses tersedia\", function () {",
+              "    pm.expect(jsonData.access_token).to.be.a('string');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/auth/login",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "auth",
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "02-1. Buat Folder di Root",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 201 Created\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Folder Utama Bruno\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/directories",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "directories"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "02-2. Buat Sub-Folder (Nested)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 201 Created\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Sub Folder Uji\",\n  \"parent_id\": \"{{directory_id}}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/directories",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "directories"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "03-1. Upload file ke Root",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 201 Created\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "file",
+              "description": "Pilih berkas untuk root",
+              "type": "file",
+              "src": "tests/blackbox/bruno/sample_files/01_berkas_baru.txt"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/files",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "files"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "03-2. Upload file ke Folder",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 201 Created\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "file",
+              "description": "Pilih berkas untuk diunggah",
+              "type": "file",
+              "src": "tests/blackbox/bruno/sample_files/01_berkas_baru.txt"
+            },
+            {
+              "key": "directory_id",
+              "value": "{{directory_id}}",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/files",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "files"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "03-3. Upload file dengan Perubahan Sebagian",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 201 Created\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "",
+              "var jsonData = pm.response.json();",
+              "pm.test(\"Deduplikasi sebagian terverifikasi\", function () {",
+              "    pm.expect(jsonData.upload_commit_result.new_chunk_count).to.be.above(0);",
+              "    pm.expect(jsonData.upload_commit_result.reuse_chunk_count).to.be.above(0);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "file",
+              "description": "Pilih berkas berukuran sedang yang isinya telah dimodifikasi sebagian",
+              "type": "file",
+              "src": "tests/blackbox/bruno/sample_files/03_perubahan_sebagian_B.bin"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/files",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "files"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "04. Upload file Identik (Deduplikasi)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 201 Created\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "",
+              "var jsonData = pm.response.json();",
+              "pm.test(\"Deduplikasi Berhasil (new_chunk = 0)\", function () {",
+              "    pm.expect(jsonData.upload_commit_result.new_chunk_count).to.equal(0);",
+              "    pm.expect(jsonData.upload_commit_result.reuse_chunk_count).to.be.above(0);",
+              "    pm.expect(jsonData.upload_commit_result.dedup_ratio).to.equal(1);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "file",
+              "description": "Pilih berkas yang identik dengan berkas sebelumnya",
+              "type": "file",
+              "src": "tests/blackbox/bruno/sample_files/02_berkas_identik.txt"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/files",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "files"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "05. Download file",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/files/{{file_id}}/download",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "files",
+            "{{file_id}}",
+            "download"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "06. Soft Delete file",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/files/{{file_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "files",
+            "{{file_id}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "07. Restore file (Pemulihan)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/files/{{file_id}}/restore",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "files",
+            "{{file_id}}",
+            "restore"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "08. Upload berkas kosong (Abnormal)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Ditolak dengan Bad Gateway / Bad Request\", function () {",
+              "    pm.expect(pm.response.code).to.be.oneOf([400, 502]);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "file",
+              "description": "Kosongkan berkas atau gunakan file 0 byte",
+              "type": "file",
+              "src": "tests/blackbox/bruno/sample_files/04_berkas_kosong.txt"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/files",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "files"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "09. Download file tidak tersedia (Abnormal)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 404 Not Found\", function () {",
+              "    pm.response.to.have.status(404);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/files/00000000-0000-0000-0000-000000000000/download",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "files",
+            "00000000-0000-0000-0000-000000000000",
+            "download"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "10. Hapus permanen metadata (Simulasi Ransomware)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/files/{{file_id}}/permanent",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "files",
+            "{{file_id}}",
+            "permanent"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}

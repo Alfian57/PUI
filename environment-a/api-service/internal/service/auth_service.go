@@ -12,8 +12,8 @@ import (
 )
 
 type AuthService struct {
-	authRepo         *repository.AuthRepository
-	activityRepo     *repository.ActivityRepository
+	authRepo         authRepository
+	activityRepo     activityLogger
 	sessionTTLMinute int
 	resetTTLMinute   int
 	publicWebURL     string

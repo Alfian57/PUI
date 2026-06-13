@@ -1,15 +1,19 @@
 package middleware
 
 import (
+	"context"
 	"net/http"
 	"strings"
 
 	"github.com/alfiang/pui/environment-a/api-service/internal/domain"
-	"github.com/alfiang/pui/environment-a/api-service/internal/service"
 	"github.com/gin-gonic/gin"
 )
 
-func Auth(authService *service.AuthService) gin.HandlerFunc {
+type authTokenValidator interface {
+	AuthenticateToken(ctx context.Context, bearerToken string) (domain.AuthUser, error)
+}
+
+func Auth(authService authTokenValidator) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		token := extractBearerToken(c.GetHeader("Authorization"))
 		if token == "" {

@@ -1,0 +1,73 @@
+import { createHotContext as __vite__createHotContext } from "/@vite/client";import.meta.hot = __vite__createHotContext("/src/shared/ui/ViewToggle.tsx");const _jsxDEV = __vite__cjsImport2_react_jsxDevRuntime["jsxDEV"];import { Grid2X2, List } from "/node_modules/.vite/deps/lucide-react.js?v=638d193d";
+import { IconButton } from "/src/shared/ui/IconButton.tsx";
+var _jsxFileName = "/app/src/shared/ui/ViewToggle.tsx";
+import __vite__cjsImport2_react_jsxDevRuntime from "/node_modules/.vite/deps/react_jsx-dev-runtime.js?v=3ecb5c15";
+export function ViewToggle({ value, onChange }) {
+	return /* @__PURE__ */ _jsxDEV("div", {
+		className: "flex items-center gap-2",
+		children: [/* @__PURE__ */ _jsxDEV(IconButton, {
+			label: "Tampilan daftar",
+			icon: /* @__PURE__ */ _jsxDEV(List, {
+				className: "h-4 w-4",
+				"aria-hidden": "true"
+			}, void 0, false, {
+				fileName: _jsxFileName,
+				lineNumber: 16,
+				columnNumber: 23
+			}, this),
+			active: value === "list",
+			onClick: () => onChange("list")
+		}, void 0, false, {
+			fileName: _jsxFileName,
+			lineNumber: 14,
+			columnNumber: 13
+		}, this), /* @__PURE__ */ _jsxDEV(IconButton, {
+			label: "Tampilan grid",
+			icon: /* @__PURE__ */ _jsxDEV(Grid2X2, {
+				className: "h-4 w-4",
+				"aria-hidden": "true"
+			}, void 0, false, {
+				fileName: _jsxFileName,
+				lineNumber: 22,
+				columnNumber: 23
+			}, this),
+			active: value === "grid",
+			onClick: () => onChange("grid")
+		}, void 0, false, {
+			fileName: _jsxFileName,
+			lineNumber: 20,
+			columnNumber: 13
+		}, this)]
+	}, void 0, true, {
+		fileName: _jsxFileName,
+		lineNumber: 13,
+		columnNumber: 9
+	}, this);
+}
+_c = ViewToggle;
+var _c;
+$RefreshReg$(_c, "ViewToggle");
+import * as RefreshRuntime from "/@react-refresh";
+const inWebWorker = typeof WorkerGlobalScope !== 'undefined' && self instanceof WorkerGlobalScope;
+import * as __vite_react_currentExports from "/src/shared/ui/ViewToggle.tsx";
+if (import.meta.hot && !inWebWorker) {
+  if (!window.$RefreshReg$) {
+    throw new Error(
+      "@vitejs/plugin-react can't detect preamble. Something is wrong."
+    );
+  }
+
+  const currentExports = __vite_react_currentExports;
+  queueMicrotask(() => {
+    RefreshRuntime.registerExportsForReactRefresh("/app/src/shared/ui/ViewToggle.tsx", currentExports);
+    import.meta.hot.accept((nextExports) => {
+      if (!nextExports) return;
+      const invalidateMessage = RefreshRuntime.validateRefreshBoundaryAndEnqueueUpdate("/app/src/shared/ui/ViewToggle.tsx", currentExports, nextExports);
+      if (invalidateMessage) import.meta.hot.invalidate(invalidateMessage);
+    });
+  });
+}
+function $RefreshReg$(type, id) { return RefreshRuntime.register(type, "/app/src/shared/ui/ViewToggle.tsx" + ' ' + id); }
+function $RefreshSig$() { return RefreshRuntime.createSignatureFunctionForTransform(); }
+
+//# sourceMappingURL=data:application/json;base64,eyJtYXBwaW5ncyI6IkFBQUEsU0FBUyxTQUFTLFlBQVk7QUFDOUIsU0FBUyxrQkFBa0I7OztBQVMzQixPQUFPLFNBQVMsV0FBVyxFQUFFLE9BQU8sWUFBMEM7Q0FDMUUsT0FDSSx3QkFBQyxPQUFEO0VBQUssV0FBVTtZQUFmLENBQ0ksd0JBQUMsWUFBRDtHQUNJLE9BQU07R0FDTixNQUFNLHdCQUFDLE1BQUQ7SUFBTSxXQUFVO0lBQVUsZUFBWTtHQUFROzs7OztHQUNwRCxRQUFRLFVBQVU7R0FDbEIsZUFBZSxTQUFTLE1BQU07RUFDakM7Ozs7WUFDRCx3QkFBQyxZQUFEO0dBQ0ksT0FBTTtHQUNOLE1BQU0sd0JBQUMsU0FBRDtJQUFTLFdBQVU7SUFBVSxlQUFZO0dBQVE7Ozs7O0dBQ3ZELFFBQVEsVUFBVTtHQUNsQixlQUFlLFNBQVMsTUFBTTtFQUNqQzs7OztVQUNBOzs7Ozs7QUFFYiIsIm5hbWVzIjpbXSwic291cmNlcyI6WyJWaWV3VG9nZ2xlLnRzeCJdLCJ2ZXJzaW9uIjozLCJzb3VyY2VzQ29udGVudCI6WyJpbXBvcnQgeyBHcmlkMlgyLCBMaXN0IH0gZnJvbSBcImx1Y2lkZS1yZWFjdFwiO1xuaW1wb3J0IHsgSWNvbkJ1dHRvbiB9IGZyb20gXCJAL3NoYXJlZC91aS9JY29uQnV0dG9uXCI7XG5cbmV4cG9ydCB0eXBlIFZpZXdNb2RlID0gXCJsaXN0XCIgfCBcImdyaWRcIjtcblxudHlwZSBWaWV3VG9nZ2xlUHJvcHMgPSB7XG4gICAgdmFsdWU6IFZpZXdNb2RlO1xuICAgIG9uQ2hhbmdlOiAodmFsdWU6IFZpZXdNb2RlKSA9PiB2b2lkO1xufTtcblxuZXhwb3J0IGZ1bmN0aW9uIFZpZXdUb2dnbGUoeyB2YWx1ZSwgb25DaGFuZ2UgfTogVmlld1RvZ2dsZVByb3BzKTogSlNYLkVsZW1lbnQge1xuICAgIHJldHVybiAoXG4gICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTJcIj5cbiAgICAgICAgICAgIDxJY29uQnV0dG9uXG4gICAgICAgICAgICAgICAgbGFiZWw9XCJUYW1waWxhbiBkYWZ0YXJcIlxuICAgICAgICAgICAgICAgIGljb249ezxMaXN0IGNsYXNzTmFtZT1cImgtNCB3LTRcIiBhcmlhLWhpZGRlbj1cInRydWVcIiAvPn1cbiAgICAgICAgICAgICAgICBhY3RpdmU9e3ZhbHVlID09PSBcImxpc3RcIn1cbiAgICAgICAgICAgICAgICBvbkNsaWNrPXsoKSA9PiBvbkNoYW5nZShcImxpc3RcIil9XG4gICAgICAgICAgICAvPlxuICAgICAgICAgICAgPEljb25CdXR0b25cbiAgICAgICAgICAgICAgICBsYWJlbD1cIlRhbXBpbGFuIGdyaWRcIlxuICAgICAgICAgICAgICAgIGljb249ezxHcmlkMlgyIGNsYXNzTmFtZT1cImgtNCB3LTRcIiBhcmlhLWhpZGRlbj1cInRydWVcIiAvPn1cbiAgICAgICAgICAgICAgICBhY3RpdmU9e3ZhbHVlID09PSBcImdyaWRcIn1cbiAgICAgICAgICAgICAgICBvbkNsaWNrPXsoKSA9PiBvbkNoYW5nZShcImdyaWRcIil9XG4gICAgICAgICAgICAvPlxuICAgICAgICA8L2Rpdj5cbiAgICApO1xufVxuIl19

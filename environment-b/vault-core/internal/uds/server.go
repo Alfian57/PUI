@@ -310,6 +310,7 @@ func isDestructiveMethod(method string) bool {
 }
 
 func writeForbiddenOperation(w http.ResponseWriter, method, path string) {
+	log.Printf("\x1b[31;1m[SECURITY ACTION DENIED]: Direct physical deletion request blocked by Vault Policy: method=%s path=%s\x1b[0m", method, path)
 	writeJSON(w, http.StatusForbidden, map[string]any{
 		"status": "error",
 		"error": map[string]any{

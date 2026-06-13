@@ -1,0 +1,44 @@
+import { createHotContext as __vite__createHotContext } from "/@vite/client";import.meta.hot = __vite__createHotContext("/src/shared/ui/IconButton.tsx");const _jsxDEV = __vite__cjsImport1_react_jsxDevRuntime["jsxDEV"];import clsx from "/node_modules/.vite/deps/clsx.js?v=a5cb935e";
+var _jsxFileName = "/app/src/shared/ui/IconButton.tsx";
+import __vite__cjsImport1_react_jsxDevRuntime from "/node_modules/.vite/deps/react_jsx-dev-runtime.js?v=3ecb5c15";
+export function IconButton({ label, icon, active = false, className, type = "button", ...props }) {
+	return /* @__PURE__ */ _jsxDEV("button", {
+		type,
+		"aria-label": label,
+		title: label,
+		className: clsx("inline-flex h-10 w-10 items-center justify-center rounded-2xl border text-brand-steel transition hover:border-brand-amber/45 hover:bg-brand-sky hover:text-brand-ink disabled:cursor-not-allowed disabled:opacity-50", active ? "border-brand-ink bg-brand-ink text-white hover:bg-brand-steel hover:text-white" : "border-brand-steel/15 bg-white", className),
+		...props,
+		children: icon
+	}, void 0, false, {
+		fileName: _jsxFileName,
+		lineNumber: 19,
+		columnNumber: 9
+	}, this);
+}
+_c = IconButton;
+var _c;
+$RefreshReg$(_c, "IconButton");
+import * as RefreshRuntime from "/@react-refresh";
+const inWebWorker = typeof WorkerGlobalScope !== 'undefined' && self instanceof WorkerGlobalScope;
+import * as __vite_react_currentExports from "/src/shared/ui/IconButton.tsx";
+if (import.meta.hot && !inWebWorker) {
+  if (!window.$RefreshReg$) {
+    throw new Error(
+      "@vitejs/plugin-react can't detect preamble. Something is wrong."
+    );
+  }
+
+  const currentExports = __vite_react_currentExports;
+  queueMicrotask(() => {
+    RefreshRuntime.registerExportsForReactRefresh("/app/src/shared/ui/IconButton.tsx", currentExports);
+    import.meta.hot.accept((nextExports) => {
+      if (!nextExports) return;
+      const invalidateMessage = RefreshRuntime.validateRefreshBoundaryAndEnqueueUpdate("/app/src/shared/ui/IconButton.tsx", currentExports, nextExports);
+      if (invalidateMessage) import.meta.hot.invalidate(invalidateMessage);
+    });
+  });
+}
+function $RefreshReg$(type, id) { return RefreshRuntime.register(type, "/app/src/shared/ui/IconButton.tsx" + ' ' + id); }
+function $RefreshSig$() { return RefreshRuntime.createSignatureFunctionForTransform(); }
+
+//# sourceMappingURL=data:application/json;base64,eyJtYXBwaW5ncyI6IkFBQ0EsT0FBTyxVQUFVOzs7QUFRakIsT0FBTyxTQUFTLFdBQVcsRUFDdkIsT0FDQSxNQUNBLFNBQVMsT0FDVCxXQUNBLE9BQU8sVUFDUCxHQUFHLFNBQzBCO0NBQzdCLE9BQ0ksd0JBQUMsVUFBRDtFQUNVO0VBQ04sY0FBWTtFQUNaLE9BQU87RUFDUCxXQUFXLEtBQ1Asd05BQ0EsU0FBUyxtRkFBbUYsa0NBQzVGLFNBQ0o7RUFDQSxHQUFJO1lBRUg7Q0FDRzs7Ozs7QUFFaEIiLCJuYW1lcyI6W10sInNvdXJjZXMiOlsiSWNvbkJ1dHRvbi50c3giXSwidmVyc2lvbiI6Mywic291cmNlc0NvbnRlbnQiOlsiaW1wb3J0IHR5cGUgeyBCdXR0b25IVE1MQXR0cmlidXRlcywgUmVhY3ROb2RlIH0gZnJvbSBcInJlYWN0XCI7XG5pbXBvcnQgY2xzeCBmcm9tIFwiY2xzeFwiO1xuXG50eXBlIEljb25CdXR0b25Qcm9wcyA9IEJ1dHRvbkhUTUxBdHRyaWJ1dGVzPEhUTUxCdXR0b25FbGVtZW50PiAmIHtcbiAgICBsYWJlbDogc3RyaW5nO1xuICAgIGljb246IFJlYWN0Tm9kZTtcbiAgICBhY3RpdmU/OiBib29sZWFuO1xufTtcblxuZXhwb3J0IGZ1bmN0aW9uIEljb25CdXR0b24oe1xuICAgIGxhYmVsLFxuICAgIGljb24sXG4gICAgYWN0aXZlID0gZmFsc2UsXG4gICAgY2xhc3NOYW1lLFxuICAgIHR5cGUgPSBcImJ1dHRvblwiLFxuICAgIC4uLnByb3BzXG59OiBJY29uQnV0dG9uUHJvcHMpOiBKU1guRWxlbWVudCB7XG4gICAgcmV0dXJuIChcbiAgICAgICAgPGJ1dHRvblxuICAgICAgICAgICAgdHlwZT17dHlwZX1cbiAgICAgICAgICAgIGFyaWEtbGFiZWw9e2xhYmVsfVxuICAgICAgICAgICAgdGl0bGU9e2xhYmVsfVxuICAgICAgICAgICAgY2xhc3NOYW1lPXtjbHN4KFxuICAgICAgICAgICAgICAgIFwiaW5saW5lLWZsZXggaC0xMCB3LTEwIGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWNlbnRlciByb3VuZGVkLTJ4bCBib3JkZXIgdGV4dC1icmFuZC1zdGVlbCB0cmFuc2l0aW9uIGhvdmVyOmJvcmRlci1icmFuZC1hbWJlci80NSBob3ZlcjpiZy1icmFuZC1za3kgaG92ZXI6dGV4dC1icmFuZC1pbmsgZGlzYWJsZWQ6Y3Vyc29yLW5vdC1hbGxvd2VkIGRpc2FibGVkOm9wYWNpdHktNTBcIixcbiAgICAgICAgICAgICAgICBhY3RpdmUgPyBcImJvcmRlci1icmFuZC1pbmsgYmctYnJhbmQtaW5rIHRleHQtd2hpdGUgaG92ZXI6YmctYnJhbmQtc3RlZWwgaG92ZXI6dGV4dC13aGl0ZVwiIDogXCJib3JkZXItYnJhbmQtc3RlZWwvMTUgYmctd2hpdGVcIixcbiAgICAgICAgICAgICAgICBjbGFzc05hbWVcbiAgICAgICAgICAgICl9XG4gICAgICAgICAgICB7Li4ucHJvcHN9XG4gICAgICAgID5cbiAgICAgICAgICAgIHtpY29ufVxuICAgICAgICA8L2J1dHRvbj5cbiAgICApO1xufVxuIl19

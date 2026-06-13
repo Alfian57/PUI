@@ -8,7 +8,11 @@ VAULT_DIR := environment-b/vault-core
 COMPOSE_FILE := docker-compose.yml
 
 .PHONY: help deps ci ci-go ci-web ci-compose \
-	go-fmt go-fmt-check go-vet go-test \
+	go-fmt go-fmt-check go-vet \
+	unit-test unit-test-coverage-html \
+	blackbox-test blackbox-ui-headless blackbox-ui-headed blackbox-ui-gui \
+	security-test security-simulate \
+	test-all \
 	web-install web-build web-dev \
 	compose-config compose-up compose-down compose-logs \
 	docker-build docker-build-api docker-build-vault docker-build-web \
@@ -52,12 +56,64 @@ go-vet: ## Run go vet for all modules
 		(cd "$$module" && go vet ./...); \
 	done
 
-go-test: ## Run go test for all modules
+# ===== UNIT TESTING =====
+
+unit-test: ## Run Go unit tests with race detector and coverage
+	@set -euo pipefail; \
+	overall=0; \
+	for module in $(GO_MODULES); do \
+		printf "\n\033[1;34m▶ %s\033[0m\n" "$$module"; \
+		output=$$(cd "$$module" && go test -race -cover ./... 2>&1); \
+		exit_code=$$?; \
+		echo "$$output" | while IFS= read -r line; do \
+			case "$$line" in \
+				ok\ *) printf "  \033[32m✔\033[0m %s\n" "$${line#ok   }" ;; \
+				FAIL*) printf "  \033[31m✘\033[0m %s\n" "$$line" ;; \
+				*'coverage: 0.0%'*) ;; \
+				'?'*)  ;; \
+				*)     printf "  %s\n" "$$line" ;; \
+			esac; \
+		done; \
+		[ $$exit_code -ne 0 ] && overall=1; \
+	done; \
+	printf "\n"; \
+	if [ $$overall -eq 0 ]; then \
+		printf "\033[1;32m✔ All tests passed\033[0m\n\n"; \
+	else \
+		printf "\033[1;31m✘ Some tests failed\033[0m\n\n"; exit 1; \
+	fi
+
+unit-test-coverage-html: ## Generate HTML coverage report (opens in browser)
 	@set -euo pipefail; \
 	for module in $(GO_MODULES); do \
-		echo "Running go test in $$module"; \
-		(cd "$$module" && go test ./...); \
+		echo "Generating HTML coverage for $$module"; \
+		(cd "$$module" && go test -coverprofile=coverage.out ./... && go tool cover -html=coverage.out && rm -f coverage.out); \
 	done
+
+# ===== BLACKBOX TESTING =====
+
+blackbox-test: blackbox-ui-headless ## Run E2E blackbox UI tests (Bruno API tests must be run manually via Bruno GUI)
+
+blackbox-ui-headless: ## Run Playwright E2E UI tests in headless mode (background)
+	@cd tests/blackbox/playwright && npm install && npx playwright install chromium && npm run test
+
+blackbox-ui-headed: ## Run Playwright E2E UI tests in headed mode (opens browser popup)
+	@cd tests/blackbox/playwright && npm install && npx playwright install chromium && npm run test:headed
+
+blackbox-ui-gui: ## Run Playwright E2E UI tests in interactive GUI dashboard
+	@cd tests/blackbox/playwright && npm install && npx playwright install chromium && npm run test:ui
+
+# ===== SECURITY TESTING =====
+
+security-test: ## Run security (ransomware mitigation) tests via UDS
+	@./tests/security/run_security_tests.sh
+
+security-simulate: ## Run separation of authority demo (split-screen: kiri=attacker, kanan=docker compose logs -f vault-core)
+	@./tests/security/demo_immutability.sh
+
+# ===== TEST AGGREGATES =====
+
+test-all: blackbox-test security-test ## Run all automated tests: blackbox (Playwright) + security
 
 web-install: ## Install web-client dependencies
 	@cd $(WEB_DIR) && npm ci
@@ -91,7 +147,7 @@ docker-build-web: ## Build local web-client image
 
 docker-build: docker-build-api docker-build-vault docker-build-web ## Build all local Docker images
 
-ci-go: go-fmt-check go-vet go-test ## Run Go CI checks
+ci-go: go-fmt-check go-vet unit-test ## Run Go CI checks
 
 ci-web: web-install web-build ## Run web CI checks
 

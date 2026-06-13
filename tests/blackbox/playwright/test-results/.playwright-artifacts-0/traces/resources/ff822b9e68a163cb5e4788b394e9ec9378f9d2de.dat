@@ -1,0 +1,27 @@
+const React = __vite__cjsImport0_react;const ReactDOM = __vite__cjsImport1_reactDom_client;const _jsxDEV = __vite__cjsImport6_react_jsxDevRuntime["jsxDEV"];import __vite__cjsImport0_react from "/node_modules/.vite/deps/react.js?v=3ecb5c15";
+import __vite__cjsImport1_reactDom_client from "/node_modules/.vite/deps/react-dom_client.js?v=a7938cf5";
+import App from "/src/App.tsx";
+import { QueryProvider } from "/src/app/providers/QueryProvider.tsx";
+import { ConfirmDialogProvider } from "/src/shared/ui/ConfirmDialog.tsx";
+import "/src/index.css";
+var _jsxFileName = "/app/src/main.tsx";
+import __vite__cjsImport6_react_jsxDevRuntime from "/node_modules/.vite/deps/react_jsx-dev-runtime.js?v=3ecb5c15";
+ReactDOM.createRoot(document.getElementById("root")).render(/* @__PURE__ */ _jsxDEV(React.StrictMode, { children: /* @__PURE__ */ _jsxDEV(QueryProvider, { children: /* @__PURE__ */ _jsxDEV(ConfirmDialogProvider, { children: /* @__PURE__ */ _jsxDEV(App, {}, void 0, false, {
+	fileName: _jsxFileName,
+	lineNumber: 12,
+	columnNumber: 9
+}, this) }, void 0, false, {
+	fileName: _jsxFileName,
+	lineNumber: 11,
+	columnNumber: 7
+}, this) }, void 0, false, {
+	fileName: _jsxFileName,
+	lineNumber: 10,
+	columnNumber: 5
+}, this) }, void 0, false, {
+	fileName: _jsxFileName,
+	lineNumber: 9,
+	columnNumber: 3
+}, this));
+
+//# sourceMappingURL=data:application/json;base64,eyJtYXBwaW5ncyI6IkFBQUEsT0FBTyxXQUFXO0FBQ2xCLE9BQU8sY0FBYztBQUNyQixPQUFPLFNBQVM7QUFDaEIsU0FBUyxxQkFBcUI7QUFDOUIsU0FBUyw2QkFBNkI7QUFDdEMsT0FBTzs7O0FBRVAsU0FBUyxXQUFXLFNBQVMsZUFBZSxNQUFNLENBQUUsRUFBRSxPQUNwRCx3QkFBQyxNQUFNLFlBQVAsWUFDRSx3QkFBQyxlQUFELFlBQ0Usd0JBQUMsdUJBQUQsWUFDRSx3QkFBQyxLQUFELENBQU07Ozs7U0FDZTs7OztTQUNWOzs7O1NBQ0M7Ozs7UUFDcEIiLCJuYW1lcyI6W10sInNvdXJjZXMiOlsibWFpbi50c3giXSwidmVyc2lvbiI6Mywic291cmNlc0NvbnRlbnQiOlsiaW1wb3J0IFJlYWN0IGZyb20gXCJyZWFjdFwiO1xuaW1wb3J0IFJlYWN0RE9NIGZyb20gXCJyZWFjdC1kb20vY2xpZW50XCI7XG5pbXBvcnQgQXBwIGZyb20gXCJAL0FwcFwiO1xuaW1wb3J0IHsgUXVlcnlQcm92aWRlciB9IGZyb20gXCJAL2FwcC9wcm92aWRlcnMvUXVlcnlQcm92aWRlclwiO1xuaW1wb3J0IHsgQ29uZmlybURpYWxvZ1Byb3ZpZGVyIH0gZnJvbSBcIkAvc2hhcmVkL3VpL0NvbmZpcm1EaWFsb2dcIjtcbmltcG9ydCBcIkAvaW5kZXguY3NzXCI7XG5cblJlYWN0RE9NLmNyZWF0ZVJvb3QoZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoXCJyb290XCIpISkucmVuZGVyKFxuICA8UmVhY3QuU3RyaWN0TW9kZT5cbiAgICA8UXVlcnlQcm92aWRlcj5cbiAgICAgIDxDb25maXJtRGlhbG9nUHJvdmlkZXI+XG4gICAgICAgIDxBcHAgLz5cbiAgICAgIDwvQ29uZmlybURpYWxvZ1Byb3ZpZGVyPlxuICAgIDwvUXVlcnlQcm92aWRlcj5cbiAgPC9SZWFjdC5TdHJpY3RNb2RlPlxuKTtcbiJdfQ==

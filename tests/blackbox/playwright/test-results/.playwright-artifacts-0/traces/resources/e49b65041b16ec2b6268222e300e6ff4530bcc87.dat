@@ -1,0 +1,41 @@
+import { createHotContext as __vite__createHotContext } from "/@vite/client";import.meta.hot = __vite__createHotContext("/src/app/providers/QueryProvider.tsx");const _jsxDEV = __vite__cjsImport2_react_jsxDevRuntime["jsxDEV"];import { QueryClientProvider } from "/node_modules/.vite/deps/@tanstack_react-query.js?v=80566579";
+import { queryClient } from "/src/app/providers/queryClient.ts";
+var _jsxFileName = "/app/src/app/providers/QueryProvider.tsx";
+import __vite__cjsImport2_react_jsxDevRuntime from "/node_modules/.vite/deps/react_jsx-dev-runtime.js?v=3ecb5c15";
+export function QueryProvider({ children }) {
+	return /* @__PURE__ */ _jsxDEV(QueryClientProvider, {
+		client: queryClient,
+		children
+	}, void 0, false, {
+		fileName: _jsxFileName,
+		lineNumber: 6,
+		columnNumber: 12
+	}, this);
+}
+_c = QueryProvider;
+var _c;
+$RefreshReg$(_c, "QueryProvider");
+import * as RefreshRuntime from "/@react-refresh";
+const inWebWorker = typeof WorkerGlobalScope !== 'undefined' && self instanceof WorkerGlobalScope;
+import * as __vite_react_currentExports from "/src/app/providers/QueryProvider.tsx";
+if (import.meta.hot && !inWebWorker) {
+  if (!window.$RefreshReg$) {
+    throw new Error(
+      "@vitejs/plugin-react can't detect preamble. Something is wrong."
+    );
+  }
+
+  const currentExports = __vite_react_currentExports;
+  queueMicrotask(() => {
+    RefreshRuntime.registerExportsForReactRefresh("/app/src/app/providers/QueryProvider.tsx", currentExports);
+    import.meta.hot.accept((nextExports) => {
+      if (!nextExports) return;
+      const invalidateMessage = RefreshRuntime.validateRefreshBoundaryAndEnqueueUpdate("/app/src/app/providers/QueryProvider.tsx", currentExports, nextExports);
+      if (invalidateMessage) import.meta.hot.invalidate(invalidateMessage);
+    });
+  });
+}
+function $RefreshReg$(type, id) { return RefreshRuntime.register(type, "/app/src/app/providers/QueryProvider.tsx" + ' ' + id); }
+function $RefreshSig$() { return RefreshRuntime.createSignatureFunctionForTransform(); }
+
+//# sourceMappingURL=data:application/json;base64,eyJtYXBwaW5ncyI6IkFBQ0EsU0FBUywyQkFBMkI7QUFDcEMsU0FBUyxtQkFBbUI7OztBQUU1QixPQUFPLFNBQVMsY0FBYyxFQUFFLFlBQTRDO0NBQ3hFLE9BQU8sd0JBQUMscUJBQUQ7RUFBcUIsUUFBUTtFQUFjO0NBQThCOzs7OztBQUNwRiIsIm5hbWVzIjpbXSwic291cmNlcyI6WyJRdWVyeVByb3ZpZGVyLnRzeCJdLCJ2ZXJzaW9uIjozLCJzb3VyY2VzQ29udGVudCI6WyJpbXBvcnQgeyBQcm9wc1dpdGhDaGlsZHJlbiB9IGZyb20gXCJyZWFjdFwiO1xuaW1wb3J0IHsgUXVlcnlDbGllbnRQcm92aWRlciB9IGZyb20gXCJAdGFuc3RhY2svcmVhY3QtcXVlcnlcIjtcbmltcG9ydCB7IHF1ZXJ5Q2xpZW50IH0gZnJvbSBcIkAvYXBwL3Byb3ZpZGVycy9xdWVyeUNsaWVudFwiO1xuXG5leHBvcnQgZnVuY3Rpb24gUXVlcnlQcm92aWRlcih7IGNoaWxkcmVuIH06IFByb3BzV2l0aENoaWxkcmVuKTogSlNYLkVsZW1lbnQge1xuICAgIHJldHVybiA8UXVlcnlDbGllbnRQcm92aWRlciBjbGllbnQ9e3F1ZXJ5Q2xpZW50fT57Y2hpbGRyZW59PC9RdWVyeUNsaWVudFByb3ZpZGVyPjtcbn1cbiJdfQ==

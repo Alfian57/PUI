@@ -1,0 +1,94 @@
+import { createHotContext as __vite__createHotContext } from "/@vite/client";import.meta.hot = __vite__createHotContext("/src/features/directories/components/Breadcrumb.tsx");const _jsxDEV = __vite__cjsImport4_react_jsxDevRuntime["jsxDEV"];import { useQuery } from "/node_modules/.vite/deps/@tanstack_react-query.js?v=80566579";
+import { ChevronRight, Home } from "/node_modules/.vite/deps/lucide-react.js?v=638d193d";
+import { getBreadcrumb } from "/src/features/directories/api/directoryApi.ts";
+import { queryKeys } from "/src/shared/lib/queryKeys.ts";
+var _jsxFileName = "/app/src/features/directories/components/Breadcrumb.tsx";
+import __vite__cjsImport4_react_jsxDevRuntime from "/node_modules/.vite/deps/react_jsx-dev-runtime.js?v=3ecb5c15";
+var _s = $RefreshSig$();
+export function Breadcrumb({ directoryID, onNavigate }) {
+	_s();
+	const { data: items } = useQuery({
+		queryKey: queryKeys.directories.breadcrumb(directoryID ?? "none"),
+		queryFn: () => getBreadcrumb(directoryID),
+		enabled: Boolean(directoryID)
+	});
+	const pathItems = items ?? [];
+	return /* @__PURE__ */ _jsxDEV("nav", {
+		className: "flex min-w-0 items-center gap-1 overflow-x-auto text-sm text-brand-steel",
+		"aria-label": "Lokasi direktori",
+		children: [/* @__PURE__ */ _jsxDEV("button", {
+			type: "button",
+			onClick: () => onNavigate(null),
+			className: "inline-flex shrink-0 items-center gap-2 rounded-2xl border border-brand-steel/15 bg-white px-3 py-2 font-semibold text-brand-ink shadow-soft transition hover:border-brand-amber/45 hover:bg-brand-sky focus:outline-none focus:ring-2 focus:ring-brand-amber/40",
+			children: [/* @__PURE__ */ _jsxDEV(Home, {
+				className: "h-4 w-4",
+				"aria-hidden": "true"
+			}, void 0, false, {
+				fileName: _jsxFileName,
+				lineNumber: 27,
+				columnNumber: 17
+			}, this), "Berkas Saya"]
+		}, void 0, true, {
+			fileName: _jsxFileName,
+			lineNumber: 22,
+			columnNumber: 13
+		}, this), pathItems.map((item) => /* @__PURE__ */ _jsxDEV("span", {
+			className: "flex shrink-0 items-center gap-1 whitespace-nowrap",
+			children: [/* @__PURE__ */ _jsxDEV(ChevronRight, {
+				className: "h-4 w-4 text-brand-steel/45",
+				"aria-hidden": "true"
+			}, void 0, false, {
+				fileName: _jsxFileName,
+				lineNumber: 32,
+				columnNumber: 21
+			}, this), /* @__PURE__ */ _jsxDEV("button", {
+				type: "button",
+				onClick: () => onNavigate(item.id),
+				className: "rounded-2xl px-3 py-2 font-medium text-brand-steel transition hover:bg-brand-sky hover:text-brand-ink focus:outline-none focus:ring-2 focus:ring-brand-amber/40",
+				children: item.name
+			}, void 0, false, {
+				fileName: _jsxFileName,
+				lineNumber: 33,
+				columnNumber: 21
+			}, this)]
+		}, item.id, true, {
+			fileName: _jsxFileName,
+			lineNumber: 31,
+			columnNumber: 17
+		}, this))]
+	}, void 0, true, {
+		fileName: _jsxFileName,
+		lineNumber: 21,
+		columnNumber: 9
+	}, this);
+}
+_s(Breadcrumb, "hR9Smn69UWl6hM7GwxIxNlGmrk0=", false, function() {
+	return [useQuery];
+});
+_c = Breadcrumb;
+var _c;
+$RefreshReg$(_c, "Breadcrumb");
+import * as RefreshRuntime from "/@react-refresh";
+const inWebWorker = typeof WorkerGlobalScope !== 'undefined' && self instanceof WorkerGlobalScope;
+import * as __vite_react_currentExports from "/src/features/directories/components/Breadcrumb.tsx";
+if (import.meta.hot && !inWebWorker) {
+  if (!window.$RefreshReg$) {
+    throw new Error(
+      "@vitejs/plugin-react can't detect preamble. Something is wrong."
+    );
+  }
+
+  const currentExports = __vite_react_currentExports;
+  queueMicrotask(() => {
+    RefreshRuntime.registerExportsForReactRefresh("/app/src/features/directories/components/Breadcrumb.tsx", currentExports);
+    import.meta.hot.accept((nextExports) => {
+      if (!nextExports) return;
+      const invalidateMessage = RefreshRuntime.validateRefreshBoundaryAndEnqueueUpdate("/app/src/features/directories/components/Breadcrumb.tsx", currentExports, nextExports);
+      if (invalidateMessage) import.meta.hot.invalidate(invalidateMessage);
+    });
+  });
+}
+function $RefreshReg$(type, id) { return RefreshRuntime.register(type, "/app/src/features/directories/components/Breadcrumb.tsx" + ' ' + id); }
+function $RefreshSig$() { return RefreshRuntime.createSignatureFunctionForTransform(); }
+
+//# sourceMappingURL=data:application/json;base64,eyJtYXBwaW5ncyI6IkFBQUEsU0FBUyxnQkFBZ0I7QUFDekIsU0FBUyxjQUFjLFlBQVk7QUFDbkMsU0FBUyxxQkFBcUI7QUFDOUIsU0FBUyxpQkFBaUI7Ozs7QUFPMUIsT0FBTyxTQUFTLFdBQVcsRUFBRSxhQUFhLGNBQW1EOztDQUN6RixNQUFNLEVBQUUsTUFBTSxVQUFVLFNBQVM7RUFDN0IsVUFBVSxVQUFVLFlBQVksV0FBVyxlQUFlLE1BQU07RUFDaEUsZUFBZSxjQUFjLFdBQVk7RUFDekMsU0FBUyxRQUFRLFdBQVc7Q0FDaEMsQ0FBQztDQUVELE1BQU0sWUFBWSxTQUFTLENBQUM7Q0FFNUIsT0FDSSx3QkFBQyxPQUFEO0VBQUssV0FBVTtFQUEyRSxjQUFXO1lBQXJHLENBQ0ksd0JBQUMsVUFBRDtHQUNJLE1BQUs7R0FDTCxlQUFlLFdBQVcsSUFBSTtHQUM5QixXQUFVO2FBSGQsQ0FLSSx3QkFBQyxNQUFEO0lBQU0sV0FBVTtJQUFVLGVBQVk7R0FBUTs7OzthQUFDLGFBRTNDOzs7OztZQUNQLFVBQVUsS0FBSyxTQUNaLHdCQUFDLFFBQUQ7R0FBb0IsV0FBVTthQUE5QixDQUNJLHdCQUFDLGNBQUQ7SUFBYyxXQUFVO0lBQThCLGVBQVk7R0FBUTs7OzthQUMxRSx3QkFBQyxVQUFEO0lBQ0ksTUFBSztJQUNMLGVBQWUsV0FBVyxLQUFLLEVBQUU7SUFDakMsV0FBVTtjQUVULEtBQUs7R0FDRjs7OztXQUNOO0tBVEssS0FBSzs7OztTQVNWLENBQ1QsQ0FDQTs7Ozs7O0FBRWIiLCJuYW1lcyI6W10sInNvdXJjZXMiOlsiQnJlYWRjcnVtYi50c3giXSwidmVyc2lvbiI6Mywic291cmNlc0NvbnRlbnQiOlsiaW1wb3J0IHsgdXNlUXVlcnkgfSBmcm9tIFwiQHRhbnN0YWNrL3JlYWN0LXF1ZXJ5XCI7XG5pbXBvcnQgeyBDaGV2cm9uUmlnaHQsIEhvbWUgfSBmcm9tIFwibHVjaWRlLXJlYWN0XCI7XG5pbXBvcnQgeyBnZXRCcmVhZGNydW1iIH0gZnJvbSBcIkAvZmVhdHVyZXMvZGlyZWN0b3JpZXMvYXBpL2RpcmVjdG9yeUFwaVwiO1xuaW1wb3J0IHsgcXVlcnlLZXlzIH0gZnJvbSBcIkAvc2hhcmVkL2xpYi9xdWVyeUtleXNcIjtcblxudHlwZSBCcmVhZGNydW1iUHJvcHMgPSB7XG4gICAgZGlyZWN0b3J5SUQ6IHN0cmluZyB8IG51bGw7XG4gICAgb25OYXZpZ2F0ZTogKGRpcmVjdG9yeUlEOiBzdHJpbmcgfCBudWxsKSA9PiB2b2lkO1xufTtcblxuZXhwb3J0IGZ1bmN0aW9uIEJyZWFkY3J1bWIoeyBkaXJlY3RvcnlJRCwgb25OYXZpZ2F0ZSB9OiBCcmVhZGNydW1iUHJvcHMpOiBKU1guRWxlbWVudCB8IG51bGwge1xuICAgIGNvbnN0IHsgZGF0YTogaXRlbXMgfSA9IHVzZVF1ZXJ5KHtcbiAgICAgICAgcXVlcnlLZXk6IHF1ZXJ5S2V5cy5kaXJlY3Rvcmllcy5icmVhZGNydW1iKGRpcmVjdG9yeUlEID8/IFwibm9uZVwiKSxcbiAgICAgICAgcXVlcnlGbjogKCkgPT4gZ2V0QnJlYWRjcnVtYihkaXJlY3RvcnlJRCEpLFxuICAgICAgICBlbmFibGVkOiBCb29sZWFuKGRpcmVjdG9yeUlEKVxuICAgIH0pO1xuXG4gICAgY29uc3QgcGF0aEl0ZW1zID0gaXRlbXMgPz8gW107XG5cbiAgICByZXR1cm4gKFxuICAgICAgICA8bmF2IGNsYXNzTmFtZT1cImZsZXggbWluLXctMCBpdGVtcy1jZW50ZXIgZ2FwLTEgb3ZlcmZsb3cteC1hdXRvIHRleHQtc20gdGV4dC1icmFuZC1zdGVlbFwiIGFyaWEtbGFiZWw9XCJMb2thc2kgZGlyZWt0b3JpXCI+XG4gICAgICAgICAgICA8YnV0dG9uXG4gICAgICAgICAgICAgICAgdHlwZT1cImJ1dHRvblwiXG4gICAgICAgICAgICAgICAgb25DbGljaz17KCkgPT4gb25OYXZpZ2F0ZShudWxsKX1cbiAgICAgICAgICAgICAgICBjbGFzc05hbWU9XCJpbmxpbmUtZmxleCBzaHJpbmstMCBpdGVtcy1jZW50ZXIgZ2FwLTIgcm91bmRlZC0yeGwgYm9yZGVyIGJvcmRlci1icmFuZC1zdGVlbC8xNSBiZy13aGl0ZSBweC0zIHB5LTIgZm9udC1zZW1pYm9sZCB0ZXh0LWJyYW5kLWluayBzaGFkb3ctc29mdCB0cmFuc2l0aW9uIGhvdmVyOmJvcmRlci1icmFuZC1hbWJlci80NSBob3ZlcjpiZy1icmFuZC1za3kgZm9jdXM6b3V0bGluZS1ub25lIGZvY3VzOnJpbmctMiBmb2N1czpyaW5nLWJyYW5kLWFtYmVyLzQwXCJcbiAgICAgICAgICAgID5cbiAgICAgICAgICAgICAgICA8SG9tZSBjbGFzc05hbWU9XCJoLTQgdy00XCIgYXJpYS1oaWRkZW49XCJ0cnVlXCIgLz5cbiAgICAgICAgICAgICAgICBCZXJrYXMgU2F5YVxuICAgICAgICAgICAgPC9idXR0b24+XG4gICAgICAgICAgICB7cGF0aEl0ZW1zLm1hcCgoaXRlbSkgPT4gKFxuICAgICAgICAgICAgICAgIDxzcGFuIGtleT17aXRlbS5pZH0gY2xhc3NOYW1lPVwiZmxleCBzaHJpbmstMCBpdGVtcy1jZW50ZXIgZ2FwLTEgd2hpdGVzcGFjZS1ub3dyYXBcIj5cbiAgICAgICAgICAgICAgICAgICAgPENoZXZyb25SaWdodCBjbGFzc05hbWU9XCJoLTQgdy00IHRleHQtYnJhbmQtc3RlZWwvNDVcIiBhcmlhLWhpZGRlbj1cInRydWVcIiAvPlxuICAgICAgICAgICAgICAgICAgICA8YnV0dG9uXG4gICAgICAgICAgICAgICAgICAgICAgICB0eXBlPVwiYnV0dG9uXCJcbiAgICAgICAgICAgICAgICAgICAgICAgIG9uQ2xpY2s9eygpID0+IG9uTmF2aWdhdGUoaXRlbS5pZCl9XG4gICAgICAgICAgICAgICAgICAgICAgICBjbGFzc05hbWU9XCJyb3VuZGVkLTJ4bCBweC0zIHB5LTIgZm9udC1tZWRpdW0gdGV4dC1icmFuZC1zdGVlbCB0cmFuc2l0aW9uIGhvdmVyOmJnLWJyYW5kLXNreSBob3Zlcjp0ZXh0LWJyYW5kLWluayBmb2N1czpvdXRsaW5lLW5vbmUgZm9jdXM6cmluZy0yIGZvY3VzOnJpbmctYnJhbmQtYW1iZXIvNDBcIlxuICAgICAgICAgICAgICAgICAgICA+XG4gICAgICAgICAgICAgICAgICAgICAgICB7aXRlbS5uYW1lfVxuICAgICAgICAgICAgICAgICAgICA8L2J1dHRvbj5cbiAgICAgICAgICAgICAgICA8L3NwYW4+XG4gICAgICAgICAgICApKX1cbiAgICAgICAgPC9uYXY+XG4gICAgKTtcbn1cbiJdfQ==

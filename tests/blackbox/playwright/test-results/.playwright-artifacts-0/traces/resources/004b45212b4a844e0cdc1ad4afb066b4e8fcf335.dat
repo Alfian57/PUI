@@ -1,0 +1,64 @@
+import { createHotContext as __vite__createHotContext } from "/@vite/client";import.meta.hot = __vite__createHotContext("/src/shared/ui/NoticeToast.tsx");const _jsxDEV = __vite__cjsImport1_react_jsxDevRuntime["jsxDEV"];import clsx from "/node_modules/.vite/deps/clsx.js?v=a5cb935e";
+var _jsxFileName = "/app/src/shared/ui/NoticeToast.tsx";
+import __vite__cjsImport1_react_jsxDevRuntime from "/node_modules/.vite/deps/react_jsx-dev-runtime.js?v=3ecb5c15";
+export function NoticeToast({ notice, onClose }) {
+	return /* @__PURE__ */ _jsxDEV("aside", {
+		className: clsx("fixed right-4 top-4 z-50 w-full max-w-sm animate-rise-in rounded-xl border px-4 py-3 shadow-deck", notice.variant === "success" ? "border-brand-success/25 bg-brand-mint text-brand-ink" : "border-brand-coral/25 bg-brand-coral/10 text-brand-coral"),
+		role: "status",
+		children: /* @__PURE__ */ _jsxDEV("div", {
+			className: "flex items-start justify-between gap-3",
+			children: [/* @__PURE__ */ _jsxDEV("p", {
+				className: "text-sm font-medium",
+				children: notice.message
+			}, void 0, false, {
+				fileName: _jsxFileName,
+				lineNumber: 21,
+				columnNumber: 17
+			}, this), /* @__PURE__ */ _jsxDEV("button", {
+				type: "button",
+				onClick: onClose,
+				className: "text-xs opacity-70 hover:opacity-100",
+				children: "Tutup"
+			}, void 0, false, {
+				fileName: _jsxFileName,
+				lineNumber: 22,
+				columnNumber: 17
+			}, this)]
+		}, void 0, true, {
+			fileName: _jsxFileName,
+			lineNumber: 20,
+			columnNumber: 13
+		}, this)
+	}, void 0, false, {
+		fileName: _jsxFileName,
+		lineNumber: 11,
+		columnNumber: 9
+	}, this);
+}
+_c = NoticeToast;
+var _c;
+$RefreshReg$(_c, "NoticeToast");
+import * as RefreshRuntime from "/@react-refresh";
+const inWebWorker = typeof WorkerGlobalScope !== 'undefined' && self instanceof WorkerGlobalScope;
+import * as __vite_react_currentExports from "/src/shared/ui/NoticeToast.tsx";
+if (import.meta.hot && !inWebWorker) {
+  if (!window.$RefreshReg$) {
+    throw new Error(
+      "@vitejs/plugin-react can't detect preamble. Something is wrong."
+    );
+  }
+
+  const currentExports = __vite_react_currentExports;
+  queueMicrotask(() => {
+    RefreshRuntime.registerExportsForReactRefresh("/app/src/shared/ui/NoticeToast.tsx", currentExports);
+    import.meta.hot.accept((nextExports) => {
+      if (!nextExports) return;
+      const invalidateMessage = RefreshRuntime.validateRefreshBoundaryAndEnqueueUpdate("/app/src/shared/ui/NoticeToast.tsx", currentExports, nextExports);
+      if (invalidateMessage) import.meta.hot.invalidate(invalidateMessage);
+    });
+  });
+}
+function $RefreshReg$(type, id) { return RefreshRuntime.register(type, "/app/src/shared/ui/NoticeToast.tsx" + ' ' + id); }
+function $RefreshSig$() { return RefreshRuntime.createSignatureFunctionForTransform(); }
+
+//# sourceMappingURL=data:application/json;base64,eyJtYXBwaW5ncyI6IkFBQUEsT0FBTyxVQUFVOzs7QUFRakIsT0FBTyxTQUFTLFlBQVksRUFBRSxRQUFRLFdBQTBDO0NBQzVFLE9BQ0ksd0JBQUMsU0FBRDtFQUNJLFdBQVcsS0FDUCxvR0FDQSxPQUFPLFlBQVksWUFDYix5REFDQSwwREFDVjtFQUNBLE1BQUs7WUFFTCx3QkFBQyxPQUFEO0dBQUssV0FBVTthQUFmLENBQ0ksd0JBQUMsS0FBRDtJQUFHLFdBQVU7Y0FBdUIsT0FBTztHQUFXOzs7O2FBQ3RELHdCQUFDLFVBQUQ7SUFBUSxNQUFLO0lBQVMsU0FBUztJQUFTLFdBQVU7Y0FBdUM7R0FFakY7Ozs7V0FDUDs7Ozs7O0NBQ0Y7Ozs7O0FBRWYiLCJuYW1lcyI6W10sInNvdXJjZXMiOlsiTm90aWNlVG9hc3QudHN4Il0sInZlcnNpb24iOjMsInNvdXJjZXNDb250ZW50IjpbImltcG9ydCBjbHN4IGZyb20gXCJjbHN4XCI7XG5pbXBvcnQgdHlwZSB7IE5vdGljZSB9IGZyb20gXCJAL3NoYXJlZC9ob29rcy91c2VOb3RpY2VcIjtcblxudHlwZSBOb3RpY2VUb2FzdFByb3BzID0ge1xuICAgIG5vdGljZTogTm90aWNlO1xuICAgIG9uQ2xvc2U6ICgpID0+IHZvaWQ7XG59O1xuXG5leHBvcnQgZnVuY3Rpb24gTm90aWNlVG9hc3QoeyBub3RpY2UsIG9uQ2xvc2UgfTogTm90aWNlVG9hc3RQcm9wcyk6IEpTWC5FbGVtZW50IHtcbiAgICByZXR1cm4gKFxuICAgICAgICA8YXNpZGVcbiAgICAgICAgICAgIGNsYXNzTmFtZT17Y2xzeChcbiAgICAgICAgICAgICAgICBcImZpeGVkIHJpZ2h0LTQgdG9wLTQgei01MCB3LWZ1bGwgbWF4LXctc20gYW5pbWF0ZS1yaXNlLWluIHJvdW5kZWQteGwgYm9yZGVyIHB4LTQgcHktMyBzaGFkb3ctZGVja1wiLFxuICAgICAgICAgICAgICAgIG5vdGljZS52YXJpYW50ID09PSBcInN1Y2Nlc3NcIlxuICAgICAgICAgICAgICAgICAgICA/IFwiYm9yZGVyLWJyYW5kLXN1Y2Nlc3MvMjUgYmctYnJhbmQtbWludCB0ZXh0LWJyYW5kLWlua1wiXG4gICAgICAgICAgICAgICAgICAgIDogXCJib3JkZXItYnJhbmQtY29yYWwvMjUgYmctYnJhbmQtY29yYWwvMTAgdGV4dC1icmFuZC1jb3JhbFwiXG4gICAgICAgICAgICApfVxuICAgICAgICAgICAgcm9sZT1cInN0YXR1c1wiXG4gICAgICAgID5cbiAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiZmxleCBpdGVtcy1zdGFydCBqdXN0aWZ5LWJldHdlZW4gZ2FwLTNcIj5cbiAgICAgICAgICAgICAgICA8cCBjbGFzc05hbWU9XCJ0ZXh0LXNtIGZvbnQtbWVkaXVtXCI+e25vdGljZS5tZXNzYWdlfTwvcD5cbiAgICAgICAgICAgICAgICA8YnV0dG9uIHR5cGU9XCJidXR0b25cIiBvbkNsaWNrPXtvbkNsb3NlfSBjbGFzc05hbWU9XCJ0ZXh0LXhzIG9wYWNpdHktNzAgaG92ZXI6b3BhY2l0eS0xMDBcIj5cbiAgICAgICAgICAgICAgICAgICAgVHV0dXBcbiAgICAgICAgICAgICAgICA8L2J1dHRvbj5cbiAgICAgICAgICAgIDwvZGl2PlxuICAgICAgICA8L2FzaWRlPlxuICAgICk7XG59XG4iXX0=

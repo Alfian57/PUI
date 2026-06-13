@@ -42,10 +42,6 @@ type directoryOwnershipRepository interface {
 	IsOwnedByUser(ctx context.Context, directoryID, userID string) (bool, error)
 }
 
-type activityLogger interface {
-	Log(ctx context.Context, userID, action, resourceType string, resourceID *string) error
-}
-
 type UploadOutcome struct {
 	File               domain.FileRecord              `json:"file"`
 	UploadCommitResult vaultclient.UploadCommitResult `json:"upload_commit_result"`

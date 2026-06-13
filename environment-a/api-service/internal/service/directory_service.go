@@ -9,8 +9,8 @@ import (
 )
 
 type DirectoryService struct {
-	directoryRepo *repository.DirectoryRepository
-	activityRepo  *repository.ActivityRepository
+	directoryRepo directoryRepository
+	activityRepo  activityLogger
 }
 
 func NewDirectoryService(directoryRepo *repository.DirectoryRepository, activityRepo *repository.ActivityRepository) *DirectoryService {

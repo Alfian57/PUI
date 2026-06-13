@@ -1,26 +1,79 @@
 package httptransport
 
 import (
+	"context"
+	"io"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/alfiang/pui/environment-a/api-service/internal/config"
 	"github.com/alfiang/pui/environment-a/api-service/internal/domain"
 	"github.com/alfiang/pui/environment-a/api-service/internal/middleware"
 	"github.com/alfiang/pui/environment-a/api-service/internal/service"
 	"github.com/alfiang/pui/environment-a/api-service/internal/transport/http/dto"
+	"github.com/alfiang/pui/environment-a/api-service/internal/vaultclient"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 )
 
+type authServiceInterface interface {
+	Login(ctx context.Context, email, password string) (domain.LoginResult, error)
+	Register(ctx context.Context, fullName, email, password, confirmPassword string) (domain.AuthUser, error)
+	RequestPasswordReset(ctx context.Context, email string) error
+	ConfirmPasswordReset(ctx context.Context, token, newPassword, confirmPassword string) error
+	AuthenticateToken(ctx context.Context, bearerToken string) (domain.AuthUser, error)
+	Logout(ctx context.Context, user domain.AuthUser) error
+	UpdateProfile(ctx context.Context, user domain.AuthUser, fullName, email, currentPassword, newPassword string) (domain.AuthUser, error)
+}
+
+type directoryServiceInterface interface {
+	Create(ctx context.Context, user domain.AuthUser, name, parentID string) (domain.DirectoryRecord, error)
+	Tree(ctx context.Context, user domain.AuthUser, rootID string) ([]domain.DirectoryRecord, error)
+	Breadcrumb(ctx context.Context, user domain.AuthUser, directoryID string) ([]domain.DirectoryRecord, error)
+	SoftDelete(ctx context.Context, user domain.AuthUser, directoryID string) (domain.DirectoryRecord, error)
+	Restore(ctx context.Context, user domain.AuthUser, directoryID string) (domain.DirectoryRecord, error)
+	PermanentDelete(ctx context.Context, user domain.AuthUser, directoryID string) error
+	SetStarred(ctx context.Context, user domain.AuthUser, directoryID string, starred bool) (domain.DirectoryRecord, error)
+	Trash(ctx context.Context, user domain.AuthUser) ([]domain.DirectoryRecord, error)
+	Starred(ctx context.Context, user domain.AuthUser) ([]domain.DirectoryRecord, error)
+}
+
+type fileServiceInterface interface {
+	ListByDirectory(ctx context.Context, user domain.AuthUser, directoryID string, includeDeleted bool) ([]domain.FileRecord, error)
+	Upload(ctx context.Context, user domain.AuthUser, directoryID, fileName, mimeType string, reader io.Reader) (service.UploadOutcome, error)
+	Detail(ctx context.Context, user domain.AuthUser, fileID string, includeDeleted bool) (domain.FileRecord, error)
+	Download(ctx context.Context, user domain.AuthUser, fileID string, includeDeleted bool) (service.DownloadOutcome, error)
+	SoftDelete(ctx context.Context, user domain.AuthUser, fileID string) (time.Time, error)
+	Restore(ctx context.Context, user domain.AuthUser, fileID string) (domain.FileRecord, error)
+	PermanentDelete(ctx context.Context, user domain.AuthUser, fileID string) error
+	SetStarred(ctx context.Context, user domain.AuthUser, fileID string, starred bool) (domain.FileRecord, error)
+	Search(ctx context.Context, user domain.AuthUser, query, directoryID string, includeDeleted bool, limit, offset int) ([]domain.FileRecord, int64, int, int, error)
+	GetManifestInfo(ctx context.Context, manifestID string) (vaultclient.ManifestRecord, error)
+	Trash(ctx context.Context, user domain.AuthUser) ([]domain.FileRecord, error)
+	Starred(ctx context.Context, user domain.AuthUser) ([]domain.FileRecord, error)
+}
+
+type adminServiceInterface interface {
+	Analytics(ctx context.Context, user domain.AuthUser, rawRange string) (domain.AdminAnalytics, error)
+}
+
+type insightServiceInterface interface {
+	UserInsight(ctx context.Context, user domain.AuthUser, rawRange string) (domain.UserInsight, error)
+}
+
+type activityServiceInterface interface {
+	List(ctx context.Context, user domain.AuthUser, action, resourceType string, limit, offset int) ([]domain.ActivityLogRecord, int64, int, int, error)
+}
+
 type API struct {
 	cfg              config.Config
-	authService      *service.AuthService
-	adminService     *service.AdminService
-	activityService  *service.ActivityService
-	directoryService *service.DirectoryService
-	fileService      *service.FileService
-	insightService   *service.InsightService
+	authService      authServiceInterface
+	adminService     adminServiceInterface
+	activityService  activityServiceInterface
+	directoryService directoryServiceInterface
+	fileService      fileServiceInterface
+	insightService   insightServiceInterface
 	systemService    *service.SystemService
 	validator        *validator.Validate
 }
