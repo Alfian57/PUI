@@ -22,7 +22,7 @@ func TestIsUUID(t *testing.T) {
 		"",
 		"not-a-uuid",
 		"11111111-1111-1111-1111-111111111111", // variant bits not 8-b
-		"550e8400e29b41d4a716446655440000",      // no dashes
+		"550e8400e29b41d4a716446655440000",     // no dashes
 		"   ",
 	}
 	for _, v := range invalid {

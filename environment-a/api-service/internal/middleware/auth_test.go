@@ -11,7 +11,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-
 func TestMustAuthUserWrongType(t *testing.T) {
 	t.Parallel()
 

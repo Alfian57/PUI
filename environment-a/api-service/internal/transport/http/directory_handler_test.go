@@ -119,7 +119,7 @@ func (f *fakeAuthSvc) Login(_ context.Context, _, _ string) (domain.LoginResult,
 func (f *fakeAuthSvc) Register(_ context.Context, _, _, _, _ string) (domain.AuthUser, error) {
 	return f.user, f.registerErr
 }
-func (f *fakeAuthSvc) RequestPasswordReset(_ context.Context, _ string) error  { return nil }
+func (f *fakeAuthSvc) RequestPasswordReset(_ context.Context, _ string) error       { return nil }
 func (f *fakeAuthSvc) ConfirmPasswordReset(_ context.Context, _, _, _ string) error { return nil }
 func (f *fakeAuthSvc) AuthenticateToken(_ context.Context, _ string) (domain.AuthUser, error) {
 	return f.user, nil

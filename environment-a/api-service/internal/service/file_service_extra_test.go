@@ -100,10 +100,10 @@ func TestFileServiceSearchValidation(t *testing.T) {
 	svc := newFileSvcWith(newFakeFileRepo(), &fakeVaultClient{})
 
 	cases := []struct {
-		query       string
-		limit       int
-		offset      int
-		desc        string
+		query  string
+		limit  int
+		offset int
+		desc   string
 	}{
 		{"", 0, 0, "empty query"},
 		{"a", 0, 0, "query too short"},
