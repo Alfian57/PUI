@@ -386,7 +386,8 @@ func (r *FileRepository) ListTrash(ctx context.Context, userID string) ([]domain
 	return files, nil
 }
 
-func (r *FileRepository) ListStarred(ctx context.Context, userID string) ([]domain.FileRecord, error) {	files := make([]domain.FileRecord, 0, 32)
+func (r *FileRepository) ListStarred(ctx context.Context, userID string) ([]domain.FileRecord, error) {
+	files := make([]domain.FileRecord, 0, 32)
 	err := r.db.WithContext(ctx).Raw(
 		`SELECT `+fileSelectColumns+`
 		 FROM files f

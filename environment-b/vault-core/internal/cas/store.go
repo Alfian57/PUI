@@ -918,5 +918,3 @@ func (s *Store) putUploadSession(ctx context.Context, session UploadSessionRecor
 
 	return nil
 }
-
-

@@ -488,7 +488,7 @@ func newTestStore(t *testing.T) *Store {
 			AvgSize: 4 * 1024,
 			MaxSize: 8 * 1024,
 		},
-		true,            // strictVerify
-		64*1024*1024,    // strictVerifyMaxBytes
+		true,         // strictVerify
+		64*1024*1024, // strictVerifyMaxBytes
 	)
 }

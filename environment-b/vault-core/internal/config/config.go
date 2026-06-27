@@ -10,16 +10,16 @@ import (
 )
 
 type Config struct {
-	AppEnv               string
-	UDSPath              string
-	BadgerPath           string
-	ChunkRoot            string
-	UDSOwnerUID          int
-	UDSOwnerGID          int
-	UDSAllowedUIDs       []uint32
-	FastCDCMinChunkSize  int
-	FastCDCAvgChunkSize  int
-	FastCDCMaxChunkSize  int
+	AppEnv              string
+	UDSPath             string
+	BadgerPath          string
+	ChunkRoot           string
+	UDSOwnerUID         int
+	UDSOwnerGID         int
+	UDSAllowedUIDs      []uint32
+	FastCDCMinChunkSize int
+	FastCDCAvgChunkSize int
+	FastCDCMaxChunkSize int
 	// StrictDownloadVerify enables full verify-before-send for objects ≤ StrictVerifyMaxBytes.
 	// Larger objects fall back to streaming with pre-flight existence check.
 	StrictDownloadVerify bool
