@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -25,16 +26,20 @@ const (
 )
 
 type Store struct {
-	db        *badger.DB
-	chunkRoot string
-	chunking  fastcdc.Config
+	db                   *badger.DB
+	chunkRoot            string
+	chunking             fastcdc.Config
+	strictVerify         bool
+	strictVerifyMaxBytes int64
 }
 
-func NewStore(db *badger.DB, chunkRoot string, chunking fastcdc.Config) *Store {
+func NewStore(db *badger.DB, chunkRoot string, chunking fastcdc.Config, strictVerify bool, strictVerifyMaxBytes int64) *Store {
 	return &Store{
-		db:        db,
-		chunkRoot: chunkRoot,
-		chunking:  chunking,
+		db:                   db,
+		chunkRoot:            chunkRoot,
+		chunking:             chunking,
+		strictVerify:         strictVerify,
+		strictVerifyMaxBytes: strictVerifyMaxBytes,
 	}
 }
 
@@ -98,12 +103,7 @@ func (s *Store) ProcessUpload(ctx context.Context, fileName string, reader io.Re
 
 		chunkHashes = append(chunkHashes, chunkHash)
 		totalSize += int64(chunk.Size)
-
-		uploadSession.ReceivedChunks = append(uploadSession.ReceivedChunks, chunkHash)
-		if err := s.putUploadSession(ctx, uploadSession); err != nil {
-			cancel()
-			return UploadCommitResult{}, fmt.Errorf("update upload session: %w", err)
-		}
+		// Session is accumulated in memory; written once at commit to avoid O(N²) DB writes.
 	}
 
 	if err := <-splitErrCh; err != nil {
@@ -135,6 +135,7 @@ func (s *Store) ProcessUpload(ctx context.Context, fileName string, reader io.Re
 		dedupRatio = float64(reuseChunkCount) / float64(totalChunks)
 	}
 
+	uploadSession.ReceivedChunks = chunkHashes
 	uploadSession.State = "committed"
 	if err := s.putUploadSession(ctx, uploadSession); err != nil {
 		return UploadCommitResult{}, fmt.Errorf("mark upload session committed: %w", err)
@@ -152,6 +153,83 @@ func (s *Store) ProcessUpload(ctx context.Context, fileName string, reader io.Re
 	}
 
 	return result, nil
+}
+
+// CleanupOrphanChunks deletes chunk metadata and physical files for chunks
+// that have ManifestRefCount == 0 and were created before `olderThan`.
+// The grace period prevents deleting chunks from in-flight uploads.
+func (s *Store) CleanupOrphanChunks(ctx context.Context, olderThan time.Time) (int, error) {
+	if err := contextErr(ctx); err != nil {
+		return 0, err
+	}
+
+	var candidates []ChunkRecord
+	err := s.db.View(func(txn *badger.Txn) error {
+		opts := badger.DefaultIteratorOptions
+		opts.PrefetchSize = 64
+		it := txn.NewIterator(opts)
+		defer it.Close()
+
+		prefix := []byte(chunkPrefix)
+		for it.Seek(prefix); it.ValidForPrefix(prefix); it.Next() {
+			record, err := decodeChunk(it.Item())
+			if err != nil {
+				continue
+			}
+			if record.ManifestRefCount == 0 && record.CreatedAt.Before(olderThan) {
+				candidates = append(candidates, record)
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return 0, fmt.Errorf("scan orphan chunks: %w", err)
+	}
+
+	deleted := 0
+	for _, candidate := range candidates {
+		if err := contextErr(ctx); err != nil {
+			return deleted, err
+		}
+
+		_, absolutePath, err := s.chunkPaths(candidate.ChunkHash)
+		if err != nil {
+			continue
+		}
+
+		// Re-check RefCount inside the write transaction to close the scan→delete race.
+		// Delete metadata first (atomically); remove file only after metadata is gone.
+		removed := false
+		dbErr := s.db.Update(func(txn *badger.Txn) error {
+			item, err := txn.Get(chunkKey(candidate.ChunkHash))
+			if errors.Is(err, badger.ErrKeyNotFound) {
+				return nil // already cleaned by a concurrent sweep
+			}
+			if err != nil {
+				return err
+			}
+			rec, err := decodeChunk(item)
+			if err != nil {
+				return err
+			}
+			// Abort if another upload has since referenced this chunk.
+			if rec.ManifestRefCount != 0 || !rec.CreatedAt.Before(olderThan) {
+				return nil
+			}
+			removed = true
+			return txn.Delete(chunkKey(candidate.ChunkHash))
+		})
+		if dbErr != nil || !removed {
+			continue
+		}
+
+		if err := os.Remove(absolutePath); err != nil && !errors.Is(err, os.ErrNotExist) {
+			log.Printf("event=orphan_chunk_file_remove_failed hash=%s err=%v", candidate.ChunkHash, err)
+		}
+		deleted++
+	}
+
+	return deleted, nil
 }
 
 func (s *Store) CleanupExpiredUploadSessions(ctx context.Context, now time.Time) (int, error) {
@@ -237,18 +315,44 @@ func (s *Store) OpenObject(ctx context.Context, manifestID string) (io.ReadClose
 		return nil, 0, err
 	}
 
-	tempFile, err := os.CreateTemp("", "pui-vault-object-*.bin")
+	// Pre-flight: verify all chunk files exist before sending any bytes.
+	// This turns "missing chunk" into an early error rather than a mid-stream truncation.
+	for _, chunkHash := range manifest.ChunkHashes {
+		_, absolutePath, err := s.chunkPaths(chunkHash)
+		if err != nil {
+			return nil, 0, err
+		}
+		if _, err := os.Stat(absolutePath); err != nil {
+			return nil, 0, fmt.Errorf("chunk %s unavailable: %w", chunkHash, err)
+		}
+	}
+
+	// Strict mode: for small objects, fully reconstruct + verify hash before sending
+	// so a corrupted chunk is detected before any bytes reach the client (200 + Content-Length
+	// already committed). Uses chunkRoot dir for temp to avoid tmpfs exhaustion.
+	if s.strictVerify && manifest.TotalSizeBytes <= s.strictVerifyMaxBytes {
+		return s.openObjectStrict(ctx, manifest)
+	}
+
+	// Streaming mode for large objects: pre-flight already handled missing chunks;
+	// hash corruption is detected mid-stream (client receives truncated body).
+	return s.openObjectStream(ctx, manifest)
+}
+
+// openObjectStrict reconstructs the full object into a temp file, verifies all hashes,
+// then returns a reader. Error is returned before any byte is sent to the caller.
+func (s *Store) openObjectStrict(ctx context.Context, manifest ManifestRecord) (io.ReadCloser, int64, error) {
+	tmpFile, err := os.CreateTemp(s.chunkRoot, ".object-*.tmp")
 	if err != nil {
 		return nil, 0, fmt.Errorf("create temp object file: %w", err)
 	}
 	cleanup := func() {
-		_ = tempFile.Close()
-		_ = os.Remove(tempFile.Name())
+		_ = tmpFile.Close()
+		_ = os.Remove(tmpFile.Name())
 	}
 
 	fileHasher := blake3.New()
-	multiWriter := io.MultiWriter(tempFile, fileHasher)
-	var totalSize int64
+	var totalWritten int64
 
 	for _, chunkHash := range manifest.ChunkHashes {
 		if err := contextErr(ctx); err != nil {
@@ -269,39 +373,91 @@ func (s *Store) OpenObject(ctx context.Context, manifestID string) (io.ReadClose
 		}
 
 		chunkHasher := blake3.New()
-		written, copyErr := io.Copy(io.MultiWriter(multiWriter, chunkHasher), chunkFile)
+		written, copyErr := io.Copy(io.MultiWriter(tmpFile, fileHasher, chunkHasher), chunkFile)
 		_ = chunkFile.Close()
 		if copyErr != nil {
 			cleanup()
 			return nil, 0, fmt.Errorf("copy chunk %s: %w", chunkHash, copyErr)
 		}
 
-		computedChunkHash := hex.EncodeToString(chunkHasher.Sum(nil))
-		if !strings.EqualFold(computedChunkHash, chunkHash) {
+		if !strings.EqualFold(hex.EncodeToString(chunkHasher.Sum(nil)), chunkHash) {
 			cleanup()
 			return nil, 0, fmt.Errorf("chunk hash mismatch for %s", chunkHash)
 		}
-
-		totalSize += written
+		totalWritten += written
 	}
 
-	if totalSize != manifest.TotalSizeBytes {
-		cleanup()
-		return nil, 0, fmt.Errorf("object size does not match manifest")
-	}
-
-	computedFileHash := hex.EncodeToString(fileHasher.Sum(nil))
-	if !strings.EqualFold(computedFileHash, manifest.FileHash) {
+	if !strings.EqualFold(hex.EncodeToString(fileHasher.Sum(nil)), manifest.FileHash) {
 		cleanup()
 		return nil, 0, fmt.Errorf("object hash does not match manifest")
 	}
 
-	if _, err := tempFile.Seek(0, io.SeekStart); err != nil {
+	if _, err := tmpFile.Seek(0, io.SeekStart); err != nil {
 		cleanup()
 		return nil, 0, fmt.Errorf("rewind temp object file: %w", err)
 	}
 
-	return &deleteOnCloseFile{File: tempFile}, manifest.TotalSizeBytes, nil
+	return &deleteOnCloseFile{File: tmpFile}, totalWritten, nil
+}
+
+// openObjectStream pipes chunk data directly to the caller with inline hash verification.
+// Pre-flight Stat was already done; a corrupted chunk is detected mid-stream.
+func (s *Store) openObjectStream(ctx context.Context, manifest ManifestRecord) (io.ReadCloser, int64, error) {
+	pr, pw := io.Pipe()
+
+	go func() {
+		fileHasher := blake3.New()
+		for _, chunkHash := range manifest.ChunkHashes {
+			if err := contextErr(ctx); err != nil {
+				pw.CloseWithError(err)
+				return
+			}
+
+			_, absolutePath, err := s.chunkPaths(chunkHash)
+			if err != nil {
+				pw.CloseWithError(err)
+				return
+			}
+
+			chunkFile, err := os.Open(absolutePath)
+			if err != nil {
+				pw.CloseWithError(fmt.Errorf("open chunk %s: %w", chunkHash, err))
+				return
+			}
+
+			chunkHasher := blake3.New()
+			_, copyErr := io.Copy(io.MultiWriter(pw, fileHasher, chunkHasher), chunkFile)
+			_ = chunkFile.Close()
+			if copyErr != nil {
+				pw.CloseWithError(fmt.Errorf("copy chunk %s: %w", chunkHash, copyErr))
+				return
+			}
+
+			if !strings.EqualFold(hex.EncodeToString(chunkHasher.Sum(nil)), chunkHash) {
+				pw.CloseWithError(fmt.Errorf("chunk hash mismatch for %s", chunkHash))
+				return
+			}
+		}
+
+		if !strings.EqualFold(hex.EncodeToString(fileHasher.Sum(nil)), manifest.FileHash) {
+			pw.CloseWithError(fmt.Errorf("object hash does not match manifest"))
+			return
+		}
+		pw.Close()
+	}()
+
+	return pr, manifest.TotalSizeBytes, nil
+}
+
+type deleteOnCloseFile struct {
+	*os.File
+}
+
+func (f *deleteOnCloseFile) Close() error {
+	name := f.Name()
+	err := f.File.Close()
+	_ = os.Remove(name)
+	return err
 }
 
 func (s *Store) GetChunk(ctx context.Context, chunkHash string) (ChunkRecord, bool, error) {
@@ -355,6 +511,17 @@ func (s *Store) touchChunk(ctx context.Context, chunkHash string, chunkBytes []b
 	}
 
 	if found {
+		// Even if metadata exists, the physical file may have been removed by a GC race.
+		// Re-persist it if missing so the upload can commit successfully.
+		_, absolutePath, pathErr := s.chunkPaths(chunkHash)
+		if pathErr != nil {
+			return false, pathErr
+		}
+		if _, statErr := os.Stat(absolutePath); statErr != nil {
+			if err := writeChunkIfMissing(absolutePath, chunkBytes); err != nil {
+				return false, fmt.Errorf("re-persist chunk file after gc race: %w", err)
+			}
+		}
 		return false, nil
 	}
 
@@ -752,16 +919,4 @@ func (s *Store) putUploadSession(ctx context.Context, session UploadSessionRecor
 	return nil
 }
 
-type deleteOnCloseFile struct {
-	*os.File
-}
 
-func (f *deleteOnCloseFile) Close() error {
-	name := f.Name()
-	err := f.File.Close()
-	removeErr := os.Remove(name)
-	if err != nil {
-		return err
-	}
-	return removeErr
-}

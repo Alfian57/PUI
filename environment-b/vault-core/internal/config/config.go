@@ -10,16 +10,20 @@ import (
 )
 
 type Config struct {
-	AppEnv              string
-	UDSPath             string
-	BadgerPath          string
-	ChunkRoot           string
-	UDSOwnerUID         int
-	UDSOwnerGID         int
-	UDSAllowedUIDs      []uint32
-	FastCDCMinChunkSize int
-	FastCDCAvgChunkSize int
-	FastCDCMaxChunkSize int
+	AppEnv               string
+	UDSPath              string
+	BadgerPath           string
+	ChunkRoot            string
+	UDSOwnerUID          int
+	UDSOwnerGID          int
+	UDSAllowedUIDs       []uint32
+	FastCDCMinChunkSize  int
+	FastCDCAvgChunkSize  int
+	FastCDCMaxChunkSize  int
+	// StrictDownloadVerify enables full verify-before-send for objects ≤ StrictVerifyMaxBytes.
+	// Larger objects fall back to streaming with pre-flight existence check.
+	StrictDownloadVerify bool
+	StrictVerifyMaxBytes int64
 }
 
 func Load() (Config, error) {
@@ -56,16 +60,18 @@ func Load() (Config, error) {
 	}
 
 	cfg := Config{
-		AppEnv:              stringFromEnv("APP_ENV", "environment-b"),
-		UDSPath:             stringFromEnv("UDS_PATH", "/var/run/pui/uds/vault-core.sock"),
-		BadgerPath:          stringFromEnv("BADGER_PATH", "/var/lib/pui/badger"),
-		ChunkRoot:           stringFromEnv("CHUNK_ROOT", "/var/lib/pui/chunks"),
-		UDSOwnerUID:         udsOwnerUID,
-		UDSOwnerGID:         udsOwnerGID,
-		UDSAllowedUIDs:      udsAllowedUIDs,
-		FastCDCMinChunkSize: minChunkSize,
-		FastCDCAvgChunkSize: avgChunkSize,
-		FastCDCMaxChunkSize: maxChunkSize,
+		AppEnv:               stringFromEnv("APP_ENV", "environment-b"),
+		UDSPath:              stringFromEnv("UDS_PATH", "/var/run/pui/uds/vault-core.sock"),
+		BadgerPath:           stringFromEnv("BADGER_PATH", "/var/lib/pui/badger"),
+		ChunkRoot:            stringFromEnv("CHUNK_ROOT", "/var/lib/pui/chunks"),
+		UDSOwnerUID:          udsOwnerUID,
+		UDSOwnerGID:          udsOwnerGID,
+		UDSAllowedUIDs:       udsAllowedUIDs,
+		FastCDCMinChunkSize:  minChunkSize,
+		FastCDCAvgChunkSize:  avgChunkSize,
+		FastCDCMaxChunkSize:  maxChunkSize,
+		StrictDownloadVerify: boolFromEnv("STRICT_DOWNLOAD_VERIFY", true),
+		StrictVerifyMaxBytes: int64FromEnv("STRICT_VERIFY_MAX_BYTES", 64*1024*1024),
 	}
 
 	if cfg.FastCDCMinChunkSize <= 0 || cfg.FastCDCAvgChunkSize <= 0 || cfg.FastCDCMaxChunkSize <= 0 {
@@ -131,4 +137,28 @@ func uint32ListFromEnv(key string, fallback []uint32) ([]uint32, error) {
 	}
 
 	return result, nil
+}
+
+func boolFromEnv(key string, fallback bool) bool {
+	value := strings.TrimSpace(os.Getenv(key))
+	if value == "" {
+		return fallback
+	}
+	parsed, err := strconv.ParseBool(value)
+	if err != nil {
+		return fallback
+	}
+	return parsed
+}
+
+func int64FromEnv(key string, fallback int64) int64 {
+	value := strings.TrimSpace(os.Getenv(key))
+	if value == "" {
+		return fallback
+	}
+	parsed, err := strconv.ParseInt(value, 10, 64)
+	if err != nil {
+		return fallback
+	}
+	return parsed
 }

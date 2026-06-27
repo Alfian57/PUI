@@ -263,6 +263,7 @@ func (a *API) handleDownloadFile(c *gin.Context) {
 	}
 
 	fileID := strings.TrimSpace(c.Param("id"))
+	// includeDeleted=true: download from Trash is intentionally allowed (audited as DOWNLOAD_TRASHED).
 	result, err := a.fileService.Download(c.Request.Context(), user, fileID, true)
 	if err != nil {
 		status := statusFromError(err)
@@ -284,8 +285,11 @@ func (a *API) handleDownloadFile(c *gin.Context) {
 		c.Header("X-PUI-Soft-Deleted", "true")
 	}
 
+	// Note: response headers (200 + Content-Length) are already sent before Copy starts.
+	// If the stream is interrupted mid-way, the client receives a truncated file.
+	// We log the error for observability; it cannot be surfaced as an HTTP error at this point.
 	if _, err := io.Copy(c.Writer, result.Body); err != nil {
-		return
+		log.Printf("event=file_stream_truncated file_id=%s user_id=%s error=%v", fileID, user.UserID, err)
 	}
 }
 

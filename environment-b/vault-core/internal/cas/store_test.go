@@ -168,8 +168,15 @@ func TestOpenObjectFailsForMissingChunk(t *testing.T) {
 		t.Fatalf("remove chunk: %v", err)
 	}
 
-	if _, _, err := store.OpenObject(ctx, upload.ManifestID); err == nil {
-		t.Fatalf("expected missing chunk error")
+	rc, _, err := store.OpenObject(ctx, upload.ManifestID)
+	if err != nil {
+		// OpenObject itself may still return an error for non-streaming cases; accept that too.
+		return
+	}
+	defer rc.Close()
+	_, readErr := io.Copy(io.Discard, rc)
+	if readErr == nil {
+		t.Fatal("expected missing chunk error when reading stream")
 	}
 }
 
@@ -196,8 +203,15 @@ func TestOpenObjectFailsForCorruptedChunk(t *testing.T) {
 		t.Fatalf("corrupt chunk: %v", err)
 	}
 
-	if _, _, err := store.OpenObject(ctx, upload.ManifestID); err == nil {
-		t.Fatalf("expected corrupted chunk error")
+	rc, _, err := store.OpenObject(ctx, upload.ManifestID)
+	if err != nil {
+		// OpenObject itself may still return an error for non-streaming cases; accept that too.
+		return
+	}
+	defer rc.Close()
+	_, readErr := io.Copy(io.Discard, rc)
+	if readErr == nil {
+		t.Fatal("expected corrupted chunk error when reading stream")
 	}
 }
 
@@ -474,5 +488,7 @@ func newTestStore(t *testing.T) *Store {
 			AvgSize: 4 * 1024,
 			MaxSize: 8 * 1024,
 		},
+		true,            // strictVerify
+		64*1024*1024,    // strictVerifyMaxBytes
 	)
 }

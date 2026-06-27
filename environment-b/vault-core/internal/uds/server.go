@@ -44,6 +44,8 @@ func NewHandler(cfg config.Config, db *badger.DB) http.Handler {
 			AvgSize: cfg.FastCDCAvgChunkSize,
 			MaxSize: cfg.FastCDCMaxChunkSize,
 		},
+		cfg.StrictDownloadVerify,
+		cfg.StrictVerifyMaxBytes,
 	)
 
 	h := handler{

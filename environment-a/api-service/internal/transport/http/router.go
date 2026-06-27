@@ -10,11 +10,28 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func NewRouter(cfg config.Config, api *API, authService *service.AuthService) *gin.Engine {
+// NewRouter builds the Gin engine and returns it alongside all RateLimiters that
+// must be stopped on shutdown (to prevent goroutine leaks).
+func NewRouter(cfg config.Config, api *API, authService *service.AuthService) (*gin.Engine, []*middleware.RateLimiter) {
 	router := gin.New()
+
+	// Explicitly set trusted proxies; empty slice means trust nobody (ClientIP = RemoteAddr).
+	// This prevents X-Forwarded-For bypass in rate limiting and logging.
+	if err := router.SetTrustedProxies(cfg.TrustedProxies); err != nil {
+		panic("invalid trusted proxies config: " + err.Error())
+	}
+
+	// General limiter: full burst allowed.
+	generalLimiter := middleware.NewRateLimiter(cfg.RateLimitPerMinute, time.Minute, cfg.RateLimitPerMinute)
+
+	// Auth limiter: small burst (max 5) to throttle brute-force attempts on
+	// login / register / password-reset endpoints.
+	authBurst := 5
+	authLimiter := middleware.NewRateLimiter(cfg.RateLimitPerMinute, time.Minute, authBurst)
+
 	router.Use(gin.Recovery())
 	router.Use(middleware.CORS(cfg.AllowedOrigin))
-	router.Use(middleware.NewRateLimiter(cfg.RateLimitPerMinute, time.Minute).Middleware())
+	router.Use(generalLimiter.Middleware())
 
 	v1 := router.Group("/api/v1")
 	{
@@ -22,10 +39,15 @@ func NewRouter(cfg config.Config, api *API, authService *service.AuthService) *g
 		v1.GET("/status", api.handleStatus)
 		v1.GET("/swagger/*any", brandedSwaggerHandler())
 
-		v1.POST("/auth/login", api.handleLogin)
-		v1.POST("/auth/register", api.handleRegister)
-		v1.POST("/auth/password-reset/request", api.handlePasswordResetRequest)
-		v1.POST("/auth/password-reset/confirm", api.handlePasswordResetConfirm)
+		// Auth endpoints get stricter burst limiting on top of the general limiter.
+		authRoutes := v1.Group("")
+		authRoutes.Use(authLimiter.Middleware())
+		{
+			authRoutes.POST("/auth/login", api.handleLogin)
+			authRoutes.POST("/auth/register", api.handleRegister)
+			authRoutes.POST("/auth/password-reset/request", api.handlePasswordResetRequest)
+			authRoutes.POST("/auth/password-reset/confirm", api.handlePasswordResetConfirm)
+		}
 
 		authorized := v1.Group("")
 		authorized.Use(middleware.Auth(authService))
@@ -76,5 +98,5 @@ func NewRouter(cfg config.Config, api *API, authService *service.AuthService) *g
 		}
 	}
 
-	return router
+	return router, []*middleware.RateLimiter{generalLimiter, authLimiter}
 }

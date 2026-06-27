@@ -2,12 +2,14 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
 
 	"github.com/alfiang/pui/environment-a/api-service/internal/domain"
 	"github.com/alfiang/pui/environment-a/api-service/internal/vaultclient"
+	"github.com/jackc/pgx/v5/pgconn"
 	"gorm.io/gorm"
 )
 
@@ -51,6 +53,15 @@ func NewFileRepository(db *gorm.DB) *FileRepository {
 	return &FileRepository{db: db}
 }
 
+// isUniqueViolation returns true if err is a PostgreSQL unique_violation (23505).
+func isUniqueViolation(err error) bool {
+	var pgErr *pgconn.PgError
+	if errors.As(err, &pgErr) {
+		return pgErr.Code == "23505"
+	}
+	return false
+}
+
 func (r *FileRepository) CreatePending(ctx context.Context, userID, directoryID, name, mimeType string) (domain.FileRecord, error) {
 	var out domain.FileRecord
 	err := r.db.WithContext(ctx).Raw(
@@ -63,6 +74,9 @@ func (r *FileRepository) CreatePending(ctx context.Context, userID, directoryID,
 		mimeType,
 	).Scan(&out).Error
 	if err != nil {
+		if isUniqueViolation(err) {
+			return domain.FileRecord{}, fmt.Errorf("%w: nama berkas sudah ada pada direktori", domain.ErrConflict)
+		}
 		return domain.FileRecord{}, fmt.Errorf("insert pending file metadata: %w", err)
 	}
 
@@ -372,8 +386,7 @@ func (r *FileRepository) ListTrash(ctx context.Context, userID string) ([]domain
 	return files, nil
 }
 
-func (r *FileRepository) ListStarred(ctx context.Context, userID string) ([]domain.FileRecord, error) {
-	files := make([]domain.FileRecord, 0, 32)
+func (r *FileRepository) ListStarred(ctx context.Context, userID string) ([]domain.FileRecord, error) {	files := make([]domain.FileRecord, 0, 32)
 	err := r.db.WithContext(ctx).Raw(
 		`SELECT `+fileSelectColumns+`
 		 FROM files f
@@ -391,4 +404,20 @@ func (r *FileRepository) ListStarred(ctx context.Context, userID string) ([]doma
 	}
 
 	return files, nil
+}
+
+// ExpireStalePending marks pending file records older than olderThan as failed,
+// releasing their locked filenames so new uploads can reuse those names.
+func (r *FileRepository) ExpireStalePending(ctx context.Context, olderThan time.Time) (int64, error) {
+	result := r.db.WithContext(ctx).Exec(
+		`UPDATE files
+		 SET status_penyimpanan = 'failed'
+		 WHERE status_penyimpanan = 'pending'
+		   AND dibuat_pada < ?`,
+		olderThan,
+	)
+	if result.Error != nil {
+		return 0, fmt.Errorf("expire stale pending files: %w", result.Error)
+	}
+	return result.RowsAffected, nil
 }

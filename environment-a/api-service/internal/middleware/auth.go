@@ -2,6 +2,8 @@ package middleware
 
 import (
 	"context"
+	"errors"
+	"log"
 	"net/http"
 	"strings"
 
@@ -24,11 +26,13 @@ func Auth(authService authTokenValidator) gin.HandlerFunc {
 
 		user, err := authService.AuthenticateToken(c.Request.Context(), token)
 		if err != nil {
-			status := http.StatusInternalServerError
-			if err == domain.ErrUnauthorized {
-				status = http.StatusUnauthorized
+			if errors.Is(err, domain.ErrUnauthorized) {
+				c.JSON(http.StatusUnauthorized, gin.H{"status": "error", "error": "unauthorized"})
+				c.Abort()
+				return
 			}
-			c.JSON(status, gin.H{"status": "error", "error": err.Error()})
+			log.Printf("event=auth_internal_error err=%v", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"status": "error", "error": "internal error"})
 			c.Abort()
 			return
 		}

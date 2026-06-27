@@ -37,6 +37,8 @@ func main() {
 			AvgSize: cfg.FastCDCAvgChunkSize,
 			MaxSize: cfg.FastCDCMaxChunkSize,
 		},
+		cfg.StrictDownloadVerify,
+		cfg.StrictVerifyMaxBytes,
 	)
 
 	go func() {
@@ -52,6 +54,24 @@ func main() {
 
 			if deleted > 0 {
 				log.Printf("event=upload_session_cleanup deleted=%d", deleted)
+			}
+		}
+	}()
+
+	// Orphan chunk GC: delete chunks with RefCount=0 older than 30 minutes.
+	go func() {
+		ticker := time.NewTicker(10 * time.Minute)
+		defer ticker.Stop()
+
+		for range ticker.C {
+			grace := time.Now().UTC().Add(-30 * time.Minute)
+			deleted, err := store.CleanupOrphanChunks(context.Background(), grace)
+			if err != nil {
+				log.Printf("event=orphan_chunk_cleanup_failed error=%v", err)
+				continue
+			}
+			if deleted > 0 {
+				log.Printf("event=orphan_chunk_cleanup deleted=%d", deleted)
 			}
 		}
 	}()

@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"path/filepath"
+	"strings"
 
 	"github.com/joho/godotenv"
 	"github.com/spf13/viper"
@@ -12,6 +13,7 @@ type Config struct {
 	AppEnv                  string
 	HTTPAddr                string
 	AllowedOrigin           string
+	TrustedProxies          []string // comma-separated CIDRs/IPs; empty = trust nobody
 	DatabaseURL             string
 	VaultUDSPath            string
 	MigrationsPath          string
@@ -44,13 +46,24 @@ func Load() (Config, error) {
 	viper.SetDefault("PUBLIC_WEB_URL", "http://localhost:5173")
 	viper.SetDefault("PASSWORD_RESET_TTL_MINUTES", 30)
 	viper.SetDefault("MIGRATIONS_PATH", "db/migrations")
+	viper.SetDefault("TRUSTED_PROXIES", "")
 
 	migrationsPath := filepath.Clean(viper.GetString("MIGRATIONS_PATH"))
+
+	var trustedProxies []string
+	if raw := strings.TrimSpace(viper.GetString("TRUSTED_PROXIES")); raw != "" {
+		for _, p := range strings.Split(raw, ",") {
+			if p = strings.TrimSpace(p); p != "" {
+				trustedProxies = append(trustedProxies, p)
+			}
+		}
+	}
 
 	cfg := Config{
 		AppEnv:                  viper.GetString("APP_ENV"),
 		HTTPAddr:                viper.GetString("HTTP_ADDR"),
 		AllowedOrigin:           viper.GetString("ALLOWED_ORIGIN"),
+		TrustedProxies:          trustedProxies,
 		DatabaseURL:             viper.GetString("DATABASE_URL"),
 		VaultUDSPath:            viper.GetString("VAULT_UDS_PATH"),
 		MigrationsPath:          migrationsPath,

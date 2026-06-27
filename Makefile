@@ -83,16 +83,9 @@ unit-test: ## Run Go unit tests with race detector and coverage
 		printf "\033[1;31m✘ Some tests failed\033[0m\n\n"; exit 1; \
 	fi
 
-unit-test-coverage-html: ## Generate HTML coverage report (opens in browser)
-	@set -euo pipefail; \
-	for module in $(GO_MODULES); do \
-		echo "Generating HTML coverage for $$module"; \
-		(cd "$$module" && go test -coverprofile=coverage.out ./... && go tool cover -html=coverage.out && rm -f coverage.out); \
-	done
-
 # ===== BLACKBOX TESTING =====
 
-blackbox-test: blackbox-ui-headless ## Run E2E blackbox UI tests (Bruno API tests must be run manually via Bruno GUI)
+blackbox-test: blackbox-ui-headed ## Run E2E blackbox UI tests (Bruno API tests must be run manually via Bruno GUI)
 
 blackbox-ui-headless: ## Run Playwright E2E UI tests in headless mode (background)
 	@cd tests/blackbox/playwright && npm install && npx playwright install chromium && npm run test
@@ -100,8 +93,6 @@ blackbox-ui-headless: ## Run Playwright E2E UI tests in headless mode (backgroun
 blackbox-ui-headed: ## Run Playwright E2E UI tests in headed mode (opens browser popup)
 	@cd tests/blackbox/playwright && npm install && npx playwright install chromium && npm run test:headed
 
-blackbox-ui-gui: ## Run Playwright E2E UI tests in interactive GUI dashboard
-	@cd tests/blackbox/playwright && npm install && npx playwright install chromium && npm run test:ui
 
 # ===== SECURITY TESTING =====
 

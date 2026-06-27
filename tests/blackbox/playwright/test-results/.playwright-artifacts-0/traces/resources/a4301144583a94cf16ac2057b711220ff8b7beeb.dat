@@ -1,7 +1,0 @@
-import { QueryClient } from "/node_modules/.vite/deps/@tanstack_react-query.js?v=80566579";
-export const queryClient = new QueryClient({ defaultOptions: { queries: {
-	refetchOnWindowFocus: false,
-	retry: 1
-} } });
-
-//# sourceMappingURL=data:application/json;base64,eyJtYXBwaW5ncyI6IkFBQUEsU0FBUyxtQkFBbUI7QUFFNUIsT0FBTyxNQUFNLGNBQWMsSUFBSSxZQUFZLEVBQ3pDLGdCQUFnQixFQUNkLFNBQVM7Q0FDUCxzQkFBc0I7Q0FDdEIsT0FBTztBQUNULEVBQ0YsRUFDRixDQUFDIiwibmFtZXMiOltdLCJzb3VyY2VzIjpbInF1ZXJ5Q2xpZW50LnRzIl0sInZlcnNpb24iOjMsInNvdXJjZXNDb250ZW50IjpbImltcG9ydCB7IFF1ZXJ5Q2xpZW50IH0gZnJvbSBcIkB0YW5zdGFjay9yZWFjdC1xdWVyeVwiO1xuXG5leHBvcnQgY29uc3QgcXVlcnlDbGllbnQgPSBuZXcgUXVlcnlDbGllbnQoe1xuICBkZWZhdWx0T3B0aW9uczoge1xuICAgIHF1ZXJpZXM6IHtcbiAgICAgIHJlZmV0Y2hPbldpbmRvd0ZvY3VzOiBmYWxzZSxcbiAgICAgIHJldHJ5OiAxXG4gICAgfVxuICB9XG59KTtcbiJdfQ==

@@ -3,6 +3,8 @@ package app
 import (
 	"context"
 	"fmt"
+	"log"
+	"time"
 
 	"github.com/alfiang/pui/environment-a/api-service/internal/config"
 	"github.com/alfiang/pui/environment-a/api-service/internal/database"
@@ -66,10 +68,39 @@ func Build(ctx context.Context, cfg config.Config) (*App, error) {
 	systemService := service.NewSystemService(sqlDB, vault, cfg.AppEnv)
 
 	api := httptransport.NewAPI(cfg, authService, adminService, activityService, directoryService, fileService, insightService, systemService)
-	router := httptransport.NewRouter(cfg, api, authService)
+	router, rateLimiters := httptransport.NewRouter(cfg, api, authService)
+
+	// Reaper: marks pending file records older than 30 minutes as failed,
+	// releasing locked filenames. Uses its own context (independent of the
+	// 10-second build context) so it lives for the full app lifetime.
+	reaperCtx, reaperCancel := context.WithCancel(context.Background())
+	go func() {
+		ticker := time.NewTicker(5 * time.Minute)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-ticker.C:
+				grace := time.Now().UTC().Add(-30 * time.Minute)
+				n, err := fileRepo.ExpireStalePending(reaperCtx, grace)
+				if err != nil {
+					log.Printf("event=reaper_expire_pending_failed err=%v", err)
+				} else if n > 0 {
+					log.Printf("event=reaper_expire_pending count=%d", n)
+				}
+			case <-reaperCtx.Done():
+				return
+			}
+		}
+	}()
 
 	return &App{
 		Router: router,
-		Close:  sqlDB.Close,
+		Close: func() error {
+			reaperCancel()
+			for _, rl := range rateLimiters {
+				rl.Stop()
+			}
+			return sqlDB.Close()
+		},
 	}, nil
 }

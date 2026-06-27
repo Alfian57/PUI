@@ -402,3 +402,7 @@ func (f *fakeFileRepo) ListTrash(ctx context.Context, userID string) ([]domain.F
 func (f *fakeFileRepo) ListStarred(ctx context.Context, userID string) ([]domain.FileRecord, error) {
 	return nil, nil
 }
+
+func (f *fakeFileRepo) ExpireStalePending(_ context.Context, _ time.Time) (int64, error) {
+	return 0, nil
+}

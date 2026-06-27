@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"log"
 	"strings"
 	"time"
 
@@ -36,6 +37,7 @@ type fileMetadataRepository interface {
 	SearchByUser(ctx context.Context, userID string, filter domain.FileSearchFilter) ([]domain.FileRecord, int64, error)
 	ListTrash(ctx context.Context, userID string) ([]domain.FileRecord, error)
 	ListStarred(ctx context.Context, userID string) ([]domain.FileRecord, error)
+	ExpireStalePending(ctx context.Context, olderThan time.Time) (int64, error)
 }
 
 type directoryOwnershipRepository interface {
@@ -134,16 +136,20 @@ func (s *FileService) Upload(ctx context.Context, user domain.AuthUser, director
 
 	uploadResult, err := s.vault.Upload(ctx, fileName, reader)
 	if err != nil {
-		_ = s.filesRepo.MarkFailed(ctx, pendingRecord.ID, user.UserID)
+		if markErr := s.filesRepo.MarkFailed(ctx, pendingRecord.ID, user.UserID); markErr != nil {
+			log.Printf("event=mark_failed_error file_id=%s user_id=%s err=%v", pendingRecord.ID, user.UserID, markErr)
+		}
 		if logErr := s.activityRepo.Log(ctx, user.UserID, "UPLOAD_FAILED", "DIRECTORY", activityResourceID); logErr != nil {
-			// Ignore logging errors to keep root cause intact.
+			log.Printf("event=activity_log_error action=UPLOAD_FAILED user_id=%s err=%v", user.UserID, logErr)
 		}
 		return UploadOutcome{}, err
 	}
 
 	record, err := s.filesRepo.MarkCommitted(ctx, pendingRecord.ID, user.UserID, uploadResult)
 	if err != nil {
-		_ = s.filesRepo.MarkFailed(ctx, pendingRecord.ID, user.UserID)
+		if markErr := s.filesRepo.MarkFailed(ctx, pendingRecord.ID, user.UserID); markErr != nil {
+			log.Printf("event=mark_failed_error file_id=%s user_id=%s err=%v", pendingRecord.ID, user.UserID, markErr)
+		}
 		return UploadOutcome{}, fmt.Errorf("simpan metadata berkas gagal: %w", err)
 	}
 
@@ -178,8 +184,13 @@ func (s *FileService) Download(ctx context.Context, user domain.AuthUser, fileID
 		return DownloadOutcome{}, fmt.Errorf("ukuran objek vault tidak sesuai metadata berkas")
 	}
 
-	if logErr := s.activityRepo.Log(ctx, user.UserID, "DOWNLOAD", "FILE", &record.ID); logErr != nil {
-		// Do not fail successful download stream due to audit error.
+	// Audit: distinguish trashed downloads explicitly.
+	action := "DOWNLOAD"
+	if record.DeletedAt != nil {
+		action = "DOWNLOAD_TRASHED"
+	}
+	if logErr := s.activityRepo.Log(ctx, user.UserID, action, "FILE", &record.ID); logErr != nil {
+		log.Printf("event=activity_log_error action=%s file_id=%s user_id=%s err=%v", action, record.ID, user.UserID, logErr)
 	}
 
 	return DownloadOutcome{File: record, Body: body, ContentLength: contentLength}, nil
