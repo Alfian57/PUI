@@ -66,16 +66,21 @@ type activityServiceInterface interface {
 	List(ctx context.Context, user domain.AuthUser, action, resourceType string, limit, offset int) ([]domain.ActivityLogRecord, int64, int, int, error)
 }
 
+type securityLabServiceInterface interface {
+	Run(ctx context.Context, user domain.AuthUser, emit service.EmitFunc) (service.SecurityLabSummary, error)
+}
+
 type API struct {
-	cfg              config.Config
-	authService      authServiceInterface
-	adminService     adminServiceInterface
-	activityService  activityServiceInterface
-	directoryService directoryServiceInterface
-	fileService      fileServiceInterface
-	insightService   insightServiceInterface
-	systemService    *service.SystemService
-	validator        *validator.Validate
+	cfg                config.Config
+	authService        authServiceInterface
+	adminService       adminServiceInterface
+	activityService    activityServiceInterface
+	directoryService   directoryServiceInterface
+	fileService        fileServiceInterface
+	insightService     insightServiceInterface
+	systemService      *service.SystemService
+	securityLabService securityLabServiceInterface
+	validator          *validator.Validate
 }
 
 func NewAPI(
@@ -87,17 +92,19 @@ func NewAPI(
 	fileService *service.FileService,
 	insightService *service.InsightService,
 	systemService *service.SystemService,
+	securityLabService *service.SecurityLabService,
 ) *API {
 	return &API{
-		cfg:              cfg,
-		authService:      authService,
-		adminService:     adminService,
-		activityService:  activityService,
-		directoryService: directoryService,
-		fileService:      fileService,
-		insightService:   insightService,
-		systemService:    systemService,
-		validator:        validator.New(validator.WithRequiredStructEnabled()),
+		cfg:                cfg,
+		authService:        authService,
+		adminService:       adminService,
+		activityService:    activityService,
+		directoryService:   directoryService,
+		fileService:        fileService,
+		insightService:     insightService,
+		systemService:      systemService,
+		securityLabService: securityLabService,
+		validator:          validator.New(validator.WithRequiredStructEnabled()),
 	}
 }
 

@@ -66,8 +66,9 @@ func Build(ctx context.Context, cfg config.Config) (*App, error) {
 	fileService := service.NewFileService(fileRepo, directoryRepo, activityRepo, vault)
 	insightService := service.NewInsightService(insightRepo)
 	systemService := service.NewSystemService(sqlDB, vault, cfg.AppEnv)
+	securityLabService := service.NewSecurityLabService(fileService, vault)
 
-	api := httptransport.NewAPI(cfg, authService, adminService, activityService, directoryService, fileService, insightService, systemService)
+	api := httptransport.NewAPI(cfg, authService, adminService, activityService, directoryService, fileService, insightService, systemService, securityLabService)
 	router, rateLimiters := httptransport.NewRouter(cfg, api, authService)
 
 	// Reaper: marks pending file records older than 30 minutes as failed,

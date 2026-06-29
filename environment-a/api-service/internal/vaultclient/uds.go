@@ -218,3 +218,85 @@ func (c *Client) GetChunkStatus(ctx context.Context, chunkHash string) (ChunkSta
 
 	return payload, nil
 }
+
+// ErrorContract mirrors the structured error body returned by Vault Core when it
+// rejects a request. It is used by the Security Lab to surface the exact policy
+// response produced by an attempted destructive operation.
+type ErrorContract struct {
+	Code    string `json:"code"`
+	Message string `json:"message"`
+	Method  string `json:"method,omitempty"`
+	Path    string `json:"path,omitempty"`
+}
+
+// MutationAttempt captures the full outcome of an attempted destructive request
+// against Vault Core: the HTTP status, the parsed structured error (if any) and
+// the raw response body. A non-nil error is returned only for transport-level
+// failures (the connection could not be made), NOT for a policy rejection such
+// as 403 operation_forbidden, which is a successful, expected result.
+type MutationAttempt struct {
+	Method     string
+	Path       string
+	StatusCode int
+	Error      ErrorContract
+	RawBody    string
+}
+
+// Blocked reports whether Vault Core rejected the destructive request at the
+// protocol level (HTTP 403 with the operation_forbidden contract).
+func (m MutationAttempt) Blocked() bool {
+	return m.StatusCode == http.StatusForbidden && m.Error.Code == "operation_forbidden"
+}
+
+// AttemptManifestMutation sends a destructive HTTP method (DELETE/PUT/PATCH)
+// directly to the Vault Core manifest endpoint over UDS, simulating an attacker
+// who has reached the storage protocol and tries to delete or overwrite an
+// immutable manifest (i.e. a ransomware-style operation). Vault Core is expected
+// to reject every such request; this method reports exactly what it returned.
+func (c *Client) AttemptManifestMutation(ctx context.Context, method, manifestID string, body []byte) (MutationAttempt, error) {
+	path := fmt.Sprintf("/internal/v1/manifests/%s", url.PathEscape(manifestID))
+	requestURL := "http://unix" + path
+
+	var reader io.Reader
+	if len(body) > 0 {
+		reader = bytes.NewReader(body)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, method, requestURL, reader)
+	if err != nil {
+		return MutationAttempt{}, fmt.Errorf("build %s manifest request: %w", method, err)
+	}
+	if len(body) > 0 {
+		req.Header.Set("Content-Type", "application/json")
+	}
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return MutationAttempt{}, fmt.Errorf("call vault %s manifest over uds %s: %w", method, c.socketPath, err)
+	}
+	defer resp.Body.Close()
+
+	rawBytes, err := io.ReadAll(io.LimitReader(resp.Body, 8*1024))
+	if err != nil {
+		return MutationAttempt{}, fmt.Errorf("read vault %s manifest response: %w", method, err)
+	}
+
+	attempt := MutationAttempt{
+		Method:     method,
+		Path:       path,
+		StatusCode: resp.StatusCode,
+		RawBody:    strings.TrimSpace(string(rawBytes)),
+	}
+
+	// The structured error body is nested under the "error" key. A decode failure
+	// is non-fatal: we still return the status code and raw body for inspection.
+	var envelope struct {
+		Status string        `json:"status"`
+		Error  ErrorContract `json:"error"`
+	}
+	if jsonErr := json.Unmarshal(rawBytes, &envelope); jsonErr == nil {
+		attempt.Error = envelope.Error
+	}
+
+	return attempt, nil
+}

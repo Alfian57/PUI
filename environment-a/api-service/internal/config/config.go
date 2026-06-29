@@ -28,6 +28,7 @@ type Config struct {
 	SMTPFromName            string
 	PublicWebURL            string
 	PasswordResetTTLMinutes int
+	SecurityLabEnabled      bool
 }
 
 func Load() (Config, error) {
@@ -47,6 +48,10 @@ func Load() (Config, error) {
 	viper.SetDefault("PASSWORD_RESET_TTL_MINUTES", 30)
 	viper.SetDefault("MIGRATIONS_PATH", "db/migrations")
 	viper.SetDefault("TRUSTED_PROXIES", "")
+	// Security Lab (ransomware-mitigation demo) is OFF by default. It must only be
+	// enabled in the demo/skripsi environment because it performs real uploads and
+	// permanent deletions on the calling user's account.
+	viper.SetDefault("SECURITY_LAB_ENABLED", false)
 
 	migrationsPath := filepath.Clean(viper.GetString("MIGRATIONS_PATH"))
 
@@ -78,6 +83,7 @@ func Load() (Config, error) {
 		SMTPFromName:            viper.GetString("SMTP_FROM_NAME"),
 		PublicWebURL:            viper.GetString("PUBLIC_WEB_URL"),
 		PasswordResetTTLMinutes: viper.GetInt("PASSWORD_RESET_TTL_MINUTES"),
+		SecurityLabEnabled:      viper.GetBool("SECURITY_LAB_ENABLED"),
 	}
 
 	if cfg.DatabaseURL == "" {

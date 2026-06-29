@@ -94,6 +94,10 @@ func NewRouter(cfg config.Config, api *API, authService *service.AuthService) (*
 				userRoutes.GET("/files/:id/manifest", api.handleFileManifest)
 				userRoutes.GET("/files/:id", api.handleFileDetail)
 				userRoutes.DELETE("/files/:id", api.handleSoftDeleteFile)
+
+				// Security Lab: ransomware-mitigation demo (SSE). Gated at runtime by
+				// SECURITY_LAB_ENABLED inside the handler; returns 404 when disabled.
+				userRoutes.GET("/security-lab/run", api.handleSecurityLabRun)
 			}
 		}
 	}

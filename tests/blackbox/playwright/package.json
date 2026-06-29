@@ -8,8 +8,9 @@
     "typescript": "^5.0.0"
   },
   "scripts": {
-    "test": "playwright test",
+    "test": "playwright test --grep-invert \"Security Lab\"",
     "test:ui": "playwright test --ui",
-    "test:headed": "playwright test --headed"
+    "test:headed": "playwright test --grep-invert \"Security Lab\" --headed",
+    "test:security-demo": "playwright test security_lab.spec.ts --headed"
   }
 }

@@ -1,20 +1,35 @@
-# OS/editor
+# ───────────────────────── OS / Editor ─────────────────────────
 .DS_Store
 Thumbs.db
 .vscode/
 .idea/
 *.swp
 *.swo
+*~
 
-# Environment files (keep templates)
+# ─────────────────── Environment / Secrets ─────────────────────
+# Ignore all env files but keep the committed templates (*.env.example).
 .env
 .env.*
 !.env.example
 **/.env
 **/.env.*
 !**/.env.example
+# Common credential/secret material — never commit.
+*.pem
+*.key
+*.p12
+*.pfx
+*.keystore
+id_rsa
+id_rsa.*
+*.secret
+secrets.*
+credentials.json
+*-credentials.json
+serviceaccount*.json
 
-# Node/Vite build artifacts
+# ──────────────── Node / Vite build artifacts ─────────────────
 **/node_modules/
 **/dist/
 **/.vite/
@@ -25,24 +40,36 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# Go build/test artifacts
+# ────────────────── Go build / test artifacts ─────────────────
 **/bin/
 **/tmp/
 **/coverage.out
 **/*.test
+**/*.prof
+# Compiled service binaries (built locally; not source).
 environment-a/api-service/api-service
+environment-b/vault-core/vault-core
 
-# Runtime volumes / socket outputs
+# ──────────────── Runtime volumes / socket outputs ────────────
 data/postgres/
 data/uds/
-
 data/vault/badger/
 data/vault/chunks/
 
-# Local AI assistant state
+# ────────────────── Playwright generated output ───────────────
+# Reports, traces, screenshots and run state are regenerated on each run.
+**/playwright-report/
+**/test-results/
+tests/blackbox/playwright/tests/test_id.tmp
+tests/blackbox/playwright/.cache/
+
+# ──────────────────── Local AI assistant state ────────────────
 .claude/
 .codex/
+.agents/
 skills-lock.json
 
-# Playwright test state
-tests/blackbox/playwright/tests/test_id.tmp
+# ───────────────────────── Misc / scratch ─────────────────────
+# Extracted/derived text dumps (regenerated from source documents).
+pui_extracted.txt
+*.tmp

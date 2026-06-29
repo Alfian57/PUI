@@ -27,8 +27,8 @@ tests/
 │       ├── playwright.config.ts
 │       └── package.json
 └── security/                          # Pengujian Keamanan
-    ├── run_security_tests.sh          # Script otomatisasi pengujian keamanan (CLI)
-    └── demo_immutability.sh           # Script separation of authority demo (split-screen)
+    ├── securitylab_integration_test.go # [Tipe 2] Integration test (Go) — dev/CI
+    └── go.mod                          # Modul standalone untuk integration test
 ```
 
 ---
@@ -109,52 +109,115 @@ find ./data/vault/chunks -type f | wc -l
 
 4. Untuk demonstrasi yang lebih menyeluruh dengan bukti teknis, gunakan demo di **Seksi 4** berikut.
 
-## 🛡️ 4. Demonstrasi Separation of Authority (Split-Screen CLI Demo)
+## 🛡️ 4. Pengujian Keamanan: Mitigasi Ransomware (Security Lab)
 
-Demo utama yang membuktikan bahwa penguasaan lapisan aplikasi **tidak** memberikan akses ke penyimpanan fisik immutable di Vault Core. Setiap klaim dibuktikan dengan output nyata dari sistem.
+HashBox melindungi penyimpanan dari ransomware lewat **pemisahan otoritas**: penguasaan lapisan aplikasi **tidak** memberi akses untuk menghapus/menimpa konten fisik immutable di Vault Core. Untuk membuktikannya tersedia **dua tipe pengujian** yang menjalankan **logika skenario yang sama** (`SecurityLabService` di api-service), sehingga apa yang dipresentasikan persis sama dengan apa yang diuji saat development — bukan jalur demo terpisah.
 
-### **Persiapan Split-Screen:**
-
-Bagi layar menjadi dua:
-
-* **Sisi Kiri (Sisi Penyerang)**: Terminal untuk menjalankan demo
-* **Sisi Kanan (Sisi Vault Core)**: Log stream Vault Core
-
-```bash
-# Sisi Kanan — jalankan ini dulu
-docker compose logs -f vault-core
-
-# Sisi Kiri — jalankan demo
-make security-simulate
-```
-
-### **Alur Demo (5 Fase):**
+Skenario 5 fase (semua nilai berasal dari respons sistem nyata, dapat diverifikasi penguji):
 
 | Fase | Label | Apa yang terjadi |
 |------|-------|------------------|
-| **0** | BEFORE | Upload file target, rekam hash/chunk/manifest dari sistem |
-| **1** | ATTACK A | Hapus permanen metadata via API — **berhasil** (Postgres terhapus) |
-| **2** | PROOF | Cek Vault Core via UDS — manifest & chunk **tetap utuh** |
-| **3** | ATTACK B | DELETE/PUT langsung ke UDS — **403 ditolak**, log kanan muncul `[SECURITY ACTION DENIED]` |
-| **4** | AFTER | Rekonstruksi objek dari Vault Core, bandingkan byte-to-byte dengan file asli |
+| **0** | BEFORE | Upload berkas demo throwaway, rekam `file_hash`, `chunk_count`, `manifest_id`, status chunk fisik |
+| **1** | ATTACK A | Soft delete + hapus permanen metadata via API — **berhasil** (PostgreSQL terhapus) |
+| **2** | PROOF | Query Vault Core via UDS — manifest & semua chunk **tetap utuh** |
+| **3** | ATTACK B | DELETE/PUT/PATCH langsung ke UDS — **403 `operation_forbidden`**, log Vault Core memunculkan `[SECURITY ACTION DENIED]` |
+| **4** | AFTER | Rekonstruksi objek dari Vault Core, bandingkan byte-to-byte dengan berkas asli (`sha256`) |
 
-### **Apa yang dibuktikan:**
+> Berkas yang diserang selalu **berkas demo throwaway** (mis. `ransomware_demo_<timestamp>.txt`) yang diunggah oleh skenario itu sendiri — data asli Anda tidak tersentuh. Karena Vault Core selalu menolak operasi destruktif, simulasi aman diulang.
 
-Demo ini menampilkan kontras yang nyata:
-- Serangan ke lapisan aplikasi (Postgres) **berhasil** — metadata hilang, file tidak bisa diakses via API normal.
-- Data fisik di Vault Core **tidak tersentuh** — manifest, chunk, dan isi file dapat direkonstruksi utuh setelah serangan.
-- Serangan langsung ke UDS **ditolak** di tingkat protokol, bukan hanya lapisan aplikasi.
+### **Gate keamanan (WAJIB diperhatikan)**
 
-Setiap nilai yang ditampilkan (hash, chunk count, exists status) berasal dari respons sistem nyata — dapat diverifikasi penguji.
+Security Lab melakukan upload + hapus permanen **nyata** pada akun pemanggil, sehingga **dimatikan secara default**:
+
+| Variabel | Lokasi | Default | Untuk apa |
+|---|---|---|---|
+| `SECURITY_LAB_ENABLED` | api-service | `false` | Mengaktifkan endpoint `GET /api/v1/security-lab/run` (SSE). Saat `false`, endpoint membalas 404. |
+| `VITE_SECURITY_LAB_ENABLED` | web-client | `false` | Menampilkan menu & halaman `/app/security-lab`. Enforcement sebenarnya tetap di API. |
+
+Aktifkan keduanya hanya di lingkungan demo/skripsi.
 
 ---
 
-## 📺 5. Demonstrasi Pengujian Keamanan Otomatis
+### **🖥️ Tipe 1 — Demo Visual untuk Presentasi (browser, otomatis)**
 
-Untuk verifikasi pass/fail tanpa visual interaktif (cocok untuk CI atau demo cepat):
+Halaman **Security Lab** di web client (`/app/security-lab`) menjalankan skenario secara live via Server-Sent Events dan menampilkan **data faktual** tiap fase: hash, chunk count, manifest id, respons mentah 403 dari Vault Core, dan hasil perbandingan byte-to-byte. Badge status: `OK`, `DITOLAK VAULT CORE`, `PELANGGARAN`.
+
+**Cara manual (untuk dipresentasikan sendiri):**
+
+1. Pastikan stack berjalan dan gate aktif:
+   ```bash
+   # .env: SECURITY_LAB_ENABLED=true dan VITE_SECURITY_LAB_ENABLED=true
+   make compose-up
+   ```
+2. Login di http://localhost:5173, buka menu **Keamanan → Security Lab**.
+3. Klik **Mulai Simulasi Serangan** dan tunjukkan timeline 5 fase yang terisi data nyata.
+
+**Cara otomatis (Playwright membuka browser sungguhan):**
+
+```bash
+make security-demo
+```
+
+Playwright login, membuka halaman Security Lab, menjalankan skenario, dan memverifikasi: kelima fase muncul, ada event `DITOLAK VAULT CORE`, respons `operation_forbidden` terlihat, tidak ada `PELANGGARAN`, dan verdict akhir `passed`.
+
+---
+
+### **🔬 Tipe 2 — Pengujian Development (headless, CI)**
+
+Pengujian ringkas tanpa browser, untuk dipakai sehari-hari dan di CI. Menjalankan skenario yang sama lewat endpoint SSE lalu meng-assert setiap invariant pada ringkasan terstruktur.
+
+Prasyarat: stack berjalan, `SECURITY_LAB_ENABLED=true`, user dev ter-seed.
 
 ```bash
 make security-test
 ```
 
-Output menampilkan hasil tiap skenario serangan beserta respons Vault Core.
+Test akan:
+- Login sebagai user dev (`gading@gmail.com`), memanggil `GET /api/v1/security-lab/run`.
+- Mem-parse stream SSE dan meng-assert: serangan aplikasi berhasil, manifest Vault Core utuh, **semua** serangan UDS ditolak, rekonstruksi byte-to-byte identik, `file_hash`/`chunk_count` awal == akhir, manifest tetap immutable.
+- `SKIP` otomatis bila stack tidak berjalan atau Security Lab belum diaktifkan (404).
+
+> Variabel opsional: `HASHBOX_API_BASE_URL`, `HASHBOX_TEST_EMAIL`, `HASHBOX_TEST_PASSWORD`.
+
+---
+
+## 📦 6. Bukti Penyimpanan: Pemecahan Chunk & Deduplikasi
+
+Demo CLI yang membuktikan, dengan data nyata, bagaimana sebuah berkas dipecah menjadi beberapa chunk dan disimpan di Vault Core. Cocok untuk menunjukkan cara kerja Content-Addressable Storage (FastCDC + BLAKE3) di depan penguji.
+
+Prasyarat: stack berjalan (`make compose-up`), host punya `curl` dan `jq`.
+
+```bash
+make prove-chunking
+```
+
+Skrip menjalankan 6 langkah:
+
+| Langkah | Apa yang dibuktikan |
+|---------|---------------------|
+| **1** | Login + snapshot jumlah chunk fisik awal di `./data/vault/chunks` |
+| **2** | Membuat berkas demo acak (default 4 MB) lalu mengunggahnya; menampilkan respons API `chunk_count`, `new_chunk_count`, `reuse_chunk_count`, `dedup_ratio` |
+| **3** | Menghitung ulang chunk fisik di volume Docker — pertambahan persis = jumlah chunk baru. Menampilkan path & ukuran chunk (`chunks/<2hex>/<2hex>/<BLAKE3>.bin`) |
+| **4** | Manifest dari Vault Core (peta chunk) + baris metadata di PostgreSQL — membuktikan Postgres hanya menyimpan metadata, konten fisik hanya di Vault Core |
+| **5** | Mengunggah berkas dengan isi identik → **0 chunk baru** (deduplikasi) |
+| **6** | Mengunduh & membandingkan SHA-256 — berkas dirakit ulang dari chunk secara **identik** |
+
+> Catatan FastCDC: ukuran chunk min 64 KB / avg 256 KB / max 1 MB. Berkas kecil (beberapa KB) hanya menjadi **1 chunk**; karena itu demo memakai berkas ≥1 MB agar terpecah menjadi banyak chunk. Atur ukuran via `DEMO_SIZE_MB`, mis. `DEMO_SIZE_MB=8 make prove-chunking`.
+
+### Inspeksi manual volume (opsional)
+
+Folder `./data/vault` dimiliki user internal Vault Core (uid `10002`), sehingga di host harus dibaca via `sudo` atau dari dalam container (justru memperkuat narasi: host biasa pun tidak bisa membaca penyimpanan):
+
+```bash
+# Jumlah chunk fisik
+docker exec pui-vault-core sh -c "find /var/lib/pui/chunks -type f -name '*.bin' | wc -l"
+
+# Daftar beberapa chunk (nama file = BLAKE3 hash isinya)
+docker exec pui-vault-core sh -c "find /var/lib/pui/chunks -type f -name '*.bin' | head"
+
+# Metadata berkas di PostgreSQL
+docker exec pui-postgres psql -U pui -d pui -c \
+  "SELECT nama, ukuran, id_manifest, chunk_count FROM files ORDER BY dibuat_pada DESC LIMIT 5;"
+```
+
+

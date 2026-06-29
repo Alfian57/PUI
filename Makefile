@@ -11,7 +11,8 @@ COMPOSE_FILE := docker-compose.yml
 	go-fmt go-fmt-check go-vet \
 	unit-test unit-test-coverage-html \
 	blackbox-test blackbox-ui-headless blackbox-ui-headed blackbox-ui-gui \
-	security-test security-simulate \
+	security-test security-demo \
+	prove-chunking \
 	test-all \
 	web-install web-build web-dev \
 	compose-config compose-up compose-down compose-logs \
@@ -95,12 +96,21 @@ blackbox-ui-headed: ## Run Playwright E2E UI tests in headed mode (opens browser
 
 
 # ===== SECURITY TESTING =====
+# Two complementary modes (see tests/README.md):
+#   Tipe 1 (presentasi) : security-demo  -> visual browser console via Playwright
+#   Tipe 2 (development): security-test  -> headless Go integration test
 
-security-test: ## Run security (ransomware mitigation) tests via UDS
-	@./tests/security/run_security_tests.sh
+security-demo: ## [Tipe 1/presentasi] Run visual Security Lab demo in a real browser (Playwright, headed)
+	@cd tests/blackbox/playwright && npm install && npx playwright install chromium && npm run test:security-demo
 
-security-simulate: ## Run separation of authority demo (split-screen: kiri=attacker, kanan=docker compose logs -f vault-core)
-	@./tests/security/demo_immutability.sh
+security-test: ## [Tipe 2/dev] Run security integration test (ransomware mitigation) against the live stack
+	@echo "Prasyarat: make compose-up + SECURITY_LAB_ENABLED=true + user dev ter-seed."
+	@cd tests/security && GOWORK=off go test -tags=integration -count=1 -v ./...
+
+# ===== STORAGE PROOF =====
+
+prove-chunking: ## Bukti visual: upload sebuah berkas lalu tunjukkan pemecahan chunk, dedup & integritas (butuh stack hidup + curl + jq)
+	@bash scripts/prove_chunking.sh
 
 # ===== TEST AGGREGATES =====
 

@@ -12,6 +12,8 @@ import { InsightPage } from "@/pages/dashboard/InsightPage";
 import { ProfilePage } from "@/pages/dashboard/ProfilePage";
 import { StarredPage } from "@/pages/dashboard/StarredPage";
 import { TrashPage } from "@/pages/dashboard/TrashPage";
+import { SecurityLabPage } from "@/pages/dashboard/SecurityLabPage";
+import { env } from "@/shared/config/env";
 import {
     AdminActivityAnalyticsPage,
     AdminAnalyticsPage,
@@ -77,6 +79,18 @@ export const router = createBrowserRouter([
                         path: "insights",
                         element: <RequireRole role="user"><InsightPage /></RequireRole>
                     },
+                    ...(env.securityLabEnabled
+                        ? [
+                              {
+                                  path: "security-lab",
+                                  element: (
+                                      <RequireRole role="user">
+                                          <SecurityLabPage />
+                                      </RequireRole>
+                                  )
+                              }
+                          ]
+                        : []),
                     {
                         path: "analytics",
                         element: <RequireRole role="admin"><Navigate to="/app/analytics/overview" replace /></RequireRole>

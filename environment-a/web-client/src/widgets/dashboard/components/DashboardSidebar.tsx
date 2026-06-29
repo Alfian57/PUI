@@ -9,11 +9,13 @@ import {
     HardDrive,
     LineChart,
     Server,
+    ShieldCheck,
     Star,
     Trash2,
     X
 } from "lucide-react";
 import { IconButton } from "@/shared/ui/IconButton";
+import { env } from "@/shared/config/env";
 
 type DashboardSidebarProps = {
     role?: "user" | "admin";
@@ -65,7 +67,23 @@ const userMenuGroups = [
                 tourId: "sidebar-insights"
             }
         ]
-    }
+    },
+    // Security Lab is only surfaced when the demo flag is enabled (skripsi env).
+    ...(env.securityLabEnabled
+        ? [
+              {
+                  label: "Keamanan",
+                  items: [
+                      {
+                          to: "/app/security-lab",
+                          label: "Security Lab",
+                          icon: <ShieldCheck className="h-4 w-4" aria-hidden="true" />,
+                          tourId: "sidebar-security-lab"
+                      }
+                  ]
+              }
+          ]
+        : [])
 ];
 
 const adminMenuGroups = [
