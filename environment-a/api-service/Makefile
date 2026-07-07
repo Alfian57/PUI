@@ -62,7 +62,7 @@ migrate-version: ## Show current migration version and dirty status from service
 migrate-fresh: ## Roll back all migrations then re-apply them (dev only)
 	@bash -lc '$(ENV_RUN); go run ./cmd/migrate fresh'
 
-seed-dev-admin: ## Apply dev admin seed via psql using service .env
+seed: ## Apply dev admin seed via psql using service .env
 	@bash -lc '$(ENV_RUN); \
 		command -v psql >/dev/null || { echo "psql is not installed"; exit 1; }; \
 		if [ -z "$${DATABASE_URL}" ]; then echo "DATABASE_URL is required"; exit 1; fi; \

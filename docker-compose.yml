@@ -73,6 +73,9 @@ services:
       retries: 5
     networks:
       - database_net
+      - public_net
+    ports:
+      - "5432:5432"
     volumes:
       - ./data/postgres:/var/lib/postgresql/data
     restart: unless-stopped
@@ -114,6 +117,19 @@ services:
           path: ./environment-b/vault-core
           ignore:
             - "**/*_test.go"
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: pui-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: kykyrizky57@gmail.com
+      PGADMIN_DEFAULT_PASSWORD: postgres
+    ports:
+      - "8082:80"
+    networks:
+      - database_net
+      - public_net
+    restart: unless-stopped
 
 networks:
   public_net:
