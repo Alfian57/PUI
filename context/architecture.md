@@ -2,6 +2,8 @@
 
 HashBox memisahkan metadata aplikasi dari konten file immutable.
 
+Scope sistem mengikuti [proposal-pui.md](../proposal-pui.md). Deskripsi monitoring di bawah ini adalah perilaku implementasi saat ini, bukan dasar untuk memperluas scope penelitian di luar proposal.
+
 | Komponen | Lokasi | Tanggung jawab |
 |---|---|---|
 | Web Client | `environment-a/web-client` | UI, session, route guard, upload/download client |

@@ -5,6 +5,10 @@ HashBox adalah platform penyimpanan file immutable dengan arsitektur terpisah:
 - environment-b untuk penyimpanan konten immutable (vault-core)
 - komunikasi antar service memakai Unix Domain Socket (UDS)
 
+Dokumen acuan mutlak scope dan kebutuhan sistem: [proposal-pui.md](proposal-pui.md).
+
+Status proyek: PUI telah selesai dan lulus; fase aktif sekarang adalah Proyek Professional (PP). Prioritas PP mengikuti roadmap proposal: Concurrent Garbage Collection dan Read-Proxy.
+
 ## Komponen Utama
 
 | Komponen | Lokasi | Fungsi |
@@ -105,6 +109,9 @@ Workflow: [.github/workflows/ci-cd.yml](.github/workflows/ci-cd.yml)
 │   └── vault-core/
 ├── shared/
 │   └── uds/
+├── context/
+├── AGENTS.md
+├── proposal-pui.md
 ├── docker-compose.yml
 ├── Makefile
 └── .github/workflows/ci-cd.yml

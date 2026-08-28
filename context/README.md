@@ -1,13 +1,14 @@
 # HashBox context index
 
-Context ini adalah peta kerja singkat untuk AI agent. Baca `AGENTS.md` lebih dulu, lalu pilih dokumen sesuai task.
+Context ini adalah peta kerja singkat untuk AI agent. Baca `AGENTS.md` dan [proposal-pui.md](../proposal-pui.md) lebih dulu, lalu pilih dokumen sesuai task. Fase aktif saat ini dirangkum di [project-status.md](project-status.md).
 
 | Task | Baca |
 |---|---|
+| Menentukan fase dan roadmap PP | [project-status.md](project-status.md), [proposal-pui.md](../proposal-pui.md) |
 | Memahami komponen dan alur data | [architecture.md](architecture.md) |
 | Mengubah kode atau konfigurasi | [architecture.md](architecture.md), [development.md](development.md) |
 | Menambah atau memperbaiki test | [testing.md](testing.md), lalu context service terkait |
 | Menyentuh auth, UDS, storage, atau monitoring | [security.md](security.md), [architecture.md](architecture.md) |
 | Menjalankan stack atau troubleshooting | [operations.md](operations.md) |
 
-Dokumen ini tidak menggantikan source code, konfigurasi, Swagger, atau README service. Jika implementasi berubah, perbarui context yang menjelaskan perubahan tersebut.
+Proposal adalah authority untuk scope dan kebutuhan. Source code/configuration menjelaskan perilaku aktual; Swagger dan README menjelaskan contract/operasi yang tersedia. Jika ada konflik dengan proposal, proposal yang berlaku dan context harus menandai konflik tersebut.
