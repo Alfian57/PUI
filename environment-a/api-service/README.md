@@ -36,6 +36,12 @@ Base path: `/api/v1`
 - `GET /files/:id`
 - `DELETE /files/:id`
 
+### Monitoring keamanan (admin)
+
+- `GET /admin/security-monitor/summary?range=24h|7d|30d`
+- `GET /admin/security-monitor/events`
+- `GET /admin/security-monitor/stream` (SSE)
+
 ## Konfigurasi Environment
 
 Contoh env: [.env.example](.env.example)
@@ -51,6 +57,8 @@ Contoh env: [.env.example](.env.example)
 | MAX_UPLOAD_SIZE_BYTES | 536870912 | batas upload |
 | RATE_LIMIT_PER_MINUTE | 120 | rate limit request |
 | SESSION_TTL_MINUTES | 1440 | masa aktif bearer access token untuk sesi login |
+| SECURITY_EVENTS_UDS_PATH | /var/run/pui/uds/security-events.sock | socket event keamanan dari Vault Core |
+| SECURITY_EVENTS_ALLOWED_UIDS | 10002 | UID Vault Core yang diizinkan mengirim event |
 
 ## Menjalankan Service
 

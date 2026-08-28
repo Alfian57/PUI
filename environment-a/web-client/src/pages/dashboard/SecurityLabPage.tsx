@@ -238,6 +238,9 @@ export function SecurityLabPage(): JSX.Element {
                             good={summary.chunks_verified > 0}
                         />
                     </div>
+                    <p className="mt-4 break-all rounded-xl bg-white/70 px-3 py-2 font-mono text-xs text-brand-steel">
+                        Bukti tersimpan · run_id: {summary.run_id}
+                    </p>
                 </section>
             ) : null}
 

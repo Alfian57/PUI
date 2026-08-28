@@ -13,6 +13,7 @@ import { ProfilePage } from "@/pages/dashboard/ProfilePage";
 import { StarredPage } from "@/pages/dashboard/StarredPage";
 import { TrashPage } from "@/pages/dashboard/TrashPage";
 import { SecurityLabPage } from "@/pages/dashboard/SecurityLabPage";
+import { AdminSecurityMonitoringPage } from "@/pages/dashboard/AdminSecurityMonitoringPage";
 import { env } from "@/shared/config/env";
 import {
     AdminActivityAnalyticsPage,
@@ -110,6 +111,10 @@ export const router = createBrowserRouter([
                     {
                         path: "analytics/system",
                         element: <RequireRole role="admin"><AdminSystemPage /></RequireRole>
+                    },
+                    {
+                        path: "analytics/security",
+                        element: <RequireRole role="admin"><AdminSecurityMonitoringPage /></RequireRole>
                     },
                     {
                         path: "analytics/reports",

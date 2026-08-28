@@ -347,6 +347,27 @@ definitions:
         example: ok
         type: string
     type: object
+  dto.PasswordResetConfirmRequest:
+    properties:
+      confirm_password:
+        type: string
+      new_password:
+        minLength: 8
+        type: string
+      token:
+        type: string
+    required:
+    - confirm_password
+    - new_password
+    - token
+    type: object
+  dto.PasswordResetRequest:
+    properties:
+      email:
+        type: string
+    required:
+    - email
+    type: object
   dto.RegisterRequest:
     properties:
       confirm_password:
@@ -365,6 +386,82 @@ definitions:
     - email
     - full_name
     - password
+    type: object
+  dto.SecurityEventDTO:
+    properties:
+      client_ip:
+        type: string
+      detail:
+        type: string
+      details:
+        additionalProperties: {}
+        type: object
+      error_code:
+        type: string
+      event_type:
+        type: string
+      id:
+        type: string
+      method:
+        type: string
+      occurred_at:
+        type: string
+      outcome:
+        type: string
+      path:
+        type: string
+      phase:
+        type: string
+      run_id:
+        type: string
+      severity:
+        type: string
+      source:
+        type: string
+      status_code:
+        type: integer
+      step:
+        type: string
+      title:
+        type: string
+      user_id:
+        type: string
+    type: object
+  dto.SecurityEventListResponse:
+    properties:
+      limit:
+        type: integer
+      offset:
+        type: integer
+      security_events:
+        items:
+          $ref: '#/definitions/dto.SecurityEventDTO'
+        type: array
+      status:
+        type: string
+      total:
+        type: integer
+    type: object
+  dto.SecurityEventSummaryResponse:
+    properties:
+      blocked:
+        type: integer
+      breaches:
+        type: integer
+      detected:
+        type: integer
+      generated_at:
+        type: string
+      last_event_at:
+        type: string
+      range:
+        type: string
+      security_lab_runs:
+        type: integer
+      status:
+        type: string
+      total_events:
+        type: integer
     type: object
   dto.SoftDeleteResponse:
     properties:
@@ -545,6 +642,118 @@ paths:
       summary: Analitik admin
       tags:
       - admin
+  /admin/security-monitor/events:
+    get:
+      description: Menampilkan event keamanan tersimpan dengan filter dan pagination
+      parameters:
+      - description: 'Rentang: 24h, 7d, atau 30d'
+        in: query
+        name: range
+        type: string
+      - description: Filter tipe event
+        in: query
+        name: event_type
+        type: string
+      - description: Filter sumber event
+        in: query
+        name: source
+        type: string
+      - description: Filter hasil event
+        in: query
+        name: outcome
+        type: string
+      - description: Filter sesi Security Lab
+        in: query
+        name: run_id
+        type: string
+      - description: Ukuran halaman (1-100, default 25)
+        in: query
+        name: limit
+        type: integer
+      - description: Offset (default 0)
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SecurityEventListResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Histori event keamanan
+      tags:
+      - security-monitor
+  /admin/security-monitor/stream:
+    get:
+      description: Mengalirkan event keamanan baru secara real-time melalui SSE untuk
+        admin
+      produces:
+      - text/event-stream
+      responses:
+        "200":
+          description: Stream event SSE
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Stream monitoring keamanan
+      tags:
+      - security-monitor
+  /admin/security-monitor/summary:
+    get:
+      description: Menampilkan jumlah event keamanan dan sesi Security Lab untuk admin
+      parameters:
+      - description: 'Rentang: 24h, 7d, atau 30d'
+        in: query
+        name: range
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SecurityEventSummaryResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Ringkasan monitoring keamanan
+      tags:
+      - security-monitor
   /auth/login:
     post:
       consumes:
@@ -659,6 +868,66 @@ paths:
       security:
       - BearerAuth: []
       summary: Update profil
+      tags:
+      - autentikasi
+  /auth/password-reset/confirm:
+    post:
+      consumes:
+      - application/json
+      description: Mengganti password menggunakan token reset yang valid
+      parameters:
+      - description: Payload konfirmasi reset password
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/dto.PasswordResetConfirmRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.OKResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Konfirmasi reset password
+      tags:
+      - autentikasi
+  /auth/password-reset/request:
+    post:
+      consumes:
+      - application/json
+      description: Mengirim tautan reset password ke email bila akun ditemukan
+      parameters:
+      - description: Payload permintaan reset password
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/dto.PasswordResetRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.OKResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Minta reset password
       tags:
       - autentikasi
   /auth/register:
@@ -1497,6 +1766,31 @@ paths:
       summary: Health check
       tags:
       - system
+  /security-lab/run:
+    get:
+      description: Menjalankan skenario serangan ransomware 5-fase dan mengalirkan
+        setiap langkah sebagai Server-Sent Events. Hanya aktif saat SECURITY_LAB_ENABLED=true.
+        Setiap event berisi data faktual dari respons sistem nyata.
+      produces:
+      - text/event-stream
+      responses:
+        "200":
+          description: Stream event SSE
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Jalankan simulasi mitigasi ransomware (Security Lab)
+      tags:
+      - security-lab
   /starred:
     get:
       description: Menampilkan berkas dan direktori berbintang milik pengguna

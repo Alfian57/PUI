@@ -146,6 +146,7 @@ const adminTourSteps: DashboardTourStep[] = [
     { target: '[data-tour="sidebar-admin-storage"]', title: "Penyimpanan", content: "Gunakan area ini untuk melihat kapasitas, chunk, dan efisiensi storage.", placement: "right", route: "/app/analytics/storage", sidebar: true },
     { target: '[data-tour="sidebar-admin-activity"]', title: "Aktivitas", content: "Analisis tren aktivitas pengguna dan operasi file.", placement: "right", route: "/app/analytics/activity", sidebar: true },
     { target: '[data-tour="sidebar-admin-system"]', title: "Kesehatan sistem", content: "Cek kondisi operasional layanan HashBox dari menu ini.", placement: "right", route: "/app/analytics/system", sidebar: true },
+    { target: '[data-tour="sidebar-admin-security"]', title: "Monitoring keamanan", content: "Lihat event serangan API, penolakan Vault Core, dan bukti Security Lab secara real-time.", placement: "right", route: "/app/analytics/security", sidebar: true },
     { target: '[data-tour="dashboard-account"]', title: "Menu akun", content: "Profil dan logout admin tersedia dari menu akun.", placement: "left" }
 ];
 

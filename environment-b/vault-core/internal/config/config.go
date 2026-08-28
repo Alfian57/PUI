@@ -10,16 +10,17 @@ import (
 )
 
 type Config struct {
-	AppEnv              string
-	UDSPath             string
-	BadgerPath          string
-	ChunkRoot           string
-	UDSOwnerUID         int
-	UDSOwnerGID         int
-	UDSAllowedUIDs      []uint32
-	FastCDCMinChunkSize int
-	FastCDCAvgChunkSize int
-	FastCDCMaxChunkSize int
+	AppEnv                string
+	UDSPath               string
+	SecurityEventsUDSPath string
+	BadgerPath            string
+	ChunkRoot             string
+	UDSOwnerUID           int
+	UDSOwnerGID           int
+	UDSAllowedUIDs        []uint32
+	FastCDCMinChunkSize   int
+	FastCDCAvgChunkSize   int
+	FastCDCMaxChunkSize   int
 	// StrictDownloadVerify enables full verify-before-send for objects ≤ StrictVerifyMaxBytes.
 	// Larger objects fall back to streaming with pre-flight existence check.
 	StrictDownloadVerify bool
@@ -60,18 +61,19 @@ func Load() (Config, error) {
 	}
 
 	cfg := Config{
-		AppEnv:               stringFromEnv("APP_ENV", "environment-b"),
-		UDSPath:              stringFromEnv("UDS_PATH", "/var/run/pui/uds/vault-core.sock"),
-		BadgerPath:           stringFromEnv("BADGER_PATH", "/var/lib/pui/badger"),
-		ChunkRoot:            stringFromEnv("CHUNK_ROOT", "/var/lib/pui/chunks"),
-		UDSOwnerUID:          udsOwnerUID,
-		UDSOwnerGID:          udsOwnerGID,
-		UDSAllowedUIDs:       udsAllowedUIDs,
-		FastCDCMinChunkSize:  minChunkSize,
-		FastCDCAvgChunkSize:  avgChunkSize,
-		FastCDCMaxChunkSize:  maxChunkSize,
-		StrictDownloadVerify: boolFromEnv("STRICT_DOWNLOAD_VERIFY", true),
-		StrictVerifyMaxBytes: int64FromEnv("STRICT_VERIFY_MAX_BYTES", 64*1024*1024),
+		AppEnv:                stringFromEnv("APP_ENV", "environment-b"),
+		UDSPath:               stringFromEnv("UDS_PATH", "/var/run/pui/uds/vault-core.sock"),
+		SecurityEventsUDSPath: stringFromEnv("SECURITY_EVENTS_UDS_PATH", "/var/run/pui/uds/security-events.sock"),
+		BadgerPath:            stringFromEnv("BADGER_PATH", "/var/lib/pui/badger"),
+		ChunkRoot:             stringFromEnv("CHUNK_ROOT", "/var/lib/pui/chunks"),
+		UDSOwnerUID:           udsOwnerUID,
+		UDSOwnerGID:           udsOwnerGID,
+		UDSAllowedUIDs:        udsAllowedUIDs,
+		FastCDCMinChunkSize:   minChunkSize,
+		FastCDCAvgChunkSize:   avgChunkSize,
+		FastCDCMaxChunkSize:   maxChunkSize,
+		StrictDownloadVerify:  boolFromEnv("STRICT_DOWNLOAD_VERIFY", true),
+		StrictVerifyMaxBytes:  int64FromEnv("STRICT_VERIFY_MAX_BYTES", 64*1024*1024),
 	}
 
 	if cfg.FastCDCMinChunkSize <= 0 || cfg.FastCDCAvgChunkSize <= 0 || cfg.FastCDCMaxChunkSize <= 0 {

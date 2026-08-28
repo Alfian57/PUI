@@ -12,7 +12,7 @@ import (
 
 // NewRouter builds the Gin engine and returns it alongside all RateLimiters that
 // must be stopped on shutdown (to prevent goroutine leaks).
-func NewRouter(cfg config.Config, api *API, authService *service.AuthService) (*gin.Engine, []*middleware.RateLimiter) {
+func NewRouter(cfg config.Config, api *API, authService *service.AuthService, securityEventRecorder service.SecurityEventRecorder) (*gin.Engine, []*middleware.RateLimiter) {
 	router := gin.New()
 
 	// Explicitly set trusted proxies; empty slice means trust nobody (ClientIP = RemoteAddr).
@@ -31,6 +31,7 @@ func NewRouter(cfg config.Config, api *API, authService *service.AuthService) (*
 
 	router.Use(gin.Recovery())
 	router.Use(middleware.CORS(cfg.AllowedOrigin))
+	router.Use(middleware.SecurityMonitor(securityEventRecorder))
 	router.Use(generalLimiter.Middleware())
 
 	v1 := router.Group("/api/v1")
@@ -62,6 +63,9 @@ func NewRouter(cfg config.Config, api *API, authService *service.AuthService) (*
 				admin.GET("/analytics", api.handleAdminAnalytics)
 				admin.GET("/reports/analytics", api.handleAdminAnalyticsReport)
 				admin.GET("/system", api.handleAdminSystem)
+				admin.GET("/security-monitor/summary", api.handleAdminSecurityEventSummary)
+				admin.GET("/security-monitor/events", api.handleAdminSecurityEvents)
+				admin.GET("/security-monitor/stream", api.handleAdminSecurityEventStream)
 			}
 
 			userRoutes := authorized.Group("")

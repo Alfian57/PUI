@@ -11,6 +11,7 @@ export type SecurityPhase =
 export type SecurityStatus = "info" | "ok" | "blocked" | "breach";
 
 export type SecurityLabEvent = {
+  run_id: string;
   phase: SecurityPhase;
   step: string;
   status: SecurityStatus;
@@ -21,6 +22,7 @@ export type SecurityLabEvent = {
 };
 
 export type SecurityLabSummary = {
+  run_id: string;
   manifest_id: string;
   demo_file_name: string;
   file_hash_before: string;

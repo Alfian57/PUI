@@ -30,6 +30,8 @@ Base internal path:
 - `GET /internal/v1/chunks/{chunk_hash}/status`
 
 Catatan: handler memblokir method destruktif (`DELETE`, `PUT`, `PATCH`).
+Saat penolakan terjadi, Vault Core juga mengirim event `VAULT_OPERATION_BLOCKED`
+ke API Service melalui socket lokal `SECURITY_EVENTS_UDS_PATH`.
 
 ## Konfigurasi Environment
 
@@ -44,6 +46,7 @@ Contoh env: [.env.example](.env.example)
 | FASTCDC_MIN_CHUNK_SIZE | 65536 | ukuran minimum chunk |
 | FASTCDC_AVG_CHUNK_SIZE | 262144 | ukuran target rata-rata chunk |
 | FASTCDC_MAX_CHUNK_SIZE | 1048576 | ukuran maksimum chunk |
+| SECURITY_EVENTS_UDS_PATH | ../../data/uds/security-events.sock | socket event keamanan ke API Service |
 
 Pada docker-compose root juga ada variabel tambahan ownership socket:
 - `UDS_OWNER_UID`

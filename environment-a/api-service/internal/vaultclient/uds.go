@@ -18,6 +18,17 @@ type Client struct {
 	socketPath string
 }
 
+type securityRunIDContextKey struct{}
+
+func WithSecurityRunID(ctx context.Context, runID string) context.Context {
+	return context.WithValue(ctx, securityRunIDContextKey{}, runID)
+}
+
+func securityRunIDFromContext(ctx context.Context) string {
+	value, _ := ctx.Value(securityRunIDContextKey{}).(string)
+	return value
+}
+
 type UploadCommitResult struct {
 	ManifestID      string  `json:"manifest_id"`
 	FileHash        string  `json:"file_hash"`
@@ -268,6 +279,9 @@ func (c *Client) AttemptManifestMutation(ctx context.Context, method, manifestID
 	}
 	if len(body) > 0 {
 		req.Header.Set("Content-Type", "application/json")
+	}
+	if runID := securityRunIDFromContext(ctx); runID != "" {
+		req.Header.Set("X-PUI-Security-Run-ID", runID)
 	}
 
 	resp, err := c.httpClient.Do(req)

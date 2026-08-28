@@ -41,6 +41,7 @@ func Build(ctx context.Context, cfg config.Config) (*App, error) {
 	directoryRepo := repository.NewDirectoryRepository(gormDB)
 	fileRepo := repository.NewFileRepository(gormDB)
 	activityRepo := repository.NewActivityRepository(gormDB)
+	securityEventRepo := repository.NewSecurityEventRepository(gormDB)
 	adminRepo := repository.NewAdminRepository(gormDB)
 	insightRepo := repository.NewInsightRepository(gormDB)
 
@@ -66,10 +67,17 @@ func Build(ctx context.Context, cfg config.Config) (*App, error) {
 	fileService := service.NewFileService(fileRepo, directoryRepo, activityRepo, vault)
 	insightService := service.NewInsightService(insightRepo)
 	systemService := service.NewSystemService(sqlDB, vault, cfg.AppEnv)
-	securityLabService := service.NewSecurityLabService(fileService, vault)
+	securityMonitoringService := service.NewSecurityMonitoringService(securityEventRepo)
+	securityEventBridge, err := service.StartSecurityEventBridge(cfg.SecurityEventsUDSPath, cfg.SecurityEventsAllowedUIDs, securityMonitoringService)
+	if err != nil {
+		_ = sqlDB.Close()
+		securityMonitoringService.Close()
+		return nil, fmt.Errorf("start security event bridge: %w", err)
+	}
+	securityLabService := service.NewSecurityLabService(fileService, vault, securityMonitoringService)
 
-	api := httptransport.NewAPI(cfg, authService, adminService, activityService, directoryService, fileService, insightService, systemService, securityLabService)
-	router, rateLimiters := httptransport.NewRouter(cfg, api, authService)
+	api := httptransport.NewAPI(cfg, authService, adminService, activityService, directoryService, fileService, insightService, systemService, securityLabService, securityMonitoringService)
+	router, rateLimiters := httptransport.NewRouter(cfg, api, authService, securityMonitoringService)
 
 	// Reaper: marks pending file records older than 30 minutes as failed,
 	// releasing locked filenames. Uses its own context (independent of the
@@ -94,12 +102,43 @@ func Build(ctx context.Context, cfg config.Config) (*App, error) {
 		}
 	}()
 
+	retentionCtx, retentionCancel := context.WithCancel(context.Background())
+	go func() {
+		purge := func() {
+			purged, err := securityMonitoringService.PurgeExpired(retentionCtx)
+			if err != nil {
+				log.Printf("event=security_event_retention_failed err=%v", err)
+			} else if purged > 0 {
+				log.Printf("event=security_event_retention_purged count=%d", purged)
+			}
+		}
+		purge()
+		ticker := time.NewTicker(24 * time.Hour)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-ticker.C:
+				purge()
+			case <-retentionCtx.Done():
+				return
+			}
+		}
+	}()
+
 	return &App{
 		Router: router,
 		Close: func() error {
 			reaperCancel()
+			retentionCancel()
+			securityMonitoringService.Close()
+			bridgeCtx, bridgeCancel := context.WithTimeout(context.Background(), 2*time.Second)
+			bridgeErr := securityEventBridge.Close(bridgeCtx)
+			bridgeCancel()
 			for _, rl := range rateLimiters {
 				rl.Stop()
+			}
+			if bridgeErr != nil {
+				return bridgeErr
 			}
 			return sqlDB.Close()
 		},

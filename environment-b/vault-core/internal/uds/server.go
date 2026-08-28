@@ -14,6 +14,7 @@ import (
 	"strconv"
 	"strings"
 	"sync/atomic"
+	"time"
 
 	"github.com/alfiang/pui/environment-b/vault-core/internal/cas"
 	"github.com/alfiang/pui/environment-b/vault-core/internal/config"
@@ -27,6 +28,7 @@ type handler struct {
 	store          *cas.Store
 	stats          *metrics
 	allowedPeerUID map[uint32]struct{}
+	eventPublisher *securityEventClient
 }
 
 type metrics struct {
@@ -53,6 +55,9 @@ func NewHandler(cfg config.Config, db *badger.DB) http.Handler {
 		store:          store,
 		stats:          &metrics{},
 		allowedPeerUID: makeAllowedPeerSet(cfg.UDSAllowedUIDs),
+	}
+	if cfg.SecurityEventsUDSPath != "" {
+		h.eventPublisher = newSecurityEventClient(cfg.SecurityEventsUDSPath)
 	}
 
 	mux := http.NewServeMux()
@@ -124,7 +129,7 @@ func (h handler) handleHealth(w http.ResponseWriter, r *http.Request) {
 func (h handler) handleUpload(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		if isDestructiveMethod(r.Method) {
-			writeForbiddenOperation(w, r.Method, r.URL.Path)
+			h.writeForbiddenOperation(w, r)
 			return
 		}
 
@@ -168,7 +173,7 @@ func (h handler) handleUpload(w http.ResponseWriter, r *http.Request) {
 func (h handler) handleManifest(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		if isDestructiveMethod(r.Method) {
-			writeForbiddenOperation(w, r.Method, r.URL.Path)
+			h.writeForbiddenOperation(w, r)
 			return
 		}
 
@@ -201,7 +206,7 @@ func (h handler) handleManifest(w http.ResponseWriter, r *http.Request) {
 func (h handler) handleObject(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		if isDestructiveMethod(r.Method) {
-			writeForbiddenOperation(w, r.Method, r.URL.Path)
+			h.writeForbiddenOperation(w, r)
 			return
 		}
 
@@ -238,7 +243,7 @@ func (h handler) handleObject(w http.ResponseWriter, r *http.Request) {
 func (h handler) handleChunkStatus(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		if isDestructiveMethod(r.Method) {
-			writeForbiddenOperation(w, r.Method, r.URL.Path)
+			h.writeForbiddenOperation(w, r)
 			return
 		}
 
@@ -311,8 +316,33 @@ func isDestructiveMethod(method string) bool {
 	}
 }
 
-func writeForbiddenOperation(w http.ResponseWriter, method, path string) {
+func (h handler) writeForbiddenOperation(w http.ResponseWriter, r *http.Request) {
+	method := r.Method
+	path := r.URL.Path
 	log.Printf("\x1b[31;1m[SECURITY ACTION DENIED]: Direct physical deletion request blocked by Vault Policy: method=%s path=%s\x1b[0m", method, path)
+	if h.eventPublisher != nil {
+		ctx, cancel := context.WithTimeout(context.Background(), 750*time.Millisecond)
+		peerUID, peerErr := peerUIDFromRequest(r)
+		if peerErr != nil {
+			peerUID = 0
+		}
+		err := h.eventPublisher.Publish(ctx, securityEventPayload{
+			RunID:      securityRunIDFromHeader(r.Header.Get("X-PUI-Security-Run-ID")),
+			EventType:  "VAULT_OPERATION_BLOCKED",
+			Severity:   "high",
+			Outcome:    "blocked",
+			Method:     method,
+			Path:       path,
+			StatusCode: http.StatusForbidden,
+			ErrorCode:  "operation_forbidden",
+			Details:    map[string]any{"peer_uid": peerUID},
+			OccurredAt: time.Now().UTC(),
+		})
+		cancel()
+		if err != nil {
+			log.Printf("event=security_event_publish_failed method=%s path=%s err=%v", method, path, err)
+		}
+	}
 	writeJSON(w, http.StatusForbidden, map[string]any{
 		"status": "error",
 		"error": map[string]any{

@@ -136,6 +136,9 @@ func TestSecurityLabRunAllInvariantsHold(t *testing.T) {
 	if !summary.AppLayerCompromised {
 		t.Errorf("expected app layer compromised")
 	}
+	if !IsUUID(summary.RunID) {
+		t.Errorf("expected a UUID run id, got %q", summary.RunID)
+	}
 	if !summary.VaultManifestIntact {
 		t.Errorf("expected vault manifest intact")
 	}

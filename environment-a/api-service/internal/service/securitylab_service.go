@@ -35,6 +35,7 @@ const (
 // in Data originates from a real system response so it can be independently
 // verified by an examiner; this is a system test, not a staged animation.
 type SecurityLabEvent struct {
+	RunID     string         `json:"run_id"`
 	Phase     string         `json:"phase"`
 	Step      string         `json:"step"`
 	Status    string         `json:"status"`
@@ -47,6 +48,7 @@ type SecurityLabEvent struct {
 // SecurityLabSummary is the machine-checkable outcome of a run. The integration
 // test (Tipe 2) asserts on these fields; the UI (Tipe 1) renders them.
 type SecurityLabSummary struct {
+	RunID                   string `json:"run_id"`
 	ManifestID              string `json:"manifest_id"`
 	DemoFileName            string `json:"demo_file_name"`
 	FileHashBefore          string `json:"file_hash_before"`
@@ -93,12 +95,17 @@ type securityVaultOps interface {
 // during a demo is exactly what is verified in development — there is no separate
 // "demo-only" code path.
 type SecurityLabService struct {
-	files securityFileOps
-	vault securityVaultOps
+	files    securityFileOps
+	vault    securityVaultOps
+	recorder SecurityEventRecorder
 }
 
-func NewSecurityLabService(files securityFileOps, vault securityVaultOps) *SecurityLabService {
-	return &SecurityLabService{files: files, vault: vault}
+func NewSecurityLabService(files securityFileOps, vault securityVaultOps, recorders ...SecurityEventRecorder) *SecurityLabService {
+	var recorder SecurityEventRecorder
+	if len(recorders) > 0 {
+		recorder = recorders[0]
+	}
+	return &SecurityLabService{files: files, vault: vault, recorder: recorder}
 }
 
 // EmitFunc receives each scenario event as it happens.
@@ -118,9 +125,15 @@ func (s *SecurityLabService) Run(ctx context.Context, user domain.AuthUser, emit
 	if emit == nil {
 		emit = func(SecurityLabEvent) {}
 	}
+	runID, err := NewSecurityRunID()
+	if err != nil {
+		return SecurityLabSummary{}, err
+	}
+	ctx = vaultclient.WithSecurityRunID(ctx, runID)
 
 	send := func(phase, step, status, title, detail string, data map[string]any) {
-		emit(SecurityLabEvent{
+		event := SecurityLabEvent{
+			RunID:     runID,
 			Phase:     phase,
 			Step:      step,
 			Status:    status,
@@ -128,10 +141,13 @@ func (s *SecurityLabService) Run(ctx context.Context, user domain.AuthUser, emit
 			Detail:    detail,
 			Data:      data,
 			Timestamp: time.Now().UTC(),
-		})
+		}
+		s.recordLabEvent(ctx, event)
+		emit(event)
 	}
 
 	var summary SecurityLabSummary
+	summary.RunID = runID
 
 	// ---------------------------------------------------------------------
 	// PHASE 0 — BEFORE: upload a throwaway demo file and record real state.
@@ -424,6 +440,77 @@ func (s *SecurityLabService) Run(ctx context.Context, user domain.AuthUser, emit
 			"reconstruction_identical": summary.ReconstructionIdentical,
 			"passed":                   summary.Passed,
 		})
+	s.recordLabSummary(ctx, summary)
 
 	return summary, nil
+}
+
+func (s *SecurityLabService) recordLabEvent(ctx context.Context, event SecurityLabEvent) {
+	if s.recorder == nil {
+		return
+	}
+	severity := domain.SecuritySeverityMedium
+	if event.Status == SecurityStatusBlocked {
+		severity = domain.SecuritySeverityHigh
+	} else if event.Status == SecurityStatusBreach {
+		severity = domain.SecuritySeverityCritical
+	}
+	recordCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 2*time.Second)
+	defer cancel()
+	_, err := s.recorder.Record(recordCtx, domain.SecurityEventInput{
+		RunID:      event.RunID,
+		EventType:  domain.SecurityEventLabEvent,
+		Source:     domain.SecuritySourceSecurityLab,
+		Severity:   severity,
+		Outcome:    event.Status,
+		Phase:      event.Phase,
+		Step:       event.Step,
+		Title:      event.Title,
+		Detail:     event.Detail,
+		Details:    event.Data,
+		OccurredAt: event.Timestamp,
+	})
+	recordSecurityEventError(err)
+}
+
+func (s *SecurityLabService) recordLabSummary(ctx context.Context, summary SecurityLabSummary) {
+	if s.recorder == nil {
+		return
+	}
+	outcome := domain.SecurityOutcomeOK
+	severity := domain.SecuritySeverityMedium
+	if !summary.Passed {
+		outcome = domain.SecurityOutcomeBreach
+		severity = domain.SecuritySeverityCritical
+	}
+	recordCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 2*time.Second)
+	defer cancel()
+	_, err := s.recorder.Record(recordCtx, domain.SecurityEventInput{
+		RunID:     summary.RunID,
+		EventType: domain.SecurityEventLabSummary,
+		Source:    domain.SecuritySourceSecurityLab,
+		Severity:  severity,
+		Outcome:   outcome,
+		Title:     "Security Lab summary",
+		Detail:    "Ringkasan hasil simulasi Security Lab.",
+		Details: map[string]any{
+			"manifest_id":              summary.ManifestID,
+			"file_hash_before":         summary.FileHashBefore,
+			"file_hash_after":          summary.FileHashAfter,
+			"chunk_count_before":       summary.ChunkCountBefore,
+			"chunk_count_after":        summary.ChunkCountAfter,
+			"immutable_before":         summary.ImmutableBefore,
+			"immutable_after":          summary.ImmutableAfter,
+			"app_layer_compromised":    summary.AppLayerCompromised,
+			"vault_manifest_intact":    summary.VaultManifestIntact,
+			"chunks_verified":          summary.ChunksVerified,
+			"uds_attacks_attempted":    summary.UDSAttacksAttempted,
+			"uds_attacks_blocked":      summary.UDSAttacksBlocked,
+			"reconstruction_identical": summary.ReconstructionIdentical,
+			"content_hash_before":      summary.ContentHashBefore,
+			"content_hash_after":       summary.ContentHashAfter,
+			"passed":                   summary.Passed,
+		},
+	})
+	recordSecurityEventError(err)
 }

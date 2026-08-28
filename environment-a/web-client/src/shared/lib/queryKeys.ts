@@ -26,6 +26,8 @@ export const queryKeys = {
   },
   admin: {
     analytics: (range: string) => ["admin", "analytics", range] as const,
-    system: ["admin", "system"] as const
+    system: ["admin", "system"] as const,
+    securitySummary: (range: string) => ["admin", "security-summary", range] as const,
+    securityEvents: (params: string) => ["admin", "security-events", params] as const
   }
 };

@@ -160,6 +160,15 @@ make security-demo
 
 Playwright login, membuka halaman Security Lab, menjalankan skenario, dan memverifikasi: kelima fase muncul, ada event `DITOLAK VAULT CORE`, respons `operation_forbidden` terlihat, tidak ada `PELANGGARAN`, dan verdict akhir `passed`.
 
+### **Monitoring keamanan admin**
+
+Login menggunakan akun admin development (`admin@gmail.com` / `password`), lalu
+buka **Operasional → Monitoring Keamanan** (`/app/analytics/security`). Halaman
+ini menampilkan event `401`, `403`, `429`, penolakan Vault Core, serta histori
+detail Security Lab. Event baru masuk melalui SSE tanpa refresh; pilih event
+Security Lab untuk membuka timeline dan bukti hash/chunk/manifest. Histori
+disimpan selama 30 hari.
+
 ---
 
 ### **🔬 Tipe 2 — Pengujian Development (headless, CI)**
@@ -219,5 +228,4 @@ docker exec pui-vault-core sh -c "find /var/lib/pui/chunks -type f -name '*.bin'
 docker exec pui-postgres psql -U pui -d pui -c \
   "SELECT nama, ukuran, id_manifest, chunk_count FROM files ORDER BY dibuat_pada DESC LIMIT 5;"
 ```
-
 

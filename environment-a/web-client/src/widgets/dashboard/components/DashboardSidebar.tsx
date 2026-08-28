@@ -9,6 +9,7 @@ import {
     HardDrive,
     LineChart,
     Server,
+    ShieldAlert,
     ShieldCheck,
     Star,
     Trash2,
@@ -118,6 +119,12 @@ const adminMenuGroups = [
                 label: "Kesehatan Sistem",
                 icon: <Server className="h-4 w-4" aria-hidden="true" />,
                 tourId: "sidebar-admin-system"
+            },
+            {
+                to: "/app/analytics/security",
+                label: "Monitoring Keamanan",
+                icon: <ShieldAlert className="h-4 w-4" aria-hidden="true" />,
+                tourId: "sidebar-admin-security"
             },
             {
                 to: "/app/analytics/reports",

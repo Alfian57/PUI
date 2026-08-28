@@ -95,6 +95,24 @@ func toActivityLogDTOs(records []domain.ActivityLogRecord) []dto.ActivityLogDTO 
 	return items
 }
 
+func toSecurityEventDTO(record domain.SecurityEventRecord) dto.SecurityEventDTO {
+	return dto.SecurityEventDTO{
+		ID: record.ID, RunID: record.RunID, EventType: record.EventType, Source: record.Source,
+		Severity: record.Severity, Outcome: record.Outcome, UserID: record.UserID, ClientIP: record.ClientIP,
+		Method: record.Method, Path: record.Path, StatusCode: record.StatusCode, ErrorCode: record.ErrorCode,
+		Phase: record.Phase, Step: record.Step, Title: record.Title, Detail: record.Detail,
+		Details: record.Details, OccurredAt: record.OccurredAt,
+	}
+}
+
+func toSecurityEventDTOs(records []domain.SecurityEventRecord) []dto.SecurityEventDTO {
+	items := make([]dto.SecurityEventDTO, 0, len(records))
+	for _, record := range records {
+		items = append(items, toSecurityEventDTO(record))
+	}
+	return items
+}
+
 func toAdminAnalyticsResponse(record domain.AdminAnalytics) dto.AdminAnalyticsResponse {
 	return dto.AdminAnalyticsResponse{
 		Status:      "ok",
