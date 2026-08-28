@@ -27,9 +27,13 @@ Base internal path:
 - `GET /internal/v1/health`
 - `POST /internal/v1/uploads`
 - `GET /internal/v1/manifests/{manifest_id}`
+- `GET /internal/v1/read-proxy/objects/{manifest_id}`
 - `GET /internal/v1/objects/{manifest_id}`
 - `GET /internal/v1/chunks/{chunk_hash}/status`
 
+`/internal/v1/read-proxy/objects/{manifest_id}` adalah contract retrieval PP:
+Vault Core membaca manifest/chunk dan mengalirkan object melalui UDS. Endpoint
+`/internal/v1/objects/{manifest_id}` dipertahankan sebagai alias kompatibilitas.
 Catatan: handler memblokir method destruktif (`DELETE`, `PUT`, `PATCH`).
 Saat penolakan terjadi, Vault Core juga mengirim event `VAULT_OPERATION_BLOCKED`
 ke API Service melalui socket lokal `SECURITY_EVENTS_UDS_PATH`.

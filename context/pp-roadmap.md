@@ -42,6 +42,10 @@ period 30 menit.
 
 **Dependency:** contract retrieval dan hasil regresi GC.
 
+**Implementasi:** API memakai endpoint UDS eksplisit `/internal/v1/read-proxy/objects/{manifest_id}`.
+Vault Core menjadi satu-satunya komponen yang membuka manifest/chunk dan API hanya meneruskan stream.
+Endpoint object lama dipertahankan sebagai alias kompatibilitas.
+
 **Acceptance criteria:**
 
 - API tidak membutuhkan read-only mount atau akses langsung ke direktori chunk;

@@ -13,8 +13,9 @@ Dokumen ini menjelaskan boundary dan sequence teknis. Proposal tetap menjadi aut
 
 ## Download dan retrieval
 
-- **Current**: API memvalidasi ownership lalu meminta manifest/object ke Vault Core melalui client UDS dan meneruskan hasil ke Web Client. Audit implementation terhadap proposal tetap wajib dilakukan karena proposal mendefinisikan boundary retrieval yang menjadi target penelitian.
-- **PP target Read-Proxy**: API tidak memiliki akses baca langsung ke direktori storage fisik. API meminta retrieval ke endpoint proxy Vault Core; Vault Core membaca manifest/chunk, merekonstruksi object, dan mengembalikan stream melalui boundary yang terotorisasi.
+- **Current**: API memvalidasi ownership lalu meminta object ke endpoint `GET /internal/v1/read-proxy/objects/{manifest_id}` melalui UDS dan meneruskan hasil ke Web Client. API tidak memiliki mount atau akses filesystem ke direktori chunk.
+- Vault Core membaca manifest/chunk, memverifikasi integritas sesuai mode strict/streaming, merekonstruksi object, dan mengembalikan stream beserta `Content-Length` melalui boundary UDS yang diautentikasi peer.
+- Endpoint lama `/internal/v1/objects/{manifest_id}` dipertahankan sebagai alias kompatibilitas; client API current memakai endpoint Read-Proxy eksplisit.
 - Hasil retrieval harus identik dengan content yang diunggah, tidak membocorkan path fisik, dan tetap melewati peer authorization.
 
 ## Metadata, manifest, dan chunk
@@ -24,7 +25,7 @@ Dokumen ini menjelaskan boundary dan sequence teknis. Proposal tetap menjadi aut
 - Direktori chunk menyimpan content-addressed data berdasarkan hash.
 - Metadata aplikasi boleh berubah secara logis; manifest/chunk immutable tidak boleh dimodifikasi oleh API.
 
-## Concurrent Garbage Collection — PP target
+## Concurrent Garbage Collection — PP current
 
 1. GC membaca manifest dan membangun himpunan chunk yang masih memiliki reference aktif.
 2. GC mengidentifikasi chunk tanpa reference aktif.
@@ -39,6 +40,15 @@ Dokumen ini menjelaskan boundary dan sequence teknis. Proposal tetap menjadi aut
 - GC scan metadata fail-safe: manifest atau chunk record yang malformed menghentikan sweep sebelum deletion.
 - Deletion berurutan file fisik lalu metadata. Jika deletion gagal, record dipertahankan agar dapat di-retry; file `.bin` tanpa metadata juga dibersihkan bila sudah melewati grace period.
 - Scheduler background current berjalan setiap 10 menit dengan grace period 30 menit. Retrieval tetap concurrent karena GC hanya menghapus chunk yang tidak ada pada manifest snapshot.
+
+## Read-Proxy — PP current
+
+1. Request download publik diautentikasi dan ownership-nya diverifikasi oleh API Service.
+2. API mengirim hanya `manifest_id` ke Vault Core melalui UDS peer-authorized.
+3. Vault Core mengambil manifest, membaca chunk fisik, memverifikasi hash, dan mengalirkan object ke API.
+4. API meneruskan bytes ke Web Client tanpa pernah membuka direktori chunk.
+
+Read-Proxy tidak memberi API hak delete/write dan tidak mengekspos path fisik atau daftar chunk pada response download.
 
 ## UDS dan security event
 

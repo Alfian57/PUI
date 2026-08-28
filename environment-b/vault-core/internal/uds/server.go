@@ -64,6 +64,9 @@ func NewHandler(cfg config.Config, db *badger.DB) http.Handler {
 	mux.HandleFunc("/internal/v1/health", h.handleHealth)
 	mux.HandleFunc("/internal/v1/uploads", h.handleUpload)
 	mux.HandleFunc("/internal/v1/manifests/", h.handleManifest)
+	mux.HandleFunc("/internal/v1/read-proxy/objects/", h.handleReadProxyObject)
+	// Keep the original object endpoint as a compatibility alias while callers
+	// migrate to the explicit Read-Proxy contract.
 	mux.HandleFunc("/internal/v1/objects/", h.handleObject)
 	mux.HandleFunc("/internal/v1/chunks/", h.handleChunkStatus)
 
@@ -204,6 +207,14 @@ func (h handler) handleManifest(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h handler) handleObject(w http.ResponseWriter, r *http.Request) {
+	h.serveReadProxyObject(w, r, "/internal/v1/objects/")
+}
+
+func (h handler) handleReadProxyObject(w http.ResponseWriter, r *http.Request) {
+	h.serveReadProxyObject(w, r, "/internal/v1/read-proxy/objects/")
+}
+
+func (h handler) serveReadProxyObject(w http.ResponseWriter, r *http.Request, pathPrefix string) {
 	if r.Method != http.MethodGet {
 		if isDestructiveMethod(r.Method) {
 			h.writeForbiddenOperation(w, r)
@@ -214,7 +225,7 @@ func (h handler) handleObject(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	manifestID := strings.TrimPrefix(r.URL.Path, "/internal/v1/objects/")
+	manifestID := strings.TrimPrefix(r.URL.Path, pathPrefix)
 	if manifestID == "" {
 		http.Error(w, "manifest id is required", http.StatusBadRequest)
 		return
@@ -235,6 +246,7 @@ func (h handler) handleObject(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/octet-stream")
 	w.Header().Set("Content-Length", strconv.FormatInt(contentLength, 10))
 	w.Header().Set("X-PUI-Manifest-ID", manifestID)
+	w.Header().Set("X-PUI-Read-Proxy", "vault-core")
 	if _, err := io.Copy(w, body); err != nil {
 		log.Printf("event=object_stream_failed manifest_id=%s error=%v", manifestID, err)
 	}

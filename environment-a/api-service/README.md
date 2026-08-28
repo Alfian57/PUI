@@ -1,6 +1,6 @@
 # API Service (Environment A)
 
-API Service adalah backend publik untuk autentikasi, manajemen direktori, metadata file, dan jembatan ke Vault Core melalui UDS.
+API Service adalah backend publik untuk autentikasi, manajemen direktori, metadata file, dan jembatan ke Vault Core melalui UDS. Untuk download, API hanya meneruskan stream dari Read-Proxy Vault Core dan tidak memiliki mount direktori chunk.
 
 ## Stack
 

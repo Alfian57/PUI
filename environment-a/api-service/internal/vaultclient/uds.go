@@ -179,7 +179,7 @@ func (c *Client) GetManifest(ctx context.Context, manifestID string) (ManifestRe
 }
 
 func (c *Client) DownloadObject(ctx context.Context, manifestID string) (io.ReadCloser, int64, error) {
-	requestURL := fmt.Sprintf("http://unix/internal/v1/objects/%s", url.PathEscape(manifestID))
+	requestURL := fmt.Sprintf("http://unix/internal/v1/read-proxy/objects/%s", url.PathEscape(manifestID))
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, requestURL, nil)
 	if err != nil {
 		return nil, 0, fmt.Errorf("build object request: %w", err)

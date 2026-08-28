@@ -121,7 +121,7 @@ func TestUDSHealthAndForbiddenOperation(t *testing.T) {
 			t.Fatalf("decode upload response: %v", err)
 		}
 
-		objectReq, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "http://unix/internal/v1/objects/"+uploadPayload.UploadCommitResult.ManifestID, nil)
+		objectReq, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "http://unix/internal/v1/read-proxy/objects/"+uploadPayload.UploadCommitResult.ManifestID, nil)
 		if err != nil {
 			t.Fatalf("build object request: %v", err)
 		}
@@ -132,6 +132,9 @@ func TestUDSHealthAndForbiddenOperation(t *testing.T) {
 		defer objectResp.Body.Close()
 		if objectResp.StatusCode != http.StatusOK {
 			t.Fatalf("unexpected object status code: %d", objectResp.StatusCode)
+		}
+		if objectResp.Header.Get("X-PUI-Read-Proxy") != "vault-core" {
+			t.Fatalf("expected explicit read-proxy response marker")
 		}
 
 		reconstructed, err := io.ReadAll(objectResp.Body)
@@ -159,6 +162,9 @@ func TestUDSHealthAndForbiddenOperation(t *testing.T) {
 			{method: http.MethodDelete, path: "/internal/v1/objects/" + manifestID},
 			{method: http.MethodPut, path: "/internal/v1/objects/" + manifestID},
 			{method: http.MethodPatch, path: "/internal/v1/objects/" + manifestID},
+			{method: http.MethodDelete, path: "/internal/v1/read-proxy/objects/" + manifestID},
+			{method: http.MethodPut, path: "/internal/v1/read-proxy/objects/" + manifestID},
+			{method: http.MethodPatch, path: "/internal/v1/read-proxy/objects/" + manifestID},
 			{method: http.MethodDelete, path: "/internal/v1/chunks/" + chunkHash + "/status"},
 			{method: http.MethodPut, path: "/internal/v1/chunks/" + chunkHash + "/status"},
 			{method: http.MethodPatch, path: "/internal/v1/chunks/" + chunkHash + "/status"},

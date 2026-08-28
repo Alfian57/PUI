@@ -27,7 +27,7 @@ Business flow, technical flow, dan acceptance criteria PP tersedia di folder [co
 3. API Service menyimpan metadata ke PostgreSQL.
 4. Untuk proses konten file, API Service memanggil Vault Core lewat UDS.
 5. Vault Core melakukan chunking dedup (FastCDC), menyimpan chunk, dan mengembalikan manifest immutable.
-6. Untuk proses unduh, API Service juga meminta object ke Vault Core lewat UDS; Vault Core merekonstruksi object dari chunk immutable lalu mengalirkannya kembali ke API Service.
+6. Untuk proses unduh, API Service meminta Read-Proxy Vault Core lewat UDS; Vault Core merekonstruksi object dari chunk immutable lalu mengalirkannya kembali ke API Service. API tidak memiliki akses filesystem ke direktori chunk.
 
 ## Prasyarat
 
