@@ -27,6 +27,7 @@ type fileMetadataRepository interface {
 	ListByDirectory(ctx context.Context, userID, directoryID string, includeDeleted bool) ([]domain.FileRecord, error)
 	CreatePending(ctx context.Context, userID, directoryID, name, mimeType string) (domain.FileRecord, error)
 	MarkCommitted(ctx context.Context, fileID, userID string, result vaultclient.UploadCommitResult) (domain.FileRecord, error)
+	RequeueManifestRetirement(ctx context.Context, manifestID string) error
 	MarkFailed(ctx context.Context, fileID, userID string) error
 	FindByIDForUser(ctx context.Context, fileID, userID string, includeDeleted bool) (domain.FileRecord, error)
 	SoftDelete(ctx context.Context, fileID, userID string) (time.Time, error)
@@ -151,6 +152,17 @@ func (s *FileService) Upload(ctx context.Context, user domain.AuthUser, director
 			log.Printf("event=mark_failed_error file_id=%s user_id=%s err=%v", pendingRecord.ID, user.UserID, markErr)
 		}
 		return UploadOutcome{}, fmt.Errorf("simpan metadata berkas gagal: %w", err)
+	}
+
+	if err := s.filesRepo.RequeueManifestRetirement(ctx, record.ManifestID); err != nil {
+		log.Printf("event=requeue_manifest_retirement_failed manifest_id=%s err=%v", record.ManifestID, err)
+	}
+	if retainer, ok := s.vault.(interface {
+		RetainManifest(context.Context, string) error
+	}); ok {
+		if err := retainer.RetainManifest(ctx, record.ManifestID); err != nil {
+			log.Printf("event=retain_manifest_failed manifest_id=%s err=%v", record.ManifestID, err)
+		}
 	}
 
 	if logErr := s.activityRepo.Log(ctx, user.UserID, "UPLOAD", "FILE", &record.ID); logErr != nil {

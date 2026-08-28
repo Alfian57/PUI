@@ -19,7 +19,7 @@ Business scope mengikuti [proposal-pui.md](../proposal-pui.md). Web Client adala
 | `failed` | Upload atau commit gagal | Metadata tidak boleh menyatakan object valid |
 | Soft deleted | Status logis di aplikasi ditandai terhapus | Manifest dan chunk fisik tetap ada |
 | Restored | Status logis dikembalikan aktif | Object kembali dapat diakses sesuai authorization |
-| Permanent metadata deleted | Metadata aplikasi dihapus permanen | Tidak berarti content fisik di Vault ikut dihapus |
+| Permanent metadata deleted | Metadata aplikasi dihapus permanen | Jika menjadi reference committed terakhir, API mengantrikan retirement manifest; content tetap dipertahankan sampai grace period GC |
 
 ## Alur inti
 
@@ -29,6 +29,10 @@ Business scope mengikuti [proposal-pui.md](../proposal-pui.md). Web Client adala
 4. Vault Core memecah content dengan FastCDC, menghitung BLAKE3, menggunakan ulang chunk identik, dan menyimpan manifest.
 5. User dapat melihat metadata keamanan/deduplikasi dan mengunduh object yang direkonstruksi.
 6. Soft delete dan restore hanya mengubah keadaan logis metadata aplikasi.
+7. Permanent delete menghapus metadata aplikasi secara atomik dan mengantrikan retirement
+   manifest hanya jika tidak ada file committed lain yang masih merujukinya. Worker
+   akan retry saat Vault tidak tersedia; GC baru boleh mereclaim chunk setelah manifest
+   retired melewati grace period.
 
 ## Alur gagal dan keamanan
 
@@ -43,4 +47,13 @@ Business scope mengikuti [proposal-pui.md](../proposal-pui.md). Web Client adala
 - Object `committed` dapat direkonstruksi byte-for-byte dari manifest.
 - Deduplikasi tidak mengubah isi object.
 - Penghapusan metadata tidak sama dengan penghapusan content fisik.
+- Retirement hanya menandai manifest tidak aktif; physical reclamation dilakukan GC
+  setelah grace period dan hanya bila tidak ada manifest aktif atau upload aktif.
 - Semua fitur PP harus mempertahankan invariant di atas dan membuktikan hasilnya melalui test atau evidence yang relevan.
+
+## Konsekuensi PP
+
+Retirement manifest adalah state lifecycle internal Vault, bukan operasi delete atau
+overwrite content. Manifest tombstone tetap tersedia untuk audit/retrieval selama grace
+period; upload identik dapat mengaktifkannya kembali. Soft delete/restore tidak memicu
+retirement karena metadata aplikasi masih dapat kembali aktif.

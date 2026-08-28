@@ -315,6 +315,10 @@ func (f *fakeFileRepo) MarkCommitted(ctx context.Context, fileID, userID string,
 	return record, nil
 }
 
+func (f *fakeFileRepo) RequeueManifestRetirement(ctx context.Context, manifestID string) error {
+	return nil
+}
+
 func (f *fakeFileRepo) MarkFailed(ctx context.Context, fileID, userID string) error {
 	record, ok := f.records[fileID]
 	if !ok {

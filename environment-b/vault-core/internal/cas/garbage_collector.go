@@ -25,6 +25,7 @@ type GarbageCollectionReport struct {
 
 type garbageCollectionScan struct {
 	referencedChunks map[string]struct{}
+	retiredChunkAt   map[string]time.Time
 	chunkRecords     map[string]ChunkRecord
 	physicalOrphans  []string
 	report           GarbageCollectionReport
@@ -124,8 +125,21 @@ func (s *Store) CollectGarbage(ctx context.Context, olderThan time.Time) (Garbag
 			}
 			continue
 		}
-		if record.CreatedAt.IsZero() || !record.CreatedAt.Before(olderThan) {
-			continue
+
+		retiredAt, retired := scan.retiredChunkAt[chunkHash]
+		if retired {
+			if !retiredAt.Before(olderThan) {
+				continue
+			}
+		} else {
+			// A positive refcount without an active manifest is inconsistent
+			// metadata. Keep it until an operator repairs the inconsistency.
+			if record.ManifestRefCount != 0 {
+				continue
+			}
+			if record.CreatedAt.IsZero() || !record.CreatedAt.Before(olderThan) {
+				continue
+			}
 		}
 
 		report.CandidateChunks++
@@ -140,7 +154,7 @@ func (s *Store) CollectGarbage(ctx context.Context, olderThan time.Time) (Garbag
 			continue
 		}
 
-		deleted, err := s.deleteChunkMetadata(ctx, chunkHash, olderThan)
+		deleted, err := s.deleteChunkMetadata(ctx, chunkHash, olderThan, retired)
 		if err != nil {
 			deletionErrors = append(deletionErrors, fmt.Errorf("remove chunk %s metadata: %w", chunkHash, err))
 			continue
@@ -174,6 +188,7 @@ func (s *Store) CleanupOrphanChunks(ctx context.Context, olderThan time.Time) (i
 func (s *Store) scanGarbageCollection(ctx context.Context, olderThan time.Time, activeChunks map[string]struct{}) (garbageCollectionScan, error) {
 	scan := garbageCollectionScan{
 		referencedChunks: make(map[string]struct{}),
+		retiredChunkAt:   make(map[string]time.Time),
 		chunkRecords:     make(map[string]ChunkRecord),
 	}
 
@@ -208,7 +223,14 @@ func (s *Store) scanGarbageCollection(ctx context.Context, olderThan time.Time, 
 				if err != nil {
 					return fmt.Errorf("normalize manifest chunk: %w", err)
 				}
-				scan.referencedChunks[normalizedHash] = struct{}{}
+				if !manifest.Retired {
+					scan.referencedChunks[normalizedHash] = struct{}{}
+					continue
+				}
+
+				if previous, exists := scan.retiredChunkAt[normalizedHash]; !exists || manifest.RetiredAt.After(previous) {
+					scan.retiredChunkAt[normalizedHash] = *manifest.RetiredAt
+				}
 			}
 		}
 
@@ -287,6 +309,12 @@ func (s *Store) scanGarbageCollection(ctx context.Context, olderThan time.Time, 
 			scan.report.SkippedActiveChunks++
 			return nil
 		}
+		if retiredAt, retired := scan.retiredChunkAt[hash]; retired && !retiredAt.Before(olderThan) {
+			// A retired manifest can outlive its chunk metadata after a
+			// partial deletion. Keep the physical bytes through the same
+			// retirement grace period instead of treating them as an orphan.
+			return nil
+		}
 
 		info, err := entry.Info()
 		if err != nil {
@@ -307,7 +335,7 @@ func (s *Store) scanGarbageCollection(ctx context.Context, olderThan time.Time, 
 	return scan, nil
 }
 
-func (s *Store) deleteChunkMetadata(ctx context.Context, chunkHash string, olderThan time.Time) (bool, error) {
+func (s *Store) deleteChunkMetadata(ctx context.Context, chunkHash string, olderThan time.Time, retired bool) (bool, error) {
 	if err := contextErr(ctx); err != nil {
 		return false, err
 	}
@@ -331,7 +359,7 @@ func (s *Store) deleteChunkMetadata(ctx context.Context, chunkHash string, older
 		if err != nil || normalizedHash != chunkHash {
 			return fmt.Errorf("chunk metadata key tidak konsisten")
 		}
-		if record.ManifestRefCount != 0 || record.CreatedAt.IsZero() || !record.CreatedAt.Before(olderThan) {
+		if !retired && (record.ManifestRefCount != 0 || record.CreatedAt.IsZero() || !record.CreatedAt.Before(olderThan)) {
 			return nil
 		}
 

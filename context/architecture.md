@@ -24,6 +24,7 @@ Scope sistem mengikuti [proposal-pui.md](../proposal-pui.md). Deskripsi monitori
 
 - Browser tidak mengakses PostgreSQL, Badger, chunk, atau UDS secara langsung.
 - Vault Core tidak memiliki network publik; API adalah orchestrator yang diizinkan melalui peer UID UDS.
-- Metadata deletion di API tidak mengubah content store immutable.
+- Metadata deletion di API tidak mengubah content store secara langsung; last-reference
+  retirement dan GC async dapat mereclaim content setelah grace period.
 - API Service tidak memiliki akses filesystem ke direktori chunk; boundary retrieval adalah `GET /internal/v1/read-proxy/objects/{manifest_id}`.
 - Security Lab memakai jalur aplikasi dan Vault yang sama dengan operasi nyata, tetapi file yang dibuat adalah file demo throwaway.

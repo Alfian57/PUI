@@ -1,5 +1,8 @@
 # Testing workflow
 
+Evidence eksekusi terakhir dan status `PASS`/`SKIP`/`BLOCKED` dicatat di
+[test-evidence.md](test-evidence.md).
+
 | Area | Verifikasi |
 |---|---|
 | Semua Go module | `make go-fmt-check`, `make go-vet`, `make unit-test` |
@@ -10,7 +13,7 @@
 | UI blackbox | `make blackbox-ui-headless` atau target headed |
 | Security Lab | `make security-test` untuk CI/headless, `make security-demo` untuk demo browser |
 
-Untuk fase PP, tambahkan bukti yang dapat diverifikasi untuk Concurrent Garbage Collection dan Read-Proxy: chunk tanpa referensi dapat dibersihkan tanpa merusak chunk aktif, retrieval tidak lagi bergantung pada akses baca langsung dari API ke storage fisik, dan GC fail-safe saat metadata malformed atau deletion gagal.
+Untuk fase PP, tambahkan bukti yang dapat diverifikasi untuk Concurrent Garbage Collection dan Read-Proxy: chunk tanpa referensi dapat dibersihkan tanpa merusak chunk aktif, retirement terakhir melewati grace period, outbox retry saat Vault gagal, manifest dapat re-activate saat upload identik/restore, retrieval tidak lagi bergantung pada akses baca langsung dari API ke storage fisik, dan GC fail-safe saat metadata malformed atau deletion gagal.
 
 ## Urutan verifikasi agent
 

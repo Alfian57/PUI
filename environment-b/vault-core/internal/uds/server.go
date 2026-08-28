@@ -174,6 +174,54 @@ func (h handler) handleUpload(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h handler) handleManifest(w http.ResponseWriter, r *http.Request) {
+	manifestID := strings.TrimPrefix(r.URL.Path, "/internal/v1/manifests/")
+	for _, operation := range []string{"retire", "retain"} {
+		if !strings.HasSuffix(manifestID, "/"+operation) {
+			continue
+		}
+
+		manifestID = strings.TrimSuffix(manifestID, "/"+operation)
+		manifestID = strings.TrimSuffix(manifestID, "/")
+		if manifestID == "" {
+			http.Error(w, "manifest id is required", http.StatusBadRequest)
+			return
+		}
+		if r.Method != http.MethodPost {
+			if isDestructiveMethod(r.Method) {
+				h.writeForbiddenOperation(w, r)
+				return
+			}
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+
+		var err error
+		if operation == "retire" {
+			err = h.store.RetireManifest(r.Context(), manifestID)
+		} else {
+			err = h.store.RetainManifest(r.Context(), manifestID)
+		}
+		if err != nil {
+			writeJSON(w, statusCodeFromError(err), map[string]any{
+				"status":      "error",
+				"manifest_id": manifestID,
+				"error":       err.Error(),
+			})
+			return
+		}
+
+		log.Printf("event=manifest_%s manifest_id=%s", operation, manifestID)
+		status := "retained"
+		if operation == "retire" {
+			status = "retired"
+		}
+		writeJSON(w, http.StatusOK, map[string]any{
+			"status":      status,
+			"manifest_id": manifestID,
+		})
+		return
+	}
+
 	if r.Method != http.MethodGet {
 		if isDestructiveMethod(r.Method) {
 			h.writeForbiddenOperation(w, r)
@@ -184,7 +232,6 @@ func (h handler) handleManifest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	manifestID := strings.TrimPrefix(r.URL.Path, "/internal/v1/manifests/")
 	if manifestID == "" {
 		http.Error(w, "manifest id is required", http.StatusBadRequest)
 		return

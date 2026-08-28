@@ -211,6 +211,115 @@ func TestCollectGarbageSkipsFreshChunk(t *testing.T) {
 	assertChunkExists(t, store, chunkHash)
 }
 
+func TestCollectGarbageHonorsManifestRetirementGrace(t *testing.T) {
+	t.Parallel()
+
+	store := newTestStore(t)
+	ctx := context.Background()
+	content := bytes.Repeat([]byte("retire-me-"), 4096)
+	upload, err := store.ProcessUpload(ctx, "retire.bin", bytes.NewReader(content))
+	if err != nil {
+		t.Fatalf("upload: %v", err)
+	}
+
+	if err := store.RetireManifest(ctx, upload.ManifestID); err != nil {
+		t.Fatalf("retire manifest: %v", err)
+	}
+	manifest, err := store.GetManifest(ctx, upload.ManifestID)
+	if err != nil {
+		t.Fatalf("get retired manifest: %v", err)
+	}
+	if !manifest.Retired || manifest.RetiredAt == nil {
+		t.Fatalf("expected retired manifest state: %#v", manifest)
+	}
+
+	report, err := store.CollectGarbage(ctx, time.Now().UTC().Add(-time.Minute))
+	if err != nil {
+		t.Fatalf("collect before retirement grace: %v", err)
+	}
+	if report.DeletedChunks != 0 {
+		t.Fatalf("gc deleted chunks before retirement grace: %d", report.DeletedChunks)
+	}
+	for _, chunkHash := range manifest.ChunkHashes {
+		assertChunkExists(t, store, chunkHash)
+	}
+
+	report, err = store.CollectGarbage(ctx, time.Now().UTC().Add(time.Minute))
+	if err != nil {
+		t.Fatalf("collect after retirement grace: %v", err)
+	}
+	if report.DeletedChunks != len(manifest.ChunkHashes) {
+		t.Fatalf("expected all retired chunks deleted, got %d of %d", report.DeletedChunks, len(manifest.ChunkHashes))
+	}
+}
+
+func TestRetiredManifestCanBeReactivatedByIdenticalUpload(t *testing.T) {
+	t.Parallel()
+
+	store := newTestStore(t)
+	ctx := context.Background()
+	content := bytes.Repeat([]byte("reactivate-me-"), 2048)
+	first, err := store.ProcessUpload(ctx, "first.bin", bytes.NewReader(content))
+	if err != nil {
+		t.Fatalf("first upload: %v", err)
+	}
+	if err := store.RetireManifest(ctx, first.ManifestID); err != nil {
+		t.Fatalf("retire manifest: %v", err)
+	}
+
+	second, err := store.ProcessUpload(ctx, "second.bin", bytes.NewReader(content))
+	if err != nil {
+		t.Fatalf("second upload: %v", err)
+	}
+	if second.ManifestID != first.ManifestID {
+		t.Fatalf("expected deduplicated manifest id %s, got %s", first.ManifestID, second.ManifestID)
+	}
+
+	manifest, err := store.GetManifest(ctx, first.ManifestID)
+	if err != nil {
+		t.Fatalf("get reactivated manifest: %v", err)
+	}
+	if manifest.Retired {
+		t.Fatalf("manifest remained retired after identical upload")
+	}
+
+	report, err := store.CollectGarbage(ctx, time.Now().UTC().Add(time.Hour))
+	if err != nil {
+		t.Fatalf("collect active reactivated manifest: %v", err)
+	}
+	if report.DeletedChunks != 0 {
+		t.Fatalf("gc deleted chunks from reactivated manifest: %d", report.DeletedChunks)
+	}
+}
+
+func TestRetireManifestIsIdempotent(t *testing.T) {
+	t.Parallel()
+
+	store := newTestStore(t)
+	ctx := context.Background()
+	upload, err := store.ProcessUpload(ctx, "idempotent.bin", bytes.NewReader([]byte("idempotent")))
+	if err != nil {
+		t.Fatalf("upload: %v", err)
+	}
+	if err := store.RetireManifest(ctx, upload.ManifestID); err != nil {
+		t.Fatalf("first retirement: %v", err)
+	}
+	first, err := store.GetManifest(ctx, upload.ManifestID)
+	if err != nil {
+		t.Fatalf("get first retirement: %v", err)
+	}
+	if err := store.RetireManifest(ctx, upload.ManifestID); err != nil {
+		t.Fatalf("second retirement: %v", err)
+	}
+	second, err := store.GetManifest(ctx, upload.ManifestID)
+	if err != nil {
+		t.Fatalf("get second retirement: %v", err)
+	}
+	if first.RetiredAt == nil || second.RetiredAt == nil || !first.RetiredAt.Equal(*second.RetiredAt) {
+		t.Fatalf("idempotent retirement changed timestamp: first=%v second=%v", first.RetiredAt, second.RetiredAt)
+	}
+}
+
 func TestCollectGarbageFailsSafeOnMalformedManifest(t *testing.T) {
 	t.Parallel()
 

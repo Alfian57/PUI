@@ -22,10 +22,16 @@ Sebelum mengubah kode, audit baseline terhadap proposal dan catat gap. Jangan me
 
 **Dependency:** reference/manifest contract dan baseline crash-consistency harus jelas.
 
-**Implementasi:** Vault Core melakukan authoritative manifest scan, melindungi upload aktif
+**Implementasi current:** Vault Core melakukan authoritative manifest scan, melindungi upload aktif
 dengan lifecycle lock dan registry proses, serta menghapus file fisik sebelum metadata agar
-sweep dapat diulang dengan aman. Scheduler current berjalan setiap 10 menit dengan grace
-period 30 menit.
+sweep dapat diulang dengan aman. Manifest retired menjadi tombstone dengan `retired_at`; chunk
+baru dapat direclaim setelah grace period dari retirement terbaru. Scheduler current berjalan
+setiap 10 menit dengan grace period 30 menit.
+
+Permanent delete file/folder menghapus metadata dan membuat durable outbox hanya untuk manifest
+yang tidak lagi memiliki reference committed. Worker API memakai claim `SKIP LOCKED`, retry
+berjarak, dan lifecycle UDS `retire`/`retain`. Upload identik dan commit baru dapat mengaktifkan
+kembali manifest retired. Soft delete/restore tidak memicu retirement.
 
 **Acceptance criteria:**
 
@@ -33,6 +39,8 @@ period 30 menit.
 - chunk yang masih dipakai object committed tidak pernah terhapus;
 - GC aman berjalan bersamaan dengan upload, commit, retrieval, dan restore;
 - retry tidak menghasilkan kerusakan tambahan dan crash tidak membuat object valid kehilangan chunk;
+- permanent delete terakhir tidak meninggalkan manifest aktif tanpa lifecycle retirement;
+- kegagalan Vault/outbox dapat dipulihkan melalui retry tanpa kehilangan content;
 - object aktif tetap dapat direkonstruksi byte-for-byte setelah GC;
 - test dan evidence mencakup kandidat aman, kandidat aktif, concurrency, retry, dan recovery.
 
@@ -41,6 +49,8 @@ period 30 menit.
 **Tujuan:** menggantikan akses baca langsung ke storage fisik dengan retrieval yang dikendalikan Vault Core.
 
 **Dependency:** contract retrieval dan hasil regresi GC.
+
+**Status:** implemented pada source; evidence end-to-end masih menunggu regresi PP.
 
 **Implementasi:** API memakai endpoint UDS eksplisit `/internal/v1/read-proxy/objects/{manifest_id}`.
 Vault Core menjadi satu-satunya komponen yang membuka manifest/chunk dan API hanya meneruskan stream.

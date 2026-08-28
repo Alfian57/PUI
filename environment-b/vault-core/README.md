@@ -27,6 +27,8 @@ Base internal path:
 - `GET /internal/v1/health`
 - `POST /internal/v1/uploads`
 - `GET /internal/v1/manifests/{manifest_id}`
+- `POST /internal/v1/manifests/{manifest_id}/retire`
+- `POST /internal/v1/manifests/{manifest_id}/retain`
 - `GET /internal/v1/read-proxy/objects/{manifest_id}`
 - `GET /internal/v1/objects/{manifest_id}`
 - `GET /internal/v1/chunks/{chunk_hash}/status`
@@ -37,6 +39,8 @@ Vault Core membaca manifest/chunk dan mengalirkan object melalui UDS. Endpoint
 Catatan: handler memblokir method destruktif (`DELETE`, `PUT`, `PATCH`).
 Saat penolakan terjadi, Vault Core juga mengirim event `VAULT_OPERATION_BLOCKED`
 ke API Service melalui socket lokal `SECURITY_EVENTS_UDS_PATH`.
+Lifecycle `retire`/`retain` hanya mengubah state tombstone manifest melalui UDS
+peer-authorized; tidak ada endpoint untuk menghapus atau menimpa content fisik.
 
 ## Konfigurasi Environment
 
@@ -131,9 +135,10 @@ Data vault disimpan pada direktori volume:
 - `data/vault/chunks`
 
 GC berjalan di background setiap 10 menit dengan grace period 30 menit. Candidate
-ditentukan dari scan seluruh manifest committed, bukan hanya `ManifestRefCount`.
-Upload aktif dilindungi selama proses berjalan. File fisik dihapus lebih dulu lalu
-metadata chunk dihapus; kegagalan pada salah satu tahap aman untuk diulang pada sweep
-berikutnya. Jika scan metadata tidak valid, GC berhenti tanpa menghapus candidate.
+ditentukan dari manifest aktif dan manifest retired; retired manifest menjadi tidak
+melindungi chunk setelah `retired_at` melewati grace period. Upload aktif dilindungi
+selama proses berjalan. File fisik dihapus lebih dulu lalu metadata chunk dihapus;
+kegagalan pada salah satu tahap aman untuk diulang pada sweep berikutnya. Jika scan
+metadata atau retirement timestamp tidak valid, GC berhenti tanpa menghapus candidate.
 
 Panduan backup/restore tersedia di [../../deploy/backup.md](../../deploy/backup.md).

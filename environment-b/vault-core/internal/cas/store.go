@@ -238,6 +238,77 @@ func (s *Store) GetManifest(ctx context.Context, manifestID string) (ManifestRec
 	return out, nil
 }
 
+// RetireManifest marks a manifest as no longer referenced by application
+// metadata. Retirement is deliberately a tombstone, not a physical delete:
+// GC applies its grace period before reclaiming chunks and a subsequent
+// identical upload can reactivate the manifest safely.
+func (s *Store) RetireManifest(ctx context.Context, manifestID string) error {
+	return s.updateManifestLifecycle(ctx, manifestID, true)
+}
+
+// RetainManifest reverses a pending retirement when application metadata
+// references the object again. It never changes immutable file content.
+func (s *Store) RetainManifest(ctx context.Context, manifestID string) error {
+	return s.updateManifestLifecycle(ctx, manifestID, false)
+}
+
+func (s *Store) updateManifestLifecycle(ctx context.Context, manifestID string, retired bool) error {
+	manifestID, err := normalizeHash(manifestID)
+	if err != nil {
+		return err
+	}
+
+	if err := contextErr(ctx); err != nil {
+		return err
+	}
+
+	s.lifecycleMu.RLock()
+	defer s.lifecycleMu.RUnlock()
+
+	retiredAt := time.Now().UTC()
+	err = s.db.Update(func(txn *badger.Txn) error {
+		item, err := txn.Get(manifestKey(manifestID))
+		if err != nil {
+			return err
+		}
+
+		manifest, err := decodeManifest(item)
+		if err != nil {
+			return fmt.Errorf("decode manifest: %w", err)
+		}
+		if err := validateManifest(manifest); err != nil {
+			return fmt.Errorf("validate manifest: %w", err)
+		}
+		if manifest.Retired == retired {
+			return nil
+		}
+
+		manifest.Retired = retired
+		if retired {
+			manifest.RetiredAt = &retiredAt
+		} else {
+			manifest.RetiredAt = nil
+		}
+		payload, err := json.Marshal(manifest)
+		if err != nil {
+			return fmt.Errorf("marshal retired manifest: %w", err)
+		}
+		return txn.Set(manifestKey(manifestID), payload)
+	})
+	if errors.Is(err, badger.ErrKeyNotFound) {
+		return ErrNotFound
+	}
+	if err != nil {
+		operation := "retain"
+		if retired {
+			operation = "retire"
+		}
+		return fmt.Errorf("%s manifest: %w", operation, err)
+	}
+
+	return nil
+}
+
 func (s *Store) OpenObject(ctx context.Context, manifestID string) (io.ReadCloser, int64, error) {
 	manifest, err := s.GetManifest(ctx, manifestID)
 	if err != nil {
@@ -561,8 +632,24 @@ func (s *Store) commitManifestAndChunkRefs(ctx context.Context, manifest Manifes
 	}
 
 	err = s.db.Update(func(txn *badger.Txn) error {
-		_, err := txn.Get(manifestKey(manifest.ManifestID))
+		item, err := txn.Get(manifestKey(manifest.ManifestID))
 		if err == nil {
+			existing, decodeErr := decodeManifest(item)
+			if decodeErr != nil {
+				return fmt.Errorf("decode existing manifest: %w", decodeErr)
+			}
+			if err := validateManifest(existing); err != nil {
+				return fmt.Errorf("validate existing manifest: %w", err)
+			}
+			if existing.Retired {
+				existing.Retired = false
+				existing.RetiredAt = nil
+				existingPayload, marshalErr := json.Marshal(existing)
+				if marshalErr != nil {
+					return fmt.Errorf("marshal reactivated manifest: %w", marshalErr)
+				}
+				return txn.Set(manifestKey(manifest.ManifestID), existingPayload)
+			}
 			return nil
 		}
 
@@ -674,6 +761,9 @@ func validateManifest(manifest ManifestRecord) error {
 
 	if !manifest.Immutable {
 		return fmt.Errorf("manifest tidak immutable")
+	}
+	if manifest.Retired && (manifest.RetiredAt == nil || manifest.RetiredAt.IsZero()) {
+		return fmt.Errorf("manifest retired tanpa waktu retirement")
 	}
 
 	for _, chunkHash := range manifest.ChunkHashes {

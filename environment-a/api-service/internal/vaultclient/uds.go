@@ -41,13 +41,15 @@ type UploadCommitResult struct {
 }
 
 type ManifestRecord struct {
-	ManifestID     string    `json:"manifest_id"`
-	FileHash       string    `json:"file_hash"`
-	ChunkHashes    []string  `json:"chunk_hashes"`
-	TotalSizeBytes int64     `json:"total_size_bytes"`
-	ChunkCount     int       `json:"chunk_count"`
-	CreatedAt      time.Time `json:"created_at"`
-	Immutable      bool      `json:"immutable"`
+	ManifestID     string     `json:"manifest_id"`
+	FileHash       string     `json:"file_hash"`
+	ChunkHashes    []string   `json:"chunk_hashes"`
+	TotalSizeBytes int64      `json:"total_size_bytes"`
+	ChunkCount     int        `json:"chunk_count"`
+	CreatedAt      time.Time  `json:"created_at"`
+	Immutable      bool       `json:"immutable"`
+	Retired        bool       `json:"retired,omitempty"`
+	RetiredAt      *time.Time `json:"retired_at,omitempty"`
 }
 
 type ChunkRecord struct {
@@ -176,6 +178,39 @@ func (c *Client) GetManifest(ctx context.Context, manifestID string) (ManifestRe
 	}
 
 	return payload.ManifestRecord, nil
+}
+
+func (c *Client) RetireManifest(ctx context.Context, manifestID string) error {
+	return c.updateManifestLifecycle(ctx, manifestID, "retire")
+}
+
+func (c *Client) RetainManifest(ctx context.Context, manifestID string) error {
+	return c.updateManifestLifecycle(ctx, manifestID, "retain")
+}
+
+func (c *Client) updateManifestLifecycle(ctx context.Context, manifestID, operation string) error {
+	requestURL := fmt.Sprintf("http://unix/internal/v1/manifests/%s/%s", url.PathEscape(manifestID), operation)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, requestURL, nil)
+	if err != nil {
+		return fmt.Errorf("build manifest %s request: %w", operation, err)
+	}
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("call vault manifest %s over uds %s: %w", operation, c.socketPath, err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		message, readErr := io.ReadAll(io.LimitReader(resp.Body, 8*1024))
+		if readErr != nil {
+			return fmt.Errorf("vault manifest %s returned status %d", operation, resp.StatusCode)
+		}
+
+		return fmt.Errorf("vault manifest %s returned status %d: %s", operation, resp.StatusCode, strings.TrimSpace(string(message)))
+	}
+
+	return nil
 }
 
 func (c *Client) DownloadObject(ctx context.Context, manifestID string) (io.ReadCloser, int64, error) {

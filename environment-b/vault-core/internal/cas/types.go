@@ -12,13 +12,15 @@ var (
 )
 
 type ManifestRecord struct {
-	ManifestID     string    `json:"manifest_id"`
-	FileHash       string    `json:"file_hash"`
-	ChunkHashes    []string  `json:"chunk_hashes"`
-	TotalSizeBytes int64     `json:"total_size_bytes"`
-	ChunkCount     int       `json:"chunk_count"`
-	CreatedAt      time.Time `json:"created_at"`
-	Immutable      bool      `json:"immutable"`
+	ManifestID     string     `json:"manifest_id"`
+	FileHash       string     `json:"file_hash"`
+	ChunkHashes    []string   `json:"chunk_hashes"`
+	TotalSizeBytes int64      `json:"total_size_bytes"`
+	ChunkCount     int        `json:"chunk_count"`
+	CreatedAt      time.Time  `json:"created_at"`
+	Immutable      bool       `json:"immutable"`
+	Retired        bool       `json:"retired,omitempty"`
+	RetiredAt      *time.Time `json:"retired_at,omitempty"`
 }
 
 type ChunkRecord struct {

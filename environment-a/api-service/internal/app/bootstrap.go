@@ -125,11 +125,25 @@ func Build(ctx context.Context, cfg config.Config) (*App, error) {
 		}
 	}()
 
+	retirementCtx, retirementCancel := context.WithCancel(context.Background())
+	retirementDone := make(chan struct{})
+	go func() {
+		defer close(retirementDone)
+		service.RunManifestRetirementWorker(retirementCtx, fileRepo, vault)
+	}()
+
 	return &App{
 		Router: router,
 		Close: func() error {
 			reaperCancel()
 			retentionCancel()
+			retirementCancel()
+			retirementWaitCtx, retirementWaitCancel := context.WithTimeout(context.Background(), 2*time.Second)
+			select {
+			case <-retirementDone:
+			case <-retirementWaitCtx.Done():
+			}
+			retirementWaitCancel()
 			securityMonitoringService.Close()
 			bridgeCtx, bridgeCancel := context.WithTimeout(context.Background(), 2*time.Second)
 			bridgeErr := securityEventBridge.Close(bridgeCtx)

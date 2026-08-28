@@ -40,6 +40,19 @@ Dokumen ini menjelaskan boundary dan sequence teknis. Proposal tetap menjadi aut
 - GC scan metadata fail-safe: manifest atau chunk record yang malformed menghentikan sweep sebelum deletion.
 - Deletion berurutan file fisik lalu metadata. Jika deletion gagal, record dipertahankan agar dapat di-retry; file `.bin` tanpa metadata juga dibersihkan bila sudah melewati grace period.
 - Scheduler background current berjalan setiap 10 menit dengan grace period 30 menit. Retrieval tetap concurrent karena GC hanya menghapus chunk yang tidak ada pada manifest snapshot.
+- Manifest memiliki state tombstone `retired` dan `retired_at`. Manifest aktif tetap
+  melindungi chunk; manifest retired tidak lagi menjadi reference aktif, tetapi tetap
+  dapat dibaca selama grace period.
+- Permanent delete file/folder menghapus metadata PostgreSQL dan, bila itu adalah
+  reference committed terakhir, membuat durable outbox `manifest_retirement_requests`.
+  Worker API mengambil item dengan `FOR UPDATE SKIP LOCKED`, memanggil lifecycle
+  endpoint Vault melalui UDS, dan menjadwalkan retry jika Vault gagal.
+- Soft delete dan restore tidak membuat retirement. Upload baru yang menghasilkan
+  manifest retired mengaktifkannya kembali; API juga melakukan retain saat commit
+  untuk menutup race antara upload dan worker retirement.
+- GC memakai `retired_at` terbaru dari seluruh manifest retired sebagai awal grace
+  period. Chunk orphan tanpa manifest tetap dinilai dari `CreatedAt`; metadata
+  malformed atau timestamp retirement hilang menghentikan sweep secara fail-safe.
 
 ## Read-Proxy — PP current
 

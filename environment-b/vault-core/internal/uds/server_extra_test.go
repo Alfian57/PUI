@@ -185,6 +185,74 @@ func TestHandleManifestMethodNotAllowed(t *testing.T) {
 	}
 }
 
+func TestHandleManifestRetireAndRetain(t *testing.T) {
+	t.Parallel()
+
+	client, stop := newTestServer(t)
+	defer stop()
+
+	content := bytes.NewReader([]byte("lifecycle"))
+	uploadReq, err := http.NewRequestWithContext(context.Background(), http.MethodPost, "http://unix/internal/v1/uploads", content)
+	if err != nil {
+		t.Fatalf("build upload request: %v", err)
+	}
+	uploadResp, err := client.Do(uploadReq)
+	if err != nil {
+		t.Fatalf("upload request: %v", err)
+	}
+	var uploadPayload struct {
+		UploadCommitResult struct {
+			ManifestID string `json:"manifest_id"`
+		} `json:"upload_commit_result"`
+	}
+	if err := json.NewDecoder(uploadResp.Body).Decode(&uploadPayload); err != nil {
+		_ = uploadResp.Body.Close()
+		t.Fatalf("decode upload response: %v", err)
+	}
+	_ = uploadResp.Body.Close()
+	manifestID := uploadPayload.UploadCommitResult.ManifestID
+	if manifestID == "" {
+		t.Fatal("upload response did not include manifest id")
+	}
+
+	for _, operation := range []string{"retire", "retain"} {
+		req, err := http.NewRequestWithContext(context.Background(), http.MethodPost, "http://unix/internal/v1/manifests/"+manifestID+"/"+operation, nil)
+		if err != nil {
+			t.Fatalf("build %s request: %v", operation, err)
+		}
+		resp, err := client.Do(req)
+		if err != nil {
+			t.Fatalf("%s request: %v", operation, err)
+		}
+		if resp.StatusCode != http.StatusOK {
+			_ = resp.Body.Close()
+			t.Fatalf("%s returned status %d", operation, resp.StatusCode)
+		}
+		_ = resp.Body.Close()
+	}
+
+	getReq, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "http://unix/internal/v1/manifests/"+manifestID, nil)
+	if err != nil {
+		t.Fatalf("build get manifest request: %v", err)
+	}
+	getResp, err := client.Do(getReq)
+	if err != nil {
+		t.Fatalf("get manifest request: %v", err)
+	}
+	defer getResp.Body.Close()
+	var payload struct {
+		Manifest struct {
+			Retired bool `json:"retired"`
+		} `json:"manifest_record"`
+	}
+	if err := json.NewDecoder(getResp.Body).Decode(&payload); err != nil {
+		t.Fatalf("decode manifest response: %v", err)
+	}
+	if payload.Manifest.Retired {
+		t.Fatalf("expected retained manifest")
+	}
+}
+
 func TestHandleObjectNotFound(t *testing.T) {
 	t.Parallel()
 

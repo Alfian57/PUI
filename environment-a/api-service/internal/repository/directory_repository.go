@@ -388,8 +388,32 @@ func (r *DirectoryRepository) PermanentDeleteSubtree(ctx context.Context, direct
 			return domain.ErrNotFound
 		}
 
+		var manifestRows []manifestIDRow
+		if err := tx.Raw(
+			`SELECT COALESCE(id_manifest, '') AS manifest_id
+			 FROM files
+			 WHERE id_direktori IN ? AND status_penyimpanan = 'committed'
+			 FOR UPDATE`,
+			subtreeIDs,
+		).Scan(&manifestRows).Error; err != nil {
+			return fmt.Errorf("find subtree manifests for retirement: %w", err)
+		}
+
+		manifestIDs := make([]string, 0, len(manifestRows))
+		for _, row := range manifestRows {
+			if strings.TrimSpace(row.ManifestID) != "" {
+				manifestIDs = append(manifestIDs, row.ManifestID)
+			}
+		}
+		if err := lockManifestLifecycles(ctx, tx, manifestIDs); err != nil {
+			return err
+		}
+
 		if err := tx.Exec(`DELETE FROM files WHERE id_direktori IN ?`, subtreeIDs).Error; err != nil {
 			return fmt.Errorf("permanent delete subtree files: %w", err)
+		}
+		if err := queueManifestRetirements(ctx, tx, manifestIDs); err != nil {
+			return err
 		}
 		if err := tx.Exec(`DELETE FROM directory_closure WHERE id_induk IN ? OR id_turunan IN ?`, subtreeIDs, subtreeIDs).Error; err != nil {
 			return fmt.Errorf("permanent delete closure: %w", err)

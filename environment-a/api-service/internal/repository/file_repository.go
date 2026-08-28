@@ -85,29 +85,35 @@ func (r *FileRepository) CreatePending(ctx context.Context, userID, directoryID,
 
 func (r *FileRepository) MarkCommitted(ctx context.Context, fileID, userID string, result vaultclient.UploadCommitResult) (domain.FileRecord, error) {
 	var out domain.FileRecord
-	err := r.db.WithContext(ctx).Raw(
-		`UPDATE files f
-		 SET ukuran = ?,
-		     id_manifest = ?,
-		     status_penyimpanan = 'committed',
-		     dibuat_pada = NOW(),
-		     chunk_count = ?,
-		     new_chunk_count = ?,
-		     reuse_chunk_count = ?,
-		     dedup_ratio = ?
-		 WHERE f.id_berkas = ?::uuid
-		   AND f.id_pengguna = ?::uuid
-		   AND f.status_penyimpanan = 'pending'
-		 RETURNING `+fileSelectColumns,
-		result.TotalSizeBytes,
-		result.ManifestID,
-		result.ChunkCount,
-		result.NewChunkCount,
-		result.ReuseChunkCount,
-		result.DedupRatio,
-		fileID,
-		userID,
-	).Scan(&out).Error
+	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := lockManifestLifecycle(ctx, tx, result.ManifestID); err != nil {
+			return err
+		}
+
+		return tx.Raw(
+			`UPDATE files f
+			 SET ukuran = ?,
+			     id_manifest = ?,
+			     status_penyimpanan = 'committed',
+			     dibuat_pada = NOW(),
+			     chunk_count = ?,
+			     new_chunk_count = ?,
+			     reuse_chunk_count = ?,
+			     dedup_ratio = ?
+			 WHERE f.id_berkas = ?::uuid
+			   AND f.id_pengguna = ?::uuid
+			   AND f.status_penyimpanan = 'pending'
+			 RETURNING `+fileSelectColumns,
+			result.TotalSizeBytes,
+			result.ManifestID,
+			result.ChunkCount,
+			result.NewChunkCount,
+			result.ReuseChunkCount,
+			result.DedupRatio,
+			fileID,
+			userID,
+		).Scan(&out).Error
+	})
 	if err != nil {
 		return domain.FileRecord{}, fmt.Errorf("mark file committed: %w", err)
 	}
@@ -243,27 +249,69 @@ func (r *FileRepository) Restore(ctx context.Context, fileID, userID string) (do
 }
 
 func (r *FileRepository) PermanentDelete(ctx context.Context, fileID, userID string) error {
-	result := r.db.WithContext(ctx).Exec(
-		`DELETE FROM files f
-		 WHERE f.id_berkas = ?::uuid
-		   AND f.id_pengguna = ?::uuid
-		   AND f.status_penyimpanan = 'committed'
-		   AND (
-		       f.id_direktori IS NULL
-		       OR EXISTS (SELECT 1 FROM directories d WHERE d.id_direktori = f.id_direktori AND d.dihapus_pada IS NULL)
-		   )
-		   AND f.dihapus_pada IS NOT NULL`,
-		fileID,
-		userID,
-	)
-	if result.Error != nil {
-		return fmt.Errorf("permanent delete file: %w", result.Error)
-	}
-	if result.RowsAffected == 0 {
-		return domain.ErrNotFound
-	}
+	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		var manifestRows []manifestIDRow
+		if err := tx.Raw(
+			`SELECT COALESCE(f.id_manifest, '') AS manifest_id
+			 FROM files f
+			 WHERE f.id_berkas = ?::uuid
+			   AND f.id_pengguna = ?::uuid
+			   AND f.status_penyimpanan = 'committed'
+			   AND (
+			       f.id_direktori IS NULL
+			       OR EXISTS (SELECT 1 FROM directories d WHERE d.id_direktori = f.id_direktori AND d.dihapus_pada IS NULL)
+			   )
+			   AND f.dihapus_pada IS NOT NULL
+			 FOR UPDATE`,
+			fileID,
+			userID,
+		).Scan(&manifestRows).Error; err != nil {
+			return fmt.Errorf("find file for permanent delete: %w", err)
+		}
+		if len(manifestRows) == 0 {
+			return domain.ErrNotFound
+		}
+		manifestIDsToLock := make([]string, 0, len(manifestRows))
+		for _, row := range manifestRows {
+			manifestIDsToLock = append(manifestIDsToLock, row.ManifestID)
+		}
+		if err := lockManifestLifecycles(ctx, tx, manifestIDsToLock); err != nil {
+			return err
+		}
 
-	return nil
+		var deletedRows []manifestIDRow
+		if err := tx.Raw(
+			`DELETE FROM files f
+			 WHERE f.id_berkas = ?::uuid
+			   AND f.id_pengguna = ?::uuid
+			   AND f.status_penyimpanan = 'committed'
+			   AND (
+			       f.id_direktori IS NULL
+			       OR EXISTS (SELECT 1 FROM directories d WHERE d.id_direktori = f.id_direktori AND d.dihapus_pada IS NULL)
+			   )
+			   AND f.dihapus_pada IS NOT NULL
+			 RETURNING COALESCE(f.id_manifest, '') AS manifest_id`,
+			fileID,
+			userID,
+		).Scan(&deletedRows).Error; err != nil {
+			return fmt.Errorf("permanent delete file: %w", err)
+		}
+		if len(deletedRows) == 0 {
+			return domain.ErrNotFound
+		}
+
+		manifestIDs := make([]string, 0, len(deletedRows))
+		for _, row := range deletedRows {
+			if strings.TrimSpace(row.ManifestID) != "" {
+				manifestIDs = append(manifestIDs, row.ManifestID)
+			}
+		}
+
+		if err := queueManifestRetirements(ctx, tx, manifestIDs); err != nil {
+			return err
+		}
+		return nil
+	})
 }
 
 func (r *FileRepository) SetStarred(ctx context.Context, fileID, userID string, starred bool) (domain.FileRecord, error) {
