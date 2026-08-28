@@ -8,10 +8,10 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/alfiang/pui/environment-b/vault-core/internal/fastcdc"
@@ -31,6 +31,9 @@ type Store struct {
 	chunking             fastcdc.Config
 	strictVerify         bool
 	strictVerifyMaxBytes int64
+	lifecycleMu          sync.RWMutex
+	activeUploadsMu      sync.RWMutex
+	activeUploads        map[string]map[string]struct{}
 }
 
 func NewStore(db *badger.DB, chunkRoot string, chunking fastcdc.Config, strictVerify bool, strictVerifyMaxBytes int64) *Store {
@@ -40,6 +43,7 @@ func NewStore(db *badger.DB, chunkRoot string, chunking fastcdc.Config, strictVe
 		chunking:             chunking,
 		strictVerify:         strictVerify,
 		strictVerifyMaxBytes: strictVerifyMaxBytes,
+		activeUploads:        make(map[string]map[string]struct{}),
 	}
 }
 
@@ -52,6 +56,8 @@ func (s *Store) ProcessUpload(ctx context.Context, fileName string, reader io.Re
 	if err != nil {
 		return UploadCommitResult{}, fmt.Errorf("create upload session: %w", err)
 	}
+	s.registerActiveUpload(uploadSession.SessionID)
+	defer s.unregisterActiveUpload(uploadSession.SessionID)
 
 	defer func() {
 		if err == nil {
@@ -89,7 +95,7 @@ func (s *Store) ProcessUpload(ctx context.Context, fileName string, reader io.Re
 		hashBytes := blake3.Sum256(chunk.Bytes)
 		chunkHash := hex.EncodeToString(hashBytes[:])
 
-		created, err := s.touchChunk(ctx, chunkHash, chunk.Bytes)
+		created, err := s.touchChunk(ctx, uploadSession.SessionID, chunkHash, chunk.Bytes)
 		if err != nil {
 			cancel()
 			return UploadCommitResult{}, fmt.Errorf("process chunk %d: %w", chunk.Index, err)
@@ -153,83 +159,6 @@ func (s *Store) ProcessUpload(ctx context.Context, fileName string, reader io.Re
 	}
 
 	return result, nil
-}
-
-// CleanupOrphanChunks deletes chunk metadata and physical files for chunks
-// that have ManifestRefCount == 0 and were created before `olderThan`.
-// The grace period prevents deleting chunks from in-flight uploads.
-func (s *Store) CleanupOrphanChunks(ctx context.Context, olderThan time.Time) (int, error) {
-	if err := contextErr(ctx); err != nil {
-		return 0, err
-	}
-
-	var candidates []ChunkRecord
-	err := s.db.View(func(txn *badger.Txn) error {
-		opts := badger.DefaultIteratorOptions
-		opts.PrefetchSize = 64
-		it := txn.NewIterator(opts)
-		defer it.Close()
-
-		prefix := []byte(chunkPrefix)
-		for it.Seek(prefix); it.ValidForPrefix(prefix); it.Next() {
-			record, err := decodeChunk(it.Item())
-			if err != nil {
-				continue
-			}
-			if record.ManifestRefCount == 0 && record.CreatedAt.Before(olderThan) {
-				candidates = append(candidates, record)
-			}
-		}
-		return nil
-	})
-	if err != nil {
-		return 0, fmt.Errorf("scan orphan chunks: %w", err)
-	}
-
-	deleted := 0
-	for _, candidate := range candidates {
-		if err := contextErr(ctx); err != nil {
-			return deleted, err
-		}
-
-		_, absolutePath, err := s.chunkPaths(candidate.ChunkHash)
-		if err != nil {
-			continue
-		}
-
-		// Re-check RefCount inside the write transaction to close the scan→delete race.
-		// Delete metadata first (atomically); remove file only after metadata is gone.
-		removed := false
-		dbErr := s.db.Update(func(txn *badger.Txn) error {
-			item, err := txn.Get(chunkKey(candidate.ChunkHash))
-			if errors.Is(err, badger.ErrKeyNotFound) {
-				return nil // already cleaned by a concurrent sweep
-			}
-			if err != nil {
-				return err
-			}
-			rec, err := decodeChunk(item)
-			if err != nil {
-				return err
-			}
-			// Abort if another upload has since referenced this chunk.
-			if rec.ManifestRefCount != 0 || !rec.CreatedAt.Before(olderThan) {
-				return nil
-			}
-			removed = true
-			return txn.Delete(chunkKey(candidate.ChunkHash))
-		})
-		if dbErr != nil || !removed {
-			continue
-		}
-
-		if err := os.Remove(absolutePath); err != nil && !errors.Is(err, os.ErrNotExist) {
-			log.Printf("event=orphan_chunk_file_remove_failed hash=%s err=%v", candidate.ChunkHash, err)
-		}
-		deleted++
-	}
-
-	return deleted, nil
 }
 
 func (s *Store) CleanupExpiredUploadSessions(ctx context.Context, now time.Time) (int, error) {
@@ -495,7 +424,7 @@ func (s *Store) GetChunk(ctx context.Context, chunkHash string) (ChunkRecord, bo
 	return out, true, nil
 }
 
-func (s *Store) touchChunk(ctx context.Context, chunkHash string, chunkBytes []byte) (bool, error) {
+func (s *Store) touchChunk(ctx context.Context, uploadID string, chunkHash string, chunkBytes []byte) (bool, error) {
 	chunkHash, err := normalizeHash(chunkHash)
 	if err != nil {
 		return false, err
@@ -504,6 +433,9 @@ func (s *Store) touchChunk(ctx context.Context, chunkHash string, chunkBytes []b
 	if err := contextErr(ctx); err != nil {
 		return false, err
 	}
+
+	s.lifecycleMu.RLock()
+	defer s.lifecycleMu.RUnlock()
 
 	_, found, err := s.GetChunk(ctx, chunkHash)
 	if err != nil {
@@ -522,6 +454,7 @@ func (s *Store) touchChunk(ctx context.Context, chunkHash string, chunkBytes []b
 				return false, fmt.Errorf("re-persist chunk file after gc race: %w", err)
 			}
 		}
+		s.markActiveUploadChunk(uploadID, chunkHash)
 		return false, nil
 	}
 
@@ -570,6 +503,7 @@ func (s *Store) touchChunk(ctx context.Context, chunkHash string, chunkBytes []b
 	if err != nil {
 		return false, fmt.Errorf("commit chunk metadata: %w", err)
 	}
+	s.markActiveUploadChunk(uploadID, chunkHash)
 
 	return created, nil
 }
@@ -578,6 +512,9 @@ func (s *Store) putChunk(ctx context.Context, record ChunkRecord) error {
 	if err := contextErr(ctx); err != nil {
 		return err
 	}
+
+	s.lifecycleMu.RLock()
+	defer s.lifecycleMu.RUnlock()
 
 	payload, err := json.Marshal(record)
 	if err != nil {
@@ -609,6 +546,9 @@ func (s *Store) commitManifestAndChunkRefs(ctx context.Context, manifest Manifes
 	if err := validateManifest(manifest); err != nil {
 		return err
 	}
+
+	s.lifecycleMu.RLock()
+	defer s.lifecycleMu.RUnlock()
 
 	payload, err := json.Marshal(manifest)
 	if err != nil {

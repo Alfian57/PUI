@@ -10,6 +10,7 @@ Service ini berjalan di jaringan non-publik dan menerima request internal melalu
 - Menyimpan chunk deduplicated ke storage lokal
 - Menyimpan metadata manifest/chunk ke BadgerDB
 - Menyediakan pembacaan manifest objek untuk proses rekonstruksi oleh API Service
+- Menjalankan Concurrent Garbage Collection untuk chunk lama yang tidak direferensikan
 - Menolak operasi destruktif (immutable policy)
 
 ## Stack
@@ -124,5 +125,11 @@ make ci-go
 Data vault disimpan pada direktori volume:
 - `data/vault/badger`
 - `data/vault/chunks`
+
+GC berjalan di background setiap 10 menit dengan grace period 30 menit. Candidate
+ditentukan dari scan seluruh manifest committed, bukan hanya `ManifestRefCount`.
+Upload aktif dilindungi selama proses berjalan. File fisik dihapus lebih dulu lalu
+metadata chunk dihapus; kegagalan pada salah satu tahap aman untuk diulang pada sweep
+berikutnya. Jika scan metadata tidak valid, GC berhenti tanpa menghapus candidate.
 
 Panduan backup/restore tersedia di [../../deploy/backup.md](../../deploy/backup.md).

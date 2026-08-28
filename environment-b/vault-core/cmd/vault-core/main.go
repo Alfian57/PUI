@@ -58,20 +58,29 @@ func main() {
 		}
 	}()
 
-	// Orphan chunk GC: delete chunks with RefCount=0 older than 30 minutes.
+	// Concurrent GC: reclaim chunks absent from every committed manifest after a grace period.
 	go func() {
 		ticker := time.NewTicker(10 * time.Minute)
 		defer ticker.Stop()
 
 		for range ticker.C {
 			grace := time.Now().UTC().Add(-30 * time.Minute)
-			deleted, err := store.CleanupOrphanChunks(context.Background(), grace)
+			report, err := store.CollectGarbage(context.Background(), grace)
 			if err != nil {
-				log.Printf("event=orphan_chunk_cleanup_failed error=%v", err)
+				log.Printf("event=garbage_collection_failed error=%v", err)
 				continue
 			}
-			if deleted > 0 {
-				log.Printf("event=orphan_chunk_cleanup deleted=%d", deleted)
+			if report.DeletedChunks > 0 || report.DeletedPhysicalOrphans > 0 {
+				log.Printf(
+					"event=garbage_collection_completed manifests=%d chunk_records=%d physical_files=%d candidates=%d deleted_chunks=%d deleted_physical_orphans=%d skipped_active=%d",
+					report.ScannedManifests,
+					report.ScannedChunkRecords,
+					report.ScannedPhysicalFiles,
+					report.CandidateChunks,
+					report.DeletedChunks,
+					report.DeletedPhysicalOrphans,
+					report.SkippedActiveChunks,
+				)
 			}
 		}
 	}()

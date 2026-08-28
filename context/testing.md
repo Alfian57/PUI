@@ -10,7 +10,7 @@
 | UI blackbox | `make blackbox-ui-headless` atau target headed |
 | Security Lab | `make security-test` untuk CI/headless, `make security-demo` untuk demo browser |
 
-Untuk fase PP, tambahkan bukti yang dapat diverifikasi untuk Concurrent Garbage Collection dan Read-Proxy: chunk tanpa referensi dapat dibersihkan tanpa merusak chunk aktif, dan retrieval tidak lagi bergantung pada akses baca langsung dari API ke storage fisik.
+Untuk fase PP, tambahkan bukti yang dapat diverifikasi untuk Concurrent Garbage Collection dan Read-Proxy: chunk tanpa referensi dapat dibersihkan tanpa merusak chunk aktif, retrieval tidak lagi bergantung pada akses baca langsung dari API ke storage fisik, dan GC fail-safe saat metadata malformed atau deletion gagal.
 
 ## Urutan verifikasi agent
 

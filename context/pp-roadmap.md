@@ -22,6 +22,11 @@ Sebelum mengubah kode, audit baseline terhadap proposal dan catat gap. Jangan me
 
 **Dependency:** reference/manifest contract dan baseline crash-consistency harus jelas.
 
+**Implementasi:** Vault Core melakukan authoritative manifest scan, melindungi upload aktif
+dengan lifecycle lock dan registry proses, serta menghapus file fisik sebelum metadata agar
+sweep dapat diulang dengan aman. Scheduler current berjalan setiap 10 menit dengan grace
+period 30 menit.
+
 **Acceptance criteria:**
 
 - chunk tanpa reference aktif dapat diidentifikasi dan dibersihkan;

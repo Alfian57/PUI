@@ -32,7 +32,13 @@ Dokumen ini menjelaskan boundary dan sequence teknis. Proposal tetap menjadi aut
 4. Proses harus aman diulang, aman terhadap crash, dan tidak menghapus chunk yang masih dibutuhkan object committed.
 5. Hasil GC harus dapat dibuktikan melalui count, reference check, dan regresi retrieval.
 
-Detail locking, scheduling, dan mekanisme recovery ditentukan saat milestone PP setelah contract dan baseline kode diaudit; jangan mengasumsikan desain baru tanpa bukti proposal atau keputusan teknis.
+**Implementasi current:**
+
+- Vault Core memakai lifecycle read/write lock: touch chunk dan commit manifest berjalan sebagai reader, sedangkan sweep GC mengambil writer lock.
+- Upload aktif mendaftarkan chunk yang sudah disentuh di registry proses. Candidate tersebut dilewati sampai upload selesai; grace period tetap menjadi fallback setelah restart process.
+- GC scan metadata fail-safe: manifest atau chunk record yang malformed menghentikan sweep sebelum deletion.
+- Deletion berurutan file fisik lalu metadata. Jika deletion gagal, record dipertahankan agar dapat di-retry; file `.bin` tanpa metadata juga dibersihkan bila sudah melewati grace period.
+- Scheduler background current berjalan setiap 10 menit dengan grace period 30 menit. Retrieval tetap concurrent karena GC hanya menghapus chunk yang tidak ada pada manifest snapshot.
 
 ## UDS dan security event
 
