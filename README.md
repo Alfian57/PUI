@@ -9,6 +9,8 @@ Dokumen acuan mutlak scope dan kebutuhan sistem: [proposal-pui.md](proposal-pui.
 
 Status proyek: PUI telah selesai dan lulus; fase aktif sekarang adalah Proyek Professional (PP). Prioritas PP mengikuti roadmap proposal: Concurrent Garbage Collection dan Read-Proxy.
 
+Business flow, technical flow, dan acceptance criteria PP tersedia di folder [context](context/), dengan urutan implementasi GC lalu Read-Proxy.
+
 ## Komponen Utama
 
 | Komponen | Lokasi | Fungsi |

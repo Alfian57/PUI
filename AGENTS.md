@@ -14,8 +14,9 @@ PUI telah selesai dan lulus. Fase aktif repository sekarang adalah Proyek Profes
 2. Baca [proposal-pui.md](proposal-pui.md) untuk intent dan batasan sistem.
 3. Baca [context/README.md](context/README.md).
 4. Baca [context/project-status.md](context/project-status.md) jika task berkaitan dengan roadmap atau fitur baru.
-5. Baca hanya dokumen context lain yang relevan dengan task.
-6. Verifikasi detail implementasi ke source code, konfigurasi, dan test.
+5. Untuk fitur, baca business flow, technical flow, dan milestone PP yang relevan.
+6. Baca hanya dokumen context lain yang relevan dengan task.
+7. Verifikasi detail implementasi ke source code, konfigurasi, dan test.
 
 Kode dan konfigurasi menunjukkan perilaku yang sedang berjalan, bukan authority atas scope. Context menjelaskan struktur dan intent; jika berbeda dari proposal, proposal harus diprioritaskan dan konflik perlu dilaporkan.
 

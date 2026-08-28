@@ -1,6 +1,6 @@
 # Development workflow
 
-PUI telah selesai dan lulus. Pengembangan aktif sekarang berada pada fase Proyek Professional (PP); prioritasnya adalah roadmap proposal, yaitu Concurrent Garbage Collection dan Read-Proxy.
+PUI telah selesai dan lulus. Pengembangan aktif sekarang berada pada fase Proyek Professional (PP); prioritas dan urutannya dijelaskan di [pp-roadmap.md](pp-roadmap.md), yaitu Concurrent Garbage Collection lalu Read-Proxy.
 
 ## Struktur kerja
 
@@ -24,9 +24,10 @@ Command per area tersedia di `environment-a/api-service/Makefile` dan `environme
 
 ## Aturan perubahan
 
+- Untuk fitur PP, mulai dari [business-flow.md](business-flow.md), [technical-flow.md](technical-flow.md), dan milestone pada [pp-roadmap.md](pp-roadmap.md).
 - Migration baru dibuat berpasangan di `environment-a/api-service/db/migrations`.
 - Setelah anotasi endpoint berubah, regenerasi Swagger memakai workflow API yang tersedia.
 - Perubahan event atau UDS harus memperbarui producer, consumer, dan test terkait.
 - Pengembangan PP harus memprioritaskan roadmap proposal dan tidak boleh mengorbankan immutability atau boundary storage demi kemudahan implementasi.
 - Pertahankan API response dan naming yang sudah dipakai frontend; ubah contract hanya dengan alasan yang jelas.
-- Gunakan `gofmt`, TypeScript check, dan build sebagai bagian dari verifikasi.
+- Setelah implementasi, gunakan hanya pemeriksaan ringan seperti `gofmt` check, TypeScript check, linter, static check, atau validasi konfigurasi. Tanyakan kepada user sebelum menjalankan testing.
