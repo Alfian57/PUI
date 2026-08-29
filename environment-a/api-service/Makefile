@@ -5,7 +5,8 @@ ENV_FILE ?= .env
 ENV_RUN = set -a; [ -f "$(ENV_FILE)" ] && . "$(ENV_FILE)"; set +a
 
 .PHONY: help doctor run build fmt fmt-check vet test ci swagger \
-	migrate-up migrate-down migrate-down-all migrate-version migrate-fresh seed-dev-admin
+	migrate-up migrate-down migrate-down-all migrate-version migrate-fresh \
+	seed seed-default seed-full seed-full-metadata seed-full-content seed-dev-admin
 
 help: ## Show available make targets
 	@awk 'BEGIN {FS = ":.*##"; print "Usage: make <target>\n"} /^[a-zA-Z0-9_.-]+:.*##/ {printf "  %-20s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -62,8 +63,24 @@ migrate-version: ## Show current migration version and dirty status from service
 migrate-fresh: ## Roll back all migrations then re-apply them (dev only)
 	@bash -lc '$(ENV_RUN); go run ./cmd/migrate fresh'
 
-seed: ## Apply dev admin seed via psql using service .env
+seed: seed-default ## Apply the default two-account development seed
+
+seed-default: ## Apply the default two-account development seed via psql
 	@bash -lc '$(ENV_RUN); \
 		command -v psql >/dev/null || { echo "psql is not installed"; exit 1; }; \
 		if [ -z "$${DATABASE_URL}" ]; then echo "DATABASE_URL is required"; exit 1; fi; \
-		psql "$${DATABASE_URL}" -f db/seeds/dev_admin.sql'
+		psql --set ON_ERROR_STOP=1 "$${DATABASE_URL}" -f db/seeds/default.sql'
+
+seed-full: seed-full-metadata ## Apply metadata and 500 real dummy files through API and Vault Core
+	@bash ../../scripts/seed_full_content.sh
+
+seed-full-metadata: ## Apply the complete PostgreSQL metadata fixture via psql
+	@bash -lc '$(ENV_RUN); \
+		command -v psql >/dev/null || { echo "psql is not installed"; exit 1; }; \
+		if [ -z "$${DATABASE_URL}" ]; then echo "DATABASE_URL is required"; exit 1; fi; \
+		psql --set ON_ERROR_STOP=1 "$${DATABASE_URL}" -f db/seeds/full.sql'
+
+seed-full-content: ## Upload the dummy fixture files through the running API and Vault Core
+	@bash ../../scripts/seed_full_content.sh
+
+seed-dev-admin: seed-default ## Backward-compatible alias for the default seed

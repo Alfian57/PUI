@@ -284,6 +284,22 @@ func (f *fakeFileRepo) ListByDirectory(ctx context.Context, userID, directoryID 
 	return out, nil
 }
 
+func (f *fakeFileRepo) ListByDirectoryPage(ctx context.Context, userID string, filter domain.FileListFilter) ([]domain.FileRecord, int64, domain.FileListStats, error) {
+	items, err := f.ListByDirectory(ctx, userID, filter.DirectoryID, filter.IncludeDeleted)
+	if err != nil {
+		return nil, 0, domain.FileListStats{}, err
+	}
+
+	stats := domain.FileListStats{}
+	for _, item := range items {
+		stats.TotalBytes += item.SizeBytes
+		stats.TotalChunks += item.ChunkCount
+		stats.ReusedChunks += item.ReuseChunks
+	}
+
+	return items, int64(len(items)), stats, nil
+}
+
 func (f *fakeFileRepo) CreatePending(ctx context.Context, userID, directoryID, name, mimeType string) (domain.FileRecord, error) {
 	record := domain.FileRecord{
 		ID:            testFileID,
@@ -405,6 +421,14 @@ func (f *fakeFileRepo) ListTrash(ctx context.Context, userID string) ([]domain.F
 
 func (f *fakeFileRepo) ListStarred(ctx context.Context, userID string) ([]domain.FileRecord, error) {
 	return nil, nil
+}
+
+func (f *fakeFileRepo) ListTrashPage(ctx context.Context, userID string, limit, offset int) ([]domain.FileRecord, int64, error) {
+	return nil, 0, nil
+}
+
+func (f *fakeFileRepo) ListStarredPage(ctx context.Context, userID string, limit, offset int) ([]domain.FileRecord, int64, error) {
+	return nil, 0, nil
 }
 
 func (f *fakeFileRepo) ExpireStalePending(_ context.Context, _ time.Time) (int64, error) {

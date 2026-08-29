@@ -1,8 +1,8 @@
 import clsx from "clsx";
 import { Download, FileText, Info, Trash2 } from "lucide-react";
-import { EmptyState } from "@/shared/ui/EmptyState";
+import { EmptyState } from "@/components/shared/EmptyState";
 import { formatBytes, formatDate } from "@/shared/lib/format";
-import type { FileRecord } from "@/shared/types/domain";
+import type { FileRecord } from "@/shared/types/files";
 
 type FileGridViewProps = {
     files: FileRecord[];

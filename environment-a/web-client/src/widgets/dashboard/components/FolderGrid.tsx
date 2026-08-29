@@ -1,8 +1,8 @@
 import { Folder, FolderOpen } from "lucide-react";
-import { EmptyState } from "@/shared/ui/EmptyState";
-import { Button } from "@/shared/ui/Button";
+import { EmptyState } from "@/components/shared/EmptyState";
+import { Button } from "@/components/ui/Button";
 import { formatDate } from "@/shared/lib/format";
-import type { DirectoryRecord } from "@/shared/types/domain";
+import type { DirectoryRecord } from "@/shared/types/directories";
 
 type FolderGridProps = {
     folders: DirectoryRecord[];

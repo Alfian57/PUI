@@ -152,13 +152,30 @@ make migrate-down-all
 make migrate-fresh
 ```
 
-Seed dev admin tersedia di `db/seeds/dev_admin.sql` dan bisa langsung dijalankan lewat:
+Seeder development memiliki dua mode:
+
+- `seed` / `seed-default`: dua akun bootstrap saja.
+- `seed-full`: fixture sintetis lengkap untuk seluruh tabel metadata, minimal
+  1.000 baris per tabel, lalu mengunggah 500 dummy files nyata ke Vault Core.
+- `seed-full-metadata`: hanya tahap PostgreSQL, tanpa membutuhkan API/Vault.
+- `seed-full-content`: hanya upload dummy files ke API/Vault yang sudah berjalan.
+
+Jalankan dari folder API service:
 
 ```bash
-make seed-dev-admin
+make seed
+make seed-full
 ```
 
-Target ini memakai `DATABASE_URL` dari `.env` service dan membutuhkan `psql` terpasang.
+Target metadata memakai `DATABASE_URL` dari `.env` service dan membutuhkan
+`psql` terpasang. Target full juga membutuhkan API Service, Vault Core, `curl`,
+dan `jq`. Gunakan `HASHBOX_API_BASE_URL` jika API tidak berada di alamat default.
+`dev_admin.sql` tetap tersedia sebagai nama kompatibilitas lama;
+seed default canonical berada di `db/seeds/default.sql`. Seeder full bersifat
+idempotent dan hanya ditujukan untuk database lokal/demo. Password akun fixture
+sintetis full adalah `seed-password`; dua akun bootstrap tetap memakai
+`password`. File dummy dibuat sementara oleh `scripts/seed_full_content.sh`,
+kemudian diunggah ke Vault Core sehingga manifest-nya nyata.
 
 ## Swagger
 

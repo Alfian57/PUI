@@ -194,6 +194,77 @@ func (r *FileRepository) ListByDirectory(ctx context.Context, userID, directoryI
 	return files, nil
 }
 
+func (r *FileRepository) ListByDirectoryPage(ctx context.Context, userID string, filter domain.FileListFilter) ([]domain.FileRecord, int64, domain.FileListStats, error) {
+	where := ` WHERE f.id_pengguna = ?::uuid AND f.status_penyimpanan = 'committed'`
+	args := []any{userID}
+
+	if strings.TrimSpace(filter.DirectoryID) == "" {
+		where += ` AND f.id_direktori IS NULL`
+	} else {
+		where += ` AND f.id_direktori = ?::uuid AND d.dihapus_pada IS NULL`
+		args = append(args, filter.DirectoryID)
+	}
+
+	if !filter.IncludeDeleted {
+		where += ` AND f.dihapus_pada IS NULL`
+	}
+	if filter.CreatedFrom != nil {
+		where += ` AND f.dibuat_pada >= ?`
+		args = append(args, *filter.CreatedFrom)
+	}
+	if filter.CreatedTo != nil {
+		where += ` AND f.dibuat_pada <= ?`
+		args = append(args, *filter.CreatedTo)
+	}
+
+	var summary struct {
+		Total        int64 `gorm:"column:total"`
+		TotalBytes   int64 `gorm:"column:total_bytes"`
+		TotalChunks  int   `gorm:"column:total_chunks"`
+		ReusedChunks int   `gorm:"column:reused_chunks"`
+	}
+	countQuery := `SELECT COUNT(*) AS total,
+		COALESCE(SUM(f.ukuran), 0) AS total_bytes,
+		COALESCE(SUM(f.chunk_count), 0) AS total_chunks,
+		COALESCE(SUM(f.reuse_chunk_count), 0) AS reused_chunks
+		FROM files f
+		LEFT JOIN directories d ON d.id_direktori = f.id_direktori` + where
+	if err := r.db.WithContext(ctx).Raw(countQuery, args...).Scan(&summary).Error; err != nil {
+		return nil, 0, domain.FileListStats{}, fmt.Errorf("count files by directory: %w", err)
+	}
+
+	orderBy := fileListOrderBy(filter.Sort)
+	listQuery := `SELECT ` + fileSelectColumns + `
+		FROM files f
+		LEFT JOIN directories d ON d.id_direktori = f.id_direktori` + where + ` ORDER BY ` + orderBy + ` LIMIT ? OFFSET ?`
+	listArgs := append(append([]any{}, args...), filter.Limit, filter.Offset)
+	files := make([]domain.FileRecord, 0, filter.Limit)
+	if err := r.db.WithContext(ctx).Raw(listQuery, listArgs...).Scan(&files).Error; err != nil {
+		return nil, 0, domain.FileListStats{}, fmt.Errorf("query files by directory page: %w", err)
+	}
+
+	return files, summary.Total, domain.FileListStats{
+		TotalBytes:   summary.TotalBytes,
+		TotalChunks:  summary.TotalChunks,
+		ReusedChunks: summary.ReusedChunks,
+	}, nil
+}
+
+func fileListOrderBy(sort string) string {
+	switch sort {
+	case "oldest":
+		return "f.dibuat_pada ASC, f.id_berkas ASC"
+	case "name-asc", "type":
+		return "lower(f.nama) ASC, f.id_berkas ASC"
+	case "name-desc":
+		return "lower(f.nama) DESC, f.id_berkas DESC"
+	case "starred":
+		return "f.dibintangi_pada DESC NULLS LAST, f.dibuat_pada DESC, f.id_berkas DESC"
+	default:
+		return "f.dibuat_pada DESC, f.id_berkas DESC"
+	}
+}
+
 func (r *FileRepository) SoftDelete(ctx context.Context, fileID, userID string) (time.Time, error) {
 	var deletedAt time.Time
 	err := r.db.WithContext(ctx).Raw(
@@ -453,6 +524,48 @@ func (r *FileRepository) ListStarred(ctx context.Context, userID string) ([]doma
 	}
 
 	return files, nil
+}
+
+func (r *FileRepository) ListTrashPage(ctx context.Context, userID string, limit, offset int) ([]domain.FileRecord, int64, error) {
+	return r.listWorkspaceFilesPage(ctx, userID, "trash", limit, offset)
+}
+
+func (r *FileRepository) ListStarredPage(ctx context.Context, userID string, limit, offset int) ([]domain.FileRecord, int64, error) {
+	return r.listWorkspaceFilesPage(ctx, userID, "starred", limit, offset)
+}
+
+func (r *FileRepository) listWorkspaceFilesPage(ctx context.Context, userID, mode string, limit, offset int) ([]domain.FileRecord, int64, error) {
+	where := ` WHERE f.id_pengguna = ?::uuid
+		AND f.status_penyimpanan = 'committed'
+		AND (f.id_direktori IS NULL OR d.dihapus_pada IS NULL)`
+	args := []any{userID}
+	orderBy := "f.nama ASC, f.id_berkas ASC"
+	if mode == "trash" {
+		where += ` AND f.dihapus_pada IS NOT NULL`
+		orderBy = "f.dihapus_pada DESC, lower(f.nama) ASC, f.id_berkas ASC"
+	} else {
+		where += ` AND f.dihapus_pada IS NULL AND f.dibintangi_pada IS NOT NULL`
+		orderBy = "f.dibintangi_pada DESC, lower(f.nama) ASC, f.id_berkas ASC"
+	}
+
+	var total int64
+	countQuery := `SELECT COUNT(*)
+		FROM files f
+		LEFT JOIN directories d ON d.id_direktori = f.id_direktori` + where
+	if err := r.db.WithContext(ctx).Raw(countQuery, args...).Scan(&total).Error; err != nil {
+		return nil, 0, fmt.Errorf("count %s files: %w", mode, err)
+	}
+
+	listQuery := `SELECT ` + fileSelectColumns + `
+		FROM files f
+		LEFT JOIN directories d ON d.id_direktori = f.id_direktori` + where + ` ORDER BY ` + orderBy + ` LIMIT ? OFFSET ?`
+	listArgs := append(append([]any{}, args...), limit, offset)
+	files := make([]domain.FileRecord, 0, limit)
+	if err := r.db.WithContext(ctx).Raw(listQuery, listArgs...).Scan(&files).Error; err != nil {
+		return nil, 0, fmt.Errorf("query %s files page: %w", mode, err)
+	}
+
+	return files, total, nil
 }
 
 // ExpireStalePending marks pending file records older than olderThan as failed,

@@ -95,11 +95,10 @@ func lockManifestLifecycle(ctx context.Context, tx *gorm.DB, manifestID string) 
 		return nil
 	}
 
-	var ignored int64
-	if err := tx.WithContext(ctx).Raw(
+	if err := tx.WithContext(ctx).Exec(
 		`SELECT pg_advisory_xact_lock(hashtextextended(?, 0))`,
 		manifestID,
-	).Scan(&ignored).Error; err != nil {
+	).Error; err != nil {
 		return fmt.Errorf("lock manifest lifecycle %s: %w", manifestID, err)
 	}
 	return nil

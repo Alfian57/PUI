@@ -26,3 +26,19 @@ type FileSearchFilter struct {
 	Limit          int
 	Offset         int
 }
+
+type FileListFilter struct {
+	DirectoryID    string
+	IncludeDeleted bool
+	Sort           string
+	CreatedFrom    *time.Time
+	CreatedTo      *time.Time
+	Limit          int
+	Offset         int
+}
+
+type FileListStats struct {
+	TotalBytes   int64
+	TotalChunks  int
+	ReusedChunks int
+}

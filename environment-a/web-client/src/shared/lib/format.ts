@@ -10,6 +10,10 @@ export function formatBytes(bytes: number): string {
   return `${value.toFixed(index === 0 ? 0 : 2)} ${units[index]}`;
 }
 
+export function formatCount(value: number, unit: string): string {
+  return `${value.toLocaleString("id-ID")} ${unit}`;
+}
+
 export function formatDate(value: string): string {
   return new Date(value).toLocaleString("id-ID", {
     dateStyle: "medium",

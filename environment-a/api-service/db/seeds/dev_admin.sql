@@ -1,6 +1,5 @@
--- Development-only seed script.
--- Apply manually when you need a local bootstrap user:
--- psql "$DATABASE_URL" -f db/seeds/dev_admin.sql
+-- Backward-compatible copy of the default development seed.
+-- Prefer: psql "$DATABASE_URL" -f db/seeds/default.sql
 
 INSERT INTO users (nama, email, password_hash, peran)
 VALUES (

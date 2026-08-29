@@ -6,11 +6,16 @@
 cp .env.example .env
 make env-check
 make compose-up
-set -a
-source .env
-set +a
-docker compose --env-file .env exec -T postgres psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" < environment-a/api-service/db/seeds/dev_admin.sql
+make compose-seed
 ```
+
+Seeder default membuat dua akun bootstrap (`gading@gmail.com` dan
+`admin@gmail.com`, keduanya memakai password development `password`). Untuk
+fixture sintetis lengkap dengan minimal 1.000 baris per tabel metadata, gunakan
+`make compose-seed-full`, atau `make seed-full` pada API service lokal. Fixture
+full memakai password `seed-password` untuk akun sintetis; akun bootstrap tetap
+memakai `password`. Full seed juga mengunggah 500 dummy files melalui API/Vault
+Core sehingga manifest yang dihasilkan nyata.
 
 Web tersedia di `http://localhost:5173`, API di `http://localhost:8080/api/v1`, dan Swagger di `/api/v1/swagger/index.html`.
 

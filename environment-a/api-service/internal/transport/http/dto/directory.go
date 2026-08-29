@@ -40,13 +40,23 @@ type DirectoryMutationResponse struct {
 }
 
 type TrashResponse struct {
-	Status      string         `json:"status"`
-	Directories []DirectoryDTO `json:"directories"`
-	Files       []FileDTO      `json:"files"`
+	Status         string         `json:"status"`
+	Total          int64          `json:"total"`
+	DirectoryTotal int64          `json:"directory_total"`
+	FileTotal      int64          `json:"file_total"`
+	Limit          int            `json:"limit"`
+	Offset         int            `json:"offset"`
+	Directories    []DirectoryDTO `json:"directories"`
+	Files          []FileDTO      `json:"files"`
 }
 
 type StarredResponse struct {
-	Status      string         `json:"status"`
-	Directories []DirectoryDTO `json:"directories"`
-	Files       []FileDTO      `json:"files"`
+	Status         string         `json:"status"`
+	Total          int64          `json:"total"`
+	DirectoryTotal int64          `json:"directory_total"`
+	FileTotal      int64          `json:"file_total"`
+	Limit          int            `json:"limit"`
+	Offset         int            `json:"offset"`
+	Directories    []DirectoryDTO `json:"directories"`
+	Files          []FileDTO      `json:"files"`
 }

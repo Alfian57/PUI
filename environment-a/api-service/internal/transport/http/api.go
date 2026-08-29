@@ -37,10 +37,13 @@ type directoryServiceInterface interface {
 	SetStarred(ctx context.Context, user domain.AuthUser, directoryID string, starred bool) (domain.DirectoryRecord, error)
 	Trash(ctx context.Context, user domain.AuthUser) ([]domain.DirectoryRecord, error)
 	Starred(ctx context.Context, user domain.AuthUser) ([]domain.DirectoryRecord, error)
+	TrashPage(ctx context.Context, user domain.AuthUser, limit, offset int) ([]domain.DirectoryRecord, int64, int, int, error)
+	StarredPage(ctx context.Context, user domain.AuthUser, limit, offset int) ([]domain.DirectoryRecord, int64, int, int, error)
 }
 
 type fileServiceInterface interface {
 	ListByDirectory(ctx context.Context, user domain.AuthUser, directoryID string, includeDeleted bool) ([]domain.FileRecord, error)
+	ListByDirectoryPage(ctx context.Context, user domain.AuthUser, filter domain.FileListFilter) ([]domain.FileRecord, int64, domain.FileListStats, int, int, error)
 	Upload(ctx context.Context, user domain.AuthUser, directoryID, fileName, mimeType string, reader io.Reader) (service.UploadOutcome, error)
 	Detail(ctx context.Context, user domain.AuthUser, fileID string, includeDeleted bool) (domain.FileRecord, error)
 	Download(ctx context.Context, user domain.AuthUser, fileID string, includeDeleted bool) (service.DownloadOutcome, error)
@@ -52,6 +55,8 @@ type fileServiceInterface interface {
 	GetManifestInfo(ctx context.Context, manifestID string) (vaultclient.ManifestRecord, error)
 	Trash(ctx context.Context, user domain.AuthUser) ([]domain.FileRecord, error)
 	Starred(ctx context.Context, user domain.AuthUser) ([]domain.FileRecord, error)
+	TrashPage(ctx context.Context, user domain.AuthUser, limit, offset int) ([]domain.FileRecord, int64, int, int, error)
+	StarredPage(ctx context.Context, user domain.AuthUser, limit, offset int) ([]domain.FileRecord, int64, int, int, error)
 }
 
 type adminServiceInterface interface {

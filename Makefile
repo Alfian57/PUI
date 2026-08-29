@@ -18,8 +18,10 @@ COMPOSE_ENV_FILE ?= .env
 	test-all \
 	web-install web-build web-dev \
 	compose-config compose-up compose-down compose-logs \
+	compose-seed compose-seed-full \
 	docker-build docker-build-api docker-build-vault docker-build-web \
-	run-api run-vault clean
+	run-api run-vault clean \
+	seed seed-default seed-full seed-full-metadata seed-full-content
 
 help: ## Show available make targets
 	@awk 'BEGIN {FS = ":.*##"; print "Usage: make <target>\n"} /^[a-zA-Z0-9_.-]+:.*##/ {printf "  %-20s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -144,6 +146,15 @@ compose-down: ## Stop full stack via docker compose
 compose-logs: ## Tail logs from docker compose stack
 	@docker compose --env-file "$(COMPOSE_ENV_FILE)" -f $(COMPOSE_FILE) logs -f
 
+compose-seed: ## Run the default two-account seed in the Compose database
+	@$(MAKE) compose-config COMPOSE_ENV_FILE="$(COMPOSE_ENV_FILE)"
+	@docker compose --env-file "$(COMPOSE_ENV_FILE)" -f $(COMPOSE_FILE) run --rm -e SEED_MODE=default seeder
+
+compose-seed-full: ## Run the complete synthetic seed in the Compose database
+	@$(MAKE) compose-config COMPOSE_ENV_FILE="$(COMPOSE_ENV_FILE)"
+	@docker compose --env-file "$(COMPOSE_ENV_FILE)" -f $(COMPOSE_FILE) run --rm -e SEED_MODE=full seeder
+	@bash scripts/seed_full_content.sh
+
 docker-build-api: ## Build local api-service image
 	@docker build -t pui-api-service:local $(API_DIR)
 
@@ -168,6 +179,20 @@ run-api: ## Run api-service locally
 
 run-vault: ## Run vault-core locally
 	@$(MAKE) -C $(VAULT_DIR) run
+
+seed: seed-default ## Apply the default two-account development seed
+
+seed-default: ## Apply the default two-account development seed through the API service Makefile
+	@$(MAKE) -C $(API_DIR) seed-default
+
+seed-full: ## Apply the complete synthetic development fixture through the API service Makefile
+	@$(MAKE) -C $(API_DIR) seed-full
+
+seed-full-metadata: ## Apply only the PostgreSQL metadata portion of the full fixture
+	@$(MAKE) -C $(API_DIR) seed-full-metadata
+
+seed-full-content: ## Upload dummy fixture files through the running API and Vault Core
+	@$(MAKE) -C $(API_DIR) seed-full-content
 
 clean: ## Clean generated web artifacts
 	@rm -rf $(WEB_DIR)/dist

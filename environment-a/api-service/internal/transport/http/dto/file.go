@@ -31,9 +31,15 @@ type UploadCommitResultDTO struct {
 }
 
 type FileListResponse struct {
-	Status      string    `json:"status"`
-	DirectoryID string    `json:"directory_id,omitempty"`
-	Files       []FileDTO `json:"files"`
+	Status       string    `json:"status"`
+	DirectoryID  string    `json:"directory_id,omitempty"`
+	Total        int64     `json:"total"`
+	Limit        int       `json:"limit"`
+	Offset       int       `json:"offset"`
+	TotalBytes   int64     `json:"total_bytes"`
+	TotalChunks  int       `json:"total_chunks"`
+	ReusedChunks int       `json:"reused_chunks"`
+	Files        []FileDTO `json:"files"`
 }
 
 type FileSearchResponse struct {

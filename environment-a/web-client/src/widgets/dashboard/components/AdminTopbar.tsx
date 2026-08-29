@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { LogOut, Menu, UserCircle } from "lucide-react";
 import { Link } from "react-router-dom";
-import { UserAvatar } from "@/shared/ui/UserAvatar";
-import type { AuthUser } from "@/shared/types/domain";
+import { UserAvatar } from "@/components/shared/UserAvatar";
+import type { AuthUser } from "@/shared/types/auth";
+import { ROUTES } from "@/app/routes";
 
 type AdminTopbarProps = {
     user: AuthUser;
@@ -57,7 +58,7 @@ export function AdminTopbar({ user, onMenuClick, onLogout }: AdminTopbarProps): 
                             </div>
                             <div className="h-px bg-brand-steel/10" />
                             <Link
-                                to="/app/profile"
+                                to={ROUTES.app.profile}
                                 onClick={() => setAccountOpen(false)}
                                 className="mt-2 flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-medium text-brand-steel transition hover:bg-brand-sky hover:text-brand-logoBlue focus:outline-none focus:ring-2 focus:ring-brand-logoYellow/70"
                             >

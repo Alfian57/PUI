@@ -25,6 +25,7 @@ type VaultFileClient interface {
 
 type fileMetadataRepository interface {
 	ListByDirectory(ctx context.Context, userID, directoryID string, includeDeleted bool) ([]domain.FileRecord, error)
+	ListByDirectoryPage(ctx context.Context, userID string, filter domain.FileListFilter) ([]domain.FileRecord, int64, domain.FileListStats, error)
 	CreatePending(ctx context.Context, userID, directoryID, name, mimeType string) (domain.FileRecord, error)
 	MarkCommitted(ctx context.Context, fileID, userID string, result vaultclient.UploadCommitResult) (domain.FileRecord, error)
 	RequeueManifestRetirement(ctx context.Context, manifestID string) error
@@ -38,6 +39,8 @@ type fileMetadataRepository interface {
 	SearchByUser(ctx context.Context, userID string, filter domain.FileSearchFilter) ([]domain.FileRecord, int64, error)
 	ListTrash(ctx context.Context, userID string) ([]domain.FileRecord, error)
 	ListStarred(ctx context.Context, userID string) ([]domain.FileRecord, error)
+	ListTrashPage(ctx context.Context, userID string, limit, offset int) ([]domain.FileRecord, int64, error)
+	ListStarredPage(ctx context.Context, userID string, limit, offset int) ([]domain.FileRecord, int64, error)
 	ExpireStalePending(ctx context.Context, olderThan time.Time) (int64, error)
 }
 
@@ -91,6 +94,48 @@ func (s *FileService) ListByDirectory(ctx context.Context, user domain.AuthUser,
 	}
 
 	return s.filesRepo.ListByDirectory(ctx, user.UserID, directoryID, includeDeleted)
+}
+
+func (s *FileService) ListByDirectoryPage(ctx context.Context, user domain.AuthUser, filter domain.FileListFilter) ([]domain.FileRecord, int64, domain.FileListStats, int, int, error) {
+	filter.DirectoryID = strings.TrimSpace(filter.DirectoryID)
+	filter.Sort = strings.TrimSpace(filter.Sort)
+	if filter.Sort == "" {
+		filter.Sort = "newest"
+	}
+	if filter.Sort != "newest" && filter.Sort != "oldest" && filter.Sort != "name-asc" && filter.Sort != "name-desc" && filter.Sort != "type" && filter.Sort != "starred" {
+		return nil, 0, domain.FileListStats{}, 0, 0, fmt.Errorf("%w: sort tidak valid", domain.ErrInvalidInput)
+	}
+
+	normalizedLimit, normalizedOffset, err := normalizePagination(filter.Limit, filter.Offset)
+	if err != nil {
+		return nil, 0, domain.FileListStats{}, 0, 0, err
+	}
+	filter.Limit = normalizedLimit
+	filter.Offset = normalizedOffset
+	if filter.CreatedFrom != nil && filter.CreatedTo != nil && filter.CreatedFrom.After(*filter.CreatedTo) {
+		return nil, 0, domain.FileListStats{}, 0, 0, fmt.Errorf("%w: rentang tanggal tidak valid", domain.ErrInvalidInput)
+	}
+
+	if filter.DirectoryID != "" {
+		if !IsUUID(filter.DirectoryID) {
+			return nil, 0, domain.FileListStats{}, 0, 0, fmt.Errorf("%w: directory_id tidak valid", domain.ErrInvalidInput)
+		}
+
+		owned, err := s.directoryRepo.IsOwnedByUser(ctx, filter.DirectoryID, user.UserID)
+		if err != nil {
+			return nil, 0, domain.FileListStats{}, 0, 0, err
+		}
+		if !owned {
+			return nil, 0, domain.FileListStats{}, 0, 0, domain.ErrNotFound
+		}
+	}
+
+	files, total, stats, err := s.filesRepo.ListByDirectoryPage(ctx, user.UserID, filter)
+	if err != nil {
+		return nil, 0, domain.FileListStats{}, 0, 0, err
+	}
+
+	return files, total, stats, filter.Limit, filter.Offset, nil
 }
 
 func (s *FileService) Upload(ctx context.Context, user domain.AuthUser, directoryID, fileName, mimeType string, reader io.Reader) (UploadOutcome, error) {
@@ -352,4 +397,32 @@ func (s *FileService) Trash(ctx context.Context, user domain.AuthUser) ([]domain
 
 func (s *FileService) Starred(ctx context.Context, user domain.AuthUser) ([]domain.FileRecord, error) {
 	return s.filesRepo.ListStarred(ctx, user.UserID)
+}
+
+func (s *FileService) TrashPage(ctx context.Context, user domain.AuthUser, limit, offset int) ([]domain.FileRecord, int64, int, int, error) {
+	limit, offset, err := normalizePagination(limit, offset)
+	if err != nil {
+		return nil, 0, 0, 0, err
+	}
+
+	files, total, err := s.filesRepo.ListTrashPage(ctx, user.UserID, limit, offset)
+	if err != nil {
+		return nil, 0, 0, 0, err
+	}
+
+	return files, total, limit, offset, nil
+}
+
+func (s *FileService) StarredPage(ctx context.Context, user domain.AuthUser, limit, offset int) ([]domain.FileRecord, int64, int, int, error) {
+	limit, offset, err := normalizePagination(limit, offset)
+	if err != nil {
+		return nil, 0, 0, 0, err
+	}
+
+	files, total, err := s.filesRepo.ListStarredPage(ctx, user.UserID, limit, offset)
+	if err != nil {
+		return nil, 0, 0, 0, err
+	}
+
+	return files, total, limit, offset, nil
 }

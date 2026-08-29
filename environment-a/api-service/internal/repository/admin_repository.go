@@ -23,7 +23,7 @@ func (r *AdminRepository) Analytics(ctx context.Context, since time.Time) (domai
 		`SELECT
 			(SELECT COUNT(*) FROM users WHERE peran = 'user') AS total_users,
 			(SELECT COUNT(*) FROM users WHERE peran = 'admin') AS total_admins,
-			(SELECT COUNT(DISTINCT l.user_id) FROM activity_logs l JOIN users u ON u.id_pengguna = l.user_id WHERE u.peran = 'user' AND l.created_at >= ? AND l.action IN ('LOGIN', 'UPLOAD', 'DOWNLOAD', 'CREATE_DIRECTORY', 'DELETE_SOFT', 'DELETE_DIRECTORY_SOFT', 'RESTORE_FILE', 'RESTORE_DIRECTORY')) AS active_users,
+			(SELECT COUNT(DISTINCT l.user_id) FROM activity_logs l JOIN users u ON u.id_pengguna = l.user_id WHERE u.peran = 'user' AND l.created_at >= ? AND l.action IN ('LOGIN', 'UPLOAD', 'DOWNLOAD', 'DOWNLOAD_TRASHED', 'CREATE_DIRECTORY', 'DELETE_SOFT', 'DELETE_DIRECTORY_SOFT', 'RESTORE_FILE', 'RESTORE_DIRECTORY')) AS active_users,
 			(SELECT COUNT(*) FROM files f LEFT JOIN directories d ON d.id_direktori = f.id_direktori WHERE f.status_penyimpanan = 'committed' AND f.dihapus_pada IS NULL AND (f.id_direktori IS NULL OR d.dihapus_pada IS NULL)) AS active_files,
 			(SELECT COUNT(*) FROM directories WHERE dihapus_pada IS NULL) AS active_folders,
 			(SELECT COUNT(*) FROM files f LEFT JOIN directories d ON d.id_direktori = f.id_direktori WHERE f.status_penyimpanan = 'committed' AND f.dihapus_pada IS NOT NULL AND (f.id_direktori IS NULL OR d.dihapus_pada IS NULL)) AS trash_files,
@@ -40,7 +40,7 @@ func (r *AdminRepository) Analytics(ctx context.Context, since time.Time) (domai
 			COALESCE((SELECT SUM(f.reuse_chunk_count) FROM files f LEFT JOIN directories d ON d.id_direktori = f.id_direktori WHERE f.status_penyimpanan = 'committed' AND f.dihapus_pada IS NULL AND (f.id_direktori IS NULL OR d.dihapus_pada IS NULL)), 0) AS reuse_chunks,
 			COALESCE((SELECT CASE WHEN SUM(f.chunk_count) > 0 THEN SUM(f.reuse_chunk_count)::float / SUM(f.chunk_count) ELSE 0 END FROM files f LEFT JOIN directories d ON d.id_direktori = f.id_direktori WHERE f.status_penyimpanan = 'committed' AND f.dihapus_pada IS NULL AND (f.id_direktori IS NULL OR d.dihapus_pada IS NULL)), 0) AS dedup_ratio,
 			(SELECT COUNT(*) FROM activity_logs WHERE created_at >= ? AND action = 'UPLOAD') AS uploads_in_range,
-			(SELECT COUNT(*) FROM activity_logs WHERE created_at >= ? AND action = 'DOWNLOAD') AS downloads_in_range,
+			(SELECT COUNT(*) FROM activity_logs WHERE created_at >= ? AND action IN ('DOWNLOAD', 'DOWNLOAD_TRASHED')) AS downloads_in_range,
 			(SELECT COUNT(*) FROM activity_logs WHERE created_at >= ? AND action IN ('DELETE_SOFT', 'DELETE_DIRECTORY_SOFT', 'DELETE_FILE_PERMANENT', 'DELETE_DIRECTORY_PERMANENT')) AS deleted_items_in_range,
 			(SELECT COUNT(*) FROM activity_logs WHERE created_at >= ? AND action IN ('RESTORE_FILE', 'RESTORE_DIRECTORY')) AS restored_items_in_range,
 			(SELECT COUNT(*) FROM activity_logs WHERE created_at >= ? AND action IN ('STAR_FILE', 'UNSTAR_FILE', 'STAR_DIRECTORY', 'UNSTAR_DIRECTORY')) AS starred_actions_in_range`,
@@ -57,7 +57,7 @@ func (r *AdminRepository) Analytics(ctx context.Context, since time.Time) (domai
 			to_char(days.day, 'YYYY-MM-DD') AS date,
 			COALESCE(COUNT(*) FILTER (WHERE l.action = 'LOGIN'), 0) AS logins,
 			COALESCE(COUNT(*) FILTER (WHERE l.action = 'UPLOAD'), 0) AS uploads,
-			COALESCE(COUNT(*) FILTER (WHERE l.action = 'DOWNLOAD'), 0) AS downloads,
+			COALESCE(COUNT(*) FILTER (WHERE l.action IN ('DOWNLOAD', 'DOWNLOAD_TRASHED')), 0) AS downloads,
 			COALESCE(COUNT(*) FILTER (WHERE l.action IN ('DELETE_SOFT', 'DELETE_DIRECTORY_SOFT', 'DELETE_FILE_PERMANENT', 'DELETE_DIRECTORY_PERMANENT')), 0) AS deletes,
 			COALESCE(COUNT(*) FILTER (WHERE l.action IN ('RESTORE_FILE', 'RESTORE_DIRECTORY')), 0) AS restores,
 			COALESCE(COUNT(*) FILTER (WHERE l.action IN ('STAR_FILE', 'UNSTAR_FILE', 'STAR_DIRECTORY', 'UNSTAR_DIRECTORY')), 0) AS stars

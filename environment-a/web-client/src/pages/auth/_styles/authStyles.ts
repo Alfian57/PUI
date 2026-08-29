@@ -1,0 +1,6 @@
+export const authInputClass = "h-11 w-full rounded-xl border border-brand-line bg-white px-4 text-sm text-brand-ink outline-none ring-brand-logoYellow transition placeholder:text-brand-steel/45 focus:border-brand-logoBlue/40 focus:ring-2 disabled:cursor-not-allowed disabled:bg-brand-sky/55";
+export const authPasswordInputClass = `${authInputClass} pr-12`;
+export const authPrimaryButtonClass = "group flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-brand-logoBlue px-4 text-sm font-semibold text-white shadow-soft transition hover:-translate-y-0.5 hover:bg-brand-steel focus:outline-none focus:ring-2 focus:ring-brand-logoYellow focus:ring-offset-2 disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60";
+export const authIconButtonClass = "absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-lg text-brand-steel transition hover:bg-brand-sky hover:text-brand-logoBlue focus:outline-none focus:ring-2 focus:ring-brand-logoYellow disabled:cursor-not-allowed disabled:opacity-50";
+export const authLinkClass = "font-semibold text-brand-logoBlue underline decoration-brand-logoYellow/65 underline-offset-4 transition hover:text-brand-steel hover:decoration-brand-logoBlue";
+export const authStatusClass = "flex gap-3 rounded-xl border px-4 py-3 text-sm leading-5";

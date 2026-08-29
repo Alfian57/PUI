@@ -37,7 +37,7 @@ func (r *InsightRepository) UserInsight(ctx context.Context, userID string, sinc
 			COALESCE((SELECT SUM(f.reuse_chunk_count) FROM files f LEFT JOIN directories d ON d.id_direktori = f.id_direktori WHERE f.id_pengguna = ?::uuid AND f.status_penyimpanan = 'committed' AND f.dihapus_pada IS NULL AND (f.id_direktori IS NULL OR d.dihapus_pada IS NULL)), 0) AS reuse_chunks,
 			COALESCE((SELECT CASE WHEN SUM(f.chunk_count) > 0 THEN SUM(f.reuse_chunk_count)::float / SUM(f.chunk_count) ELSE 0 END FROM files f LEFT JOIN directories d ON d.id_direktori = f.id_direktori WHERE f.id_pengguna = ?::uuid AND f.status_penyimpanan = 'committed' AND f.dihapus_pada IS NULL AND (f.id_direktori IS NULL OR d.dihapus_pada IS NULL)), 0) AS dedup_ratio,
 			(SELECT COUNT(*) FROM activity_logs WHERE user_id = ?::uuid AND created_at >= ? AND action = 'UPLOAD') AS uploads_in_range,
-			(SELECT COUNT(*) FROM activity_logs WHERE user_id = ?::uuid AND created_at >= ? AND action = 'DOWNLOAD') AS downloads_in_range`,
+			(SELECT COUNT(*) FROM activity_logs WHERE user_id = ?::uuid AND created_at >= ? AND action IN ('DOWNLOAD', 'DOWNLOAD_TRASHED')) AS downloads_in_range`,
 		userID, userID, userID, userID, userID, userID, userID, userID, userID, userID, userID, userID, userID, since, userID, since,
 	).Scan(&out.Summary).Error; err != nil {
 		return domain.UserInsight{}, fmt.Errorf("query user insight summary: %w", err)
@@ -50,7 +50,7 @@ func (r *InsightRepository) UserInsight(ctx context.Context, userID string, sinc
 		SELECT
 			to_char(days.day, 'YYYY-MM-DD') AS date,
 			COALESCE(COUNT(*) FILTER (WHERE l.action = 'UPLOAD'), 0) AS uploads,
-			COALESCE(COUNT(*) FILTER (WHERE l.action = 'DOWNLOAD'), 0) AS downloads,
+			COALESCE(COUNT(*) FILTER (WHERE l.action IN ('DOWNLOAD', 'DOWNLOAD_TRASHED')), 0) AS downloads,
 			COALESCE(COUNT(*) FILTER (WHERE l.action IN ('DELETE_SOFT', 'DELETE_DIRECTORY_SOFT', 'DELETE_FILE_PERMANENT', 'DELETE_DIRECTORY_PERMANENT')), 0) AS deletes,
 			COALESCE(COUNT(*) FILTER (WHERE l.action IN ('RESTORE_FILE', 'RESTORE_DIRECTORY')), 0) AS restores,
 			COALESCE(COUNT(*) FILTER (WHERE l.action IN ('STAR_FILE', 'UNSTAR_FILE', 'STAR_DIRECTORY', 'UNSTAR_DIRECTORY')), 0) AS stars

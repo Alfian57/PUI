@@ -2,11 +2,13 @@ import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { LogOut, Menu, Search, UserCircle, X } from "lucide-react";
 import { Link } from "react-router-dom";
-import { searchFiles } from "@/features/files/api/fileApi";
+import { searchFiles } from "@/pages/dashboard/_api/fileApi";
 import { queryKeys } from "@/shared/lib/queryKeys";
 import { formatBytes } from "@/shared/lib/format";
-import { UserAvatar } from "@/shared/ui/UserAvatar";
-import type { AuthUser, FileRecord } from "@/shared/types/domain";
+import { UserAvatar } from "@/components/shared/UserAvatar";
+import type { AuthUser } from "@/shared/types/auth";
+import type { FileRecord } from "@/shared/types/files";
+import { ROUTES } from "@/app/routes";
 
 type DashboardTopbarProps = {
     user: AuthUser;
@@ -127,7 +129,7 @@ export function DashboardTopbar({ user, onSelectFile, onMenuClick, onLogout }: D
                             </div>
                             <div className="h-px bg-brand-steel/10" />
                             <Link
-                                to="/app/profile"
+                                to={ROUTES.app.profile}
                                 onClick={() => setAccountOpen(false)}
                                 className="mt-2 flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-medium text-brand-steel transition hover:bg-brand-sky hover:text-brand-ink focus:outline-none focus:ring-2 focus:ring-brand-amber/70"
                             >

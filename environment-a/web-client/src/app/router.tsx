@@ -1,50 +1,52 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
-import { RequireAuth, PublicOnly, RequireRole, RoleIndexRedirect } from "@/app/routes/AuthGuards";
-import { LandingPage } from "@/pages/LandingPage";
-import { ForgotPasswordPage } from "@/pages/ForgotPasswordPage";
-import { LoginPage } from "@/pages/LoginPage";
-import { RegisterPage } from "@/pages/RegisterPage";
-import { ResetPasswordPage } from "@/pages/ResetPasswordPage";
+import { RequireAuth } from "@/app/routes/_components/RequireAuth";
+import { PublicOnly } from "@/app/routes/_components/PublicOnly";
+import { RequireRole } from "@/app/routes/_components/RequireRole";
+import { RoleIndexRedirect } from "@/app/routes/_components/RoleIndexRedirect";
+import { LandingPage } from "@/pages/landing/page";
+import { ForgotPasswordPage } from "@/pages/auth/forgot-password/page";
+import { LoginPage } from "@/pages/auth/login/page";
+import { RegisterPage } from "@/pages/auth/register/page";
+import { ResetPasswordPage } from "@/pages/auth/reset-password/page";
 import { DashboardLayout } from "@/widgets/dashboard/DashboardLayout";
-import { FilesPage } from "@/pages/dashboard/FilesPage";
-import { ActivityPage } from "@/pages/dashboard/ActivityPage";
-import { InsightPage } from "@/pages/dashboard/InsightPage";
-import { ProfilePage } from "@/pages/dashboard/ProfilePage";
-import { StarredPage } from "@/pages/dashboard/StarredPage";
-import { TrashPage } from "@/pages/dashboard/TrashPage";
-import { SecurityLabPage } from "@/pages/dashboard/SecurityLabPage";
-import { AdminSecurityMonitoringPage } from "@/pages/dashboard/AdminSecurityMonitoringPage";
+import { FilesPage } from "@/pages/dashboard/files/page";
+import { ActivityPage } from "@/pages/dashboard/activity/page";
+import { InsightPage } from "@/pages/dashboard/insights/page";
+import { ProfilePage } from "@/pages/dashboard/profile/page";
+import { StarredPage } from "@/pages/dashboard/starred/page";
+import { TrashPage } from "@/pages/dashboard/trash/page";
+import { SecurityLabPage } from "@/pages/dashboard/security-lab/page";
+import { AdminSecurityMonitoringPage } from "@/pages/dashboard/admin/security-monitoring/page";
 import { env } from "@/shared/config/env";
-import {
-    AdminActivityAnalyticsPage,
-    AdminAnalyticsPage,
-    AdminReportsPage,
-    AdminStoragePage,
-    AdminSystemPage
-} from "@/pages/dashboard/AdminAnalyticsPage";
+import { AdminAnalyticsPage } from "@/pages/dashboard/admin/analytics/page";
+import { AdminActivityAnalyticsPage } from "@/pages/dashboard/admin/analytics/activity/page";
+import { AdminReportsPage } from "@/pages/dashboard/admin/analytics/reports/page";
+import { AdminStoragePage } from "@/pages/dashboard/admin/analytics/storage/page";
+import { AdminSystemPage } from "@/pages/dashboard/admin/analytics/system/page";
+import { ROUTES, ROUTE_SEGMENTS } from "@/app/routes";
 
 export const router = createBrowserRouter([
     {
-        path: "/",
+        path: ROUTES.home,
         element: <LandingPage />
     },
     {
         element: <PublicOnly />,
         children: [
             {
-                path: "/login",
+                path: ROUTES.auth.login,
                 element: <LoginPage />
             },
             {
-                path: "/register",
+                path: ROUTES.auth.register,
                 element: <RegisterPage />
             },
             {
-                path: "/forgot-password",
+                path: ROUTES.auth.forgotPassword,
                 element: <ForgotPasswordPage />
             },
             {
-                path: "/reset-password",
+                path: ROUTES.auth.resetPassword,
                 element: <ResetPasswordPage />
             }
         ]
@@ -53,7 +55,7 @@ export const router = createBrowserRouter([
         element: <RequireAuth />,
         children: [
             {
-                path: "/app",
+                path: ROUTES.app.root,
                 element: <DashboardLayout />,
                 children: [
                     {
@@ -61,29 +63,29 @@ export const router = createBrowserRouter([
                         element: <RoleIndexRedirect />
                     },
                     {
-                        path: "files",
+                        path: ROUTE_SEGMENTS.app.files,
                         element: <RequireRole role="user"><FilesPage /></RequireRole>
                     },
                     {
-                        path: "starred",
+                        path: ROUTE_SEGMENTS.app.starred,
                         element: <RequireRole role="user"><StarredPage /></RequireRole>
                     },
                     {
-                        path: "trash",
+                        path: ROUTE_SEGMENTS.app.trash,
                         element: <RequireRole role="user"><TrashPage /></RequireRole>
                     },
                     {
-                        path: "activity",
+                        path: ROUTE_SEGMENTS.app.activity,
                         element: <RequireRole role="user"><ActivityPage /></RequireRole>
                     },
                     {
-                        path: "insights",
+                        path: ROUTE_SEGMENTS.app.insights,
                         element: <RequireRole role="user"><InsightPage /></RequireRole>
                     },
                     ...(env.securityLabEnabled
                         ? [
                               {
-                                  path: "security-lab",
+                                  path: ROUTE_SEGMENTS.app.securityLab,
                                   element: (
                                       <RequireRole role="user">
                                           <SecurityLabPage />
@@ -93,35 +95,35 @@ export const router = createBrowserRouter([
                           ]
                         : []),
                     {
-                        path: "analytics",
-                        element: <RequireRole role="admin"><Navigate to="/app/analytics/overview" replace /></RequireRole>
+                        path: ROUTE_SEGMENTS.app.analytics.root,
+                        element: <RequireRole role="admin"><Navigate to={ROUTES.app.analytics.overview} replace /></RequireRole>
                     },
                     {
-                        path: "analytics/overview",
+                        path: `${ROUTE_SEGMENTS.app.analytics.root}/${ROUTE_SEGMENTS.app.analytics.overview}`,
                         element: <RequireRole role="admin"><AdminAnalyticsPage /></RequireRole>
                     },
                     {
-                        path: "analytics/storage",
+                        path: `${ROUTE_SEGMENTS.app.analytics.root}/${ROUTE_SEGMENTS.app.analytics.storage}`,
                         element: <RequireRole role="admin"><AdminStoragePage /></RequireRole>
                     },
                     {
-                        path: "analytics/activity",
+                        path: `${ROUTE_SEGMENTS.app.analytics.root}/${ROUTE_SEGMENTS.app.analytics.activity}`,
                         element: <RequireRole role="admin"><AdminActivityAnalyticsPage /></RequireRole>
                     },
                     {
-                        path: "analytics/system",
+                        path: `${ROUTE_SEGMENTS.app.analytics.root}/${ROUTE_SEGMENTS.app.analytics.system}`,
                         element: <RequireRole role="admin"><AdminSystemPage /></RequireRole>
                     },
                     {
-                        path: "analytics/security",
+                        path: `${ROUTE_SEGMENTS.app.analytics.root}/${ROUTE_SEGMENTS.app.analytics.security}`,
                         element: <RequireRole role="admin"><AdminSecurityMonitoringPage /></RequireRole>
                     },
                     {
-                        path: "analytics/reports",
+                        path: `${ROUTE_SEGMENTS.app.analytics.root}/${ROUTE_SEGMENTS.app.analytics.reports}`,
                         element: <RequireRole role="admin"><AdminReportsPage /></RequireRole>
                     },
                     {
-                        path: "profile",
+                        path: ROUTE_SEGMENTS.app.profile,
                         element: <ProfilePage />
                     }
                 ]
@@ -129,7 +131,7 @@ export const router = createBrowserRouter([
         ]
     },
     {
-        path: "*",
-        element: <Navigate to="/app/files" replace />
+        path: ROUTE_SEGMENTS.fallback,
+        element: <Navigate to={ROUTES.app.files} replace />
     }
 ]);

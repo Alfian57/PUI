@@ -22,6 +22,11 @@ import (
 // @Produce json
 // @Param directory_id query string false "UUID direktori; kosongkan untuk Berkas Saya"
 // @Param include_deleted query bool false "Sertakan berkas yang sudah soft delete"
+// @Param sort query string false "Urutan: newest, oldest, name-asc, name-desc, type, starred"
+// @Param created_from query string false "Batas waktu awal RFC3339"
+// @Param created_to query string false "Batas waktu akhir RFC3339"
+// @Param limit query int false "Ukuran halaman (1-200, default 40)"
+// @Param offset query int false "Offset (default 0)"
 // @Success 200 {object} dto.FileListResponse
 // @Failure 400 {object} dto.ErrorResponse
 // @Failure 401 {object} dto.ErrorResponse
@@ -36,16 +41,47 @@ func (a *API) handleListFiles(c *gin.Context) {
 
 	directoryID := strings.TrimSpace(c.Query("directory_id"))
 	includeDeleted := parseBoolQuery(c.Query("include_deleted"))
-	files, err := a.fileService.ListByDirectory(c.Request.Context(), user, directoryID, includeDeleted)
+	limit, offset, err := parsePaginationQuery(c)
+	if err != nil {
+		writeError(c, http.StatusBadRequest, err)
+		return
+	}
+
+	createdFrom, err := parseOptionalTime(c.Query("created_from"))
+	if err != nil {
+		writeError(c, http.StatusBadRequest, err)
+		return
+	}
+	createdTo, err := parseOptionalTime(c.Query("created_to"))
+	if err != nil {
+		writeError(c, http.StatusBadRequest, err)
+		return
+	}
+
+	files, total, stats, normalizedLimit, normalizedOffset, err := a.fileService.ListByDirectoryPage(c.Request.Context(), user, domain.FileListFilter{
+		DirectoryID:    directoryID,
+		IncludeDeleted: includeDeleted,
+		Sort:           strings.TrimSpace(c.Query("sort")),
+		CreatedFrom:    createdFrom,
+		CreatedTo:      createdTo,
+		Limit:          limit,
+		Offset:         offset,
+	})
 	if err != nil {
 		writeError(c, statusFromError(err), err)
 		return
 	}
 
 	c.JSON(http.StatusOK, dto.FileListResponse{
-		Status:      "ok",
-		DirectoryID: directoryID,
-		Files:       toFileDTOs(files),
+		Status:       "ok",
+		DirectoryID:  directoryID,
+		Total:        total,
+		Limit:        normalizedLimit,
+		Offset:       normalizedOffset,
+		TotalBytes:   stats.TotalBytes,
+		TotalChunks:  stats.TotalChunks,
+		ReusedChunks: stats.ReusedChunks,
+		Files:        toFileDTOs(files),
 	})
 }
 

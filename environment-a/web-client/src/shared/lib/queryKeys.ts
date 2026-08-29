@@ -8,21 +8,26 @@ export const queryKeys = {
     breadcrumb: (id: string) => ["directories", "breadcrumb", id] as const
   },
   files: {
-    byDirectory: (directoryID: string) => ["files", "directory", directoryID] as const,
+    byDirectory: (directoryID: string, filterKey?: string) => filterKey
+      ? ["files", "directory", directoryID, filterKey] as const
+      : ["files", "directory", directoryID] as const,
     detail: (fileID: string) => ["files", "detail", fileID] as const,
     manifest: (fileID: string) => ["files", "manifest", fileID] as const,
     preview: (fileID: string) => ["files", "preview", fileID] as const,
     search: (query: string) => ["files", "search", query] as const
   },
   activity: {
-    list: (page: number) => ["activity", "list", page] as const
+    list: (page: number) => ["activity", "list", page] as const,
+    infinite: ["activity", "infinite"] as const
   },
   insights: {
     user: (range: string) => ["insights", "user", range] as const
   },
   workspace: {
     trash: ["workspace", "trash"] as const,
-    starred: ["workspace", "starred"] as const
+    trashPages: ["workspace", "trash", "pages"] as const,
+    starred: ["workspace", "starred"] as const,
+    starredPages: ["workspace", "starred", "pages"] as const
   },
   admin: {
     analytics: (range: string) => ["admin", "analytics", range] as const,

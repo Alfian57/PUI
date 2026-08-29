@@ -507,3 +507,54 @@ func (r *DirectoryRepository) ListStarred(ctx context.Context, userID string) ([
 
 	return items, nil
 }
+
+func (r *DirectoryRepository) ListTrashRootsPage(ctx context.Context, userID string, limit, offset int) ([]domain.DirectoryRecord, int64, error) {
+	return r.listWorkspaceDirectoriesPage(ctx, userID, "trash", limit, offset)
+}
+
+func (r *DirectoryRepository) ListStarredPage(ctx context.Context, userID string, limit, offset int) ([]domain.DirectoryRecord, int64, error) {
+	return r.listWorkspaceDirectoriesPage(ctx, userID, "starred", limit, offset)
+}
+
+func (r *DirectoryRepository) listWorkspaceDirectoriesPage(ctx context.Context, userID, mode string, limit, offset int) ([]domain.DirectoryRecord, int64, error) {
+	where := ` WHERE d.id_pengguna = ?::uuid`
+	args := []any{userID}
+	orderBy := "lower(d.nama) ASC, d.id_direktori ASC"
+	if mode == "trash" {
+		where += ` AND d.dihapus_pada IS NOT NULL
+			AND NOT EXISTS (
+				SELECT 1
+				FROM directory_closure dc
+				JOIN directories a ON a.id_direktori = dc.id_induk
+				WHERE dc.id_turunan = d.id_direktori
+				  AND dc.kedalaman > 0
+				  AND a.dihapus_pada IS NOT NULL
+			)`
+		orderBy = "d.dihapus_pada DESC, lower(d.nama) ASC, d.id_direktori ASC"
+	} else {
+		where += ` AND d.dihapus_pada IS NULL AND d.dibintang_pada IS NOT NULL`
+		orderBy = "d.dibintang_pada DESC, lower(d.nama) ASC, d.id_direktori ASC"
+	}
+
+	var total int64
+	countQuery := `SELECT COUNT(*) FROM directories d` + where
+	if err := r.db.WithContext(ctx).Raw(countQuery, args...).Scan(&total).Error; err != nil {
+		return nil, 0, fmt.Errorf("count %s directories: %w", mode, err)
+	}
+
+	listQuery := `SELECT d.id_direktori::text AS id, d.nama AS name, 0 AS depth, parent.id_induk::text AS parent_id, d.dibuat_pada AS created_at, d.dihapus_pada AS deleted_at, d.dibintang_pada AS starred_at
+		FROM directories d
+		LEFT JOIN LATERAL (
+			SELECT dc.id_induk
+			FROM directory_closure dc
+			WHERE dc.id_turunan = d.id_direktori AND dc.kedalaman = 1
+			LIMIT 1
+		) parent ON true` + where + ` ORDER BY ` + orderBy + ` LIMIT ? OFFSET ?`
+	listArgs := append(append([]any{}, args...), limit, offset)
+	items := make([]domain.DirectoryRecord, 0, limit)
+	if err := r.db.WithContext(ctx).Raw(listQuery, listArgs...).Scan(&items).Error; err != nil {
+		return nil, 0, fmt.Errorf("query %s directories page: %w", mode, err)
+	}
+
+	return items, total, nil
+}

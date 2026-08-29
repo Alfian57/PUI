@@ -1,10 +1,7 @@
-import { createContext, PropsWithChildren, useContext } from "react";
+import type { PropsWithChildren } from "react";
 import { useNotice } from "@/shared/hooks/useNotice";
-import { NoticeToast } from "@/shared/ui/NoticeToast";
-
-type NoticeContextValue = ReturnType<typeof useNotice>;
-
-const NoticeContext = createContext<NoticeContextValue | null>(null);
+import { NoticeToast } from "@/components/shared/NoticeToast";
+import { NoticeContext } from "@/shared/contexts/noticeContext";
 
 export function NoticeProvider({ children }: PropsWithChildren): JSX.Element {
     const notice = useNotice();
@@ -15,13 +12,4 @@ export function NoticeProvider({ children }: PropsWithChildren): JSX.Element {
             {notice.notice ? <NoticeToast notice={notice.notice} onClose={notice.dismiss} /> : null}
         </NoticeContext.Provider>
     );
-}
-
-export function useNoticeCenter(): NoticeContextValue {
-    const context = useContext(NoticeContext);
-    if (!context) {
-        throw new Error("useNoticeCenter must be used within NoticeProvider");
-    }
-
-    return context;
 }

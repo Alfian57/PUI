@@ -1,145 +1,15 @@
-import clsx from "clsx";
-import { NavLink } from "react-router-dom";
-import {
-    Activity,
-    BarChart3,
-    Clock3,
-    Database,
-    FileArchive,
-    HardDrive,
-    LineChart,
-    Server,
-    ShieldAlert,
-    ShieldCheck,
-    Star,
-    Trash2,
-    X
-} from "lucide-react";
-import { IconButton } from "@/shared/ui/IconButton";
-import { env } from "@/shared/config/env";
+import { X } from "lucide-react";
+import { IconButton } from "@/components/ui/IconButton";
+import { adminMenuGroups, userMenuGroups } from "./_lib/sidebarMenu";
+import { SidebarGroup } from "./_components/SidebarGroup";
+import { SidebarLink } from "./_components/SidebarLink";
 
 type DashboardSidebarProps = {
     role?: "user" | "admin";
     onClose?: () => void;
 };
 
-const userMenuGroups = [
-    {
-        label: "Ruang Kerja",
-        items: [
-            {
-                to: "/app/files",
-                label: "Berkas Saya",
-                icon: <HardDrive className="h-4 w-4" aria-hidden="true" />,
-                tourId: "sidebar-files"
-            },
-            {
-                to: "/app/starred",
-                label: "Berbintang",
-                icon: <Star className="h-4 w-4" aria-hidden="true" />,
-                tourId: "sidebar-starred"
-            }
-        ]
-    },
-    {
-        label: "Manajemen",
-        items: [
-            {
-                to: "/app/trash",
-                label: "Sampah",
-                icon: <Trash2 className="h-4 w-4" aria-hidden="true" />,
-                tourId: "sidebar-trash"
-            }
-        ]
-    },
-    {
-        label: "Pemantauan",
-        items: [
-            {
-                to: "/app/activity",
-                label: "Riwayat",
-                icon: <Clock3 className="h-4 w-4" aria-hidden="true" />,
-                tourId: "sidebar-activity"
-            },
-            {
-                to: "/app/insights",
-                label: "Insight",
-                icon: <LineChart className="h-4 w-4" aria-hidden="true" />,
-                tourId: "sidebar-insights"
-            }
-        ]
-    },
-    // Security Lab is only surfaced when the demo flag is enabled (skripsi env).
-    ...(env.securityLabEnabled
-        ? [
-              {
-                  label: "Keamanan",
-                  items: [
-                      {
-                          to: "/app/security-lab",
-                          label: "Security Lab",
-                          icon: <ShieldCheck className="h-4 w-4" aria-hidden="true" />,
-                          tourId: "sidebar-security-lab"
-                      }
-                  ]
-              }
-          ]
-        : [])
-];
-
-const adminMenuGroups = [
-    {
-        label: "Analitik",
-        items: [
-            {
-                to: "/app/analytics/overview",
-                label: "Ikhtisar",
-                icon: <BarChart3 className="h-4 w-4" aria-hidden="true" />,
-                tourId: "sidebar-admin-overview"
-            },
-            {
-                to: "/app/analytics/storage",
-                label: "Penyimpanan",
-                icon: <Database className="h-4 w-4" aria-hidden="true" />,
-                tourId: "sidebar-admin-storage"
-            },
-            {
-                to: "/app/analytics/activity",
-                label: "Aktivitas",
-                icon: <Activity className="h-4 w-4" aria-hidden="true" />,
-                tourId: "sidebar-admin-activity"
-            }
-        ]
-    },
-    {
-        label: "Operasional",
-        items: [
-            {
-                to: "/app/analytics/system",
-                label: "Kesehatan Sistem",
-                icon: <Server className="h-4 w-4" aria-hidden="true" />,
-                tourId: "sidebar-admin-system"
-            },
-            {
-                to: "/app/analytics/security",
-                label: "Monitoring Keamanan",
-                icon: <ShieldAlert className="h-4 w-4" aria-hidden="true" />,
-                tourId: "sidebar-admin-security"
-            },
-            {
-                to: "/app/analytics/reports",
-                label: "Laporan",
-                icon: <FileArchive className="h-4 w-4" aria-hidden="true" />,
-                tourId: "sidebar-admin-reports"
-            }
-        ]
-    }
-];
-
-export function DashboardSidebar({
-    role = "user",
-    onClose
-}: DashboardSidebarProps): JSX.Element {
+export function DashboardSidebar({ role = "user", onClose }: DashboardSidebarProps): JSX.Element {
     const menuGroups = role === "admin" ? adminMenuGroups : userMenuGroups;
 
     return (
@@ -186,48 +56,5 @@ export function DashboardSidebar({
                 </nav>
             </div>
         </aside>
-    );
-}
-
-type SidebarGroupProps = {
-    label: string;
-    children: JSX.Element[];
-};
-
-function SidebarGroup({ label, children }: SidebarGroupProps): JSX.Element {
-    return (
-        <section aria-label={label}>
-            <p className="px-4 pb-2 font-display text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-brand-logoYellow/80">
-                {label}
-            </p>
-            <div className="space-y-1">{children}</div>
-        </section>
-    );
-}
-
-type SidebarLinkProps = {
-    to: string;
-    icon: JSX.Element;
-    tourId?: string;
-    onClick?: () => void;
-    children: string;
-};
-
-function SidebarLink({ to, icon, tourId, onClick, children }: SidebarLinkProps): JSX.Element {
-    return (
-        <NavLink
-            to={to}
-            onClick={onClick}
-            data-tour={tourId}
-            className={({ isActive }) => clsx(
-                "relative flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-brand-logoYellow/80",
-                isActive
-                    ? "bg-white/14 text-white shadow-soft before:absolute before:left-2 before:h-6 before:w-1 before:rounded-full before:bg-brand-logoYellow"
-                    : "text-white/68 hover:bg-white/10 hover:text-white"
-            )}
-        >
-            {icon}
-            {children}
-        </NavLink>
     );
 }

@@ -905,6 +905,36 @@ const docTemplate = `{
                         "description": "Sertakan berkas yang sudah soft delete",
                         "name": "include_deleted",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Urutan: newest, oldest, name-asc, name-desc, type, starred",
+                        "name": "sort",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Batas waktu awal RFC3339",
+                        "name": "created_from",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Batas waktu akhir RFC3339",
+                        "name": "created_to",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Ukuran halaman (1-200, default 40)",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Offset (default 0)",
+                        "name": "offset",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -1191,6 +1221,36 @@ const docTemplate = `{
                         "type": "boolean",
                         "description": "Sertakan berkas yang sudah soft delete",
                         "name": "include_deleted",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Urutan: newest, oldest, name-asc, name-desc, type, starred",
+                        "name": "sort",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Batas waktu awal RFC3339",
+                        "name": "created_from",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Batas waktu akhir RFC3339",
+                        "name": "created_to",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Ukuran halaman (1-200, default 40)",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Offset (default 0)",
+                        "name": "offset",
                         "in": "query"
                     }
                 ],
@@ -1932,6 +1992,20 @@ const docTemplate = `{
                     "workspace"
                 ],
                 "summary": "Item berbintang",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Ukuran halaman per jenis item (1-200, default 40)",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Offset per jenis item (default 0)",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -1990,6 +2064,20 @@ const docTemplate = `{
                     "workspace"
                 ],
                 "summary": "Sampah",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Ukuran halaman per jenis item (1-200, default 40)",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Offset per jenis item (default 0)",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -2408,8 +2496,26 @@ const docTemplate = `{
                         "$ref": "#/definitions/dto.FileDTO"
                     }
                 },
+                "limit": {
+                    "type": "integer"
+                },
+                "offset": {
+                    "type": "integer"
+                },
+                "reused_chunks": {
+                    "type": "integer"
+                },
                 "status": {
                     "type": "string"
+                },
+                "total": {
+                    "type": "integer"
+                },
+                "total_bytes": {
+                    "type": "integer"
+                },
+                "total_chunks": {
+                    "type": "integer"
                 }
             }
         },
@@ -2740,14 +2846,29 @@ const docTemplate = `{
                         "$ref": "#/definitions/dto.DirectoryDTO"
                     }
                 },
+                "directory_total": {
+                    "type": "integer"
+                },
+                "file_total": {
+                    "type": "integer"
+                },
                 "files": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/dto.FileDTO"
                     }
                 },
+                "limit": {
+                    "type": "integer"
+                },
+                "offset": {
+                    "type": "integer"
+                },
                 "status": {
                     "type": "string"
+                },
+                "total": {
+                    "type": "integer"
                 }
             }
         },
@@ -2760,14 +2881,29 @@ const docTemplate = `{
                         "$ref": "#/definitions/dto.DirectoryDTO"
                     }
                 },
+                "directory_total": {
+                    "type": "integer"
+                },
+                "file_total": {
+                    "type": "integer"
+                },
                 "files": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/dto.FileDTO"
                     }
                 },
+                "limit": {
+                    "type": "integer"
+                },
+                "offset": {
+                    "type": "integer"
+                },
                 "status": {
                     "type": "string"
+                },
+                "total": {
+                    "type": "integer"
                 }
             }
         },

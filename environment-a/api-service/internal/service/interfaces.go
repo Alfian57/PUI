@@ -49,4 +49,6 @@ type directoryRepository interface {
 	SetStarred(ctx context.Context, directoryID, userID string, starred bool) (domain.DirectoryRecord, error)
 	ListTrashRoots(ctx context.Context, userID string) ([]domain.DirectoryRecord, error)
 	ListStarred(ctx context.Context, userID string) ([]domain.DirectoryRecord, error)
+	ListTrashRootsPage(ctx context.Context, userID string, limit, offset int) ([]domain.DirectoryRecord, int64, error)
+	ListStarredPage(ctx context.Context, userID string, limit, offset int) ([]domain.DirectoryRecord, int64, error)
 }

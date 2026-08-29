@@ -1,5 +1,5 @@
 import { ArrowRight, CircleHelp, X } from "lucide-react";
-import type { AuthUser } from "@/shared/types/domain";
+import type { AuthUser } from "@/shared/types/auth";
 import { useState } from "react";
 
 type DashboardUtilityRailProps = {

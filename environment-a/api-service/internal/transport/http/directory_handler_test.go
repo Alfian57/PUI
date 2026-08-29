@@ -52,6 +52,12 @@ func (f *fakeDirSvc) Trash(_ context.Context, _ domain.AuthUser) ([]domain.Direc
 func (f *fakeDirSvc) Starred(_ context.Context, _ domain.AuthUser) ([]domain.DirectoryRecord, error) {
 	return f.records, f.err
 }
+func (f *fakeDirSvc) TrashPage(_ context.Context, _ domain.AuthUser, limit, offset int) ([]domain.DirectoryRecord, int64, int, int, error) {
+	return f.records, int64(len(f.records)), limit, offset, f.err
+}
+func (f *fakeDirSvc) StarredPage(_ context.Context, _ domain.AuthUser, limit, offset int) ([]domain.DirectoryRecord, int64, int, int, error) {
+	return f.records, int64(len(f.records)), limit, offset, f.err
+}
 
 type fakeFileSvc struct {
 	records []domain.FileRecord
@@ -60,6 +66,9 @@ type fakeFileSvc struct {
 
 func (f *fakeFileSvc) ListByDirectory(_ context.Context, _ domain.AuthUser, _ string, _ bool) ([]domain.FileRecord, error) {
 	return f.records, f.err
+}
+func (f *fakeFileSvc) ListByDirectoryPage(_ context.Context, _ domain.AuthUser, filter domain.FileListFilter) ([]domain.FileRecord, int64, domain.FileListStats, int, int, error) {
+	return f.records, int64(len(f.records)), domain.FileListStats{}, filter.Limit, filter.Offset, f.err
 }
 func (f *fakeFileSvc) Upload(_ context.Context, _ domain.AuthUser, _, _, _ string, _ io.Reader) (service.UploadOutcome, error) {
 	return service.UploadOutcome{}, f.err
@@ -104,6 +113,12 @@ func (f *fakeFileSvc) Trash(_ context.Context, _ domain.AuthUser) ([]domain.File
 }
 func (f *fakeFileSvc) Starred(_ context.Context, _ domain.AuthUser) ([]domain.FileRecord, error) {
 	return f.records, f.err
+}
+func (f *fakeFileSvc) TrashPage(_ context.Context, _ domain.AuthUser, limit, offset int) ([]domain.FileRecord, int64, int, int, error) {
+	return f.records, int64(len(f.records)), limit, offset, f.err
+}
+func (f *fakeFileSvc) StarredPage(_ context.Context, _ domain.AuthUser, limit, offset int) ([]domain.FileRecord, int64, int, int, error) {
+	return f.records, int64(len(f.records)), limit, offset, f.err
 }
 
 type fakeAuthSvc struct {

@@ -145,6 +145,7 @@ services:
         condition: service_healthy
     environment:
       DATABASE_URL: ${API_DATABASE_URL:?API_DATABASE_URL is required}
+      SEED_MODE: ${SEED_MODE:-default}
     command: [ "sh", "/scripts/seed.sh" ]
     networks:
       - database_net

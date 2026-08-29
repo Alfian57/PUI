@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/alfiang/pui/environment-a/api-service/internal/transport/http/dto"
 	"github.com/gin-gonic/gin"
@@ -80,4 +81,32 @@ func parseIntQuery(raw string, fallback int) (int, error) {
 	}
 
 	return value, nil
+}
+
+func parsePaginationQuery(c *gin.Context) (int, int, error) {
+	limit, err := parseIntQuery(c.Query("limit"), 0)
+	if err != nil {
+		return 0, 0, fmt.Errorf("limit harus berupa angka")
+	}
+
+	offset, err := parseIntQuery(c.Query("offset"), 0)
+	if err != nil {
+		return 0, 0, fmt.Errorf("offset harus berupa angka")
+	}
+
+	return limit, offset, nil
+}
+
+func parseOptionalTime(raw string) (*time.Time, error) {
+	trimmed := strings.TrimSpace(raw)
+	if trimmed == "" {
+		return nil, nil
+	}
+
+	value, err := time.Parse(time.RFC3339, trimmed)
+	if err != nil {
+		return nil, fmt.Errorf("waktu harus menggunakan format RFC3339")
+	}
+
+	return &value, nil
 }

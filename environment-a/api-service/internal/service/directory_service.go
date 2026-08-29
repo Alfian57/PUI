@@ -152,3 +152,31 @@ func (s *DirectoryService) Trash(ctx context.Context, user domain.AuthUser) ([]d
 func (s *DirectoryService) Starred(ctx context.Context, user domain.AuthUser) ([]domain.DirectoryRecord, error) {
 	return s.directoryRepo.ListStarred(ctx, user.UserID)
 }
+
+func (s *DirectoryService) TrashPage(ctx context.Context, user domain.AuthUser, limit, offset int) ([]domain.DirectoryRecord, int64, int, int, error) {
+	limit, offset, err := normalizePagination(limit, offset)
+	if err != nil {
+		return nil, 0, 0, 0, err
+	}
+
+	directories, total, err := s.directoryRepo.ListTrashRootsPage(ctx, user.UserID, limit, offset)
+	if err != nil {
+		return nil, 0, 0, 0, err
+	}
+
+	return directories, total, limit, offset, nil
+}
+
+func (s *DirectoryService) StarredPage(ctx context.Context, user domain.AuthUser, limit, offset int) ([]domain.DirectoryRecord, int64, int, int, error) {
+	limit, offset, err := normalizePagination(limit, offset)
+	if err != nil {
+		return nil, 0, 0, 0, err
+	}
+
+	directories, total, err := s.directoryRepo.ListStarredPage(ctx, user.UserID, limit, offset)
+	if err != nil {
+		return nil, 0, 0, 0, err
+	}
+
+	return directories, total, limit, offset, nil
+}

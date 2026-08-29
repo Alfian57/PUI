@@ -57,7 +57,7 @@ func (r *ActivityRepository) ListByUser(ctx context.Context, userID string, filt
 	}
 
 	listQuery := `SELECT id::text, user_id::text, action, resource_type, resource_id::text, created_at
-		FROM activity_logs` + where + ` ORDER BY created_at DESC LIMIT ? OFFSET ?`
+		FROM activity_logs` + where + ` ORDER BY created_at DESC, id DESC LIMIT ? OFFSET ?`
 	listArgs := append(append([]any{}, args...), filter.Limit, filter.Offset)
 
 	records := make([]domain.ActivityLogRecord, 0, filter.Limit)

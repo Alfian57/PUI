@@ -57,6 +57,12 @@ func (f *fakeDirRepo) ListTrashRoots(_ context.Context, _ string) ([]domain.Dire
 func (f *fakeDirRepo) ListStarred(_ context.Context, _ string) ([]domain.DirectoryRecord, error) {
 	return f.records, nil
 }
+func (f *fakeDirRepo) ListTrashRootsPage(_ context.Context, _ string, limit, offset int) ([]domain.DirectoryRecord, int64, error) {
+	return f.records, int64(len(f.records)), nil
+}
+func (f *fakeDirRepo) ListStarredPage(_ context.Context, _ string, limit, offset int) ([]domain.DirectoryRecord, int64, error) {
+	return f.records, int64(len(f.records)), nil
+}
 
 func newDirSvc(repo *fakeDirRepo) *DirectoryService {
 	return &DirectoryService{directoryRepo: repo, activityRepo: fakeActivity{}}

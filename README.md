@@ -57,14 +57,18 @@ make compose-config
 make compose-up
 ```
 
-3. Seed user development (opsional):
+3. Seed user development (opsional). Mode default hanya membuat dua akun:
 
 ```bash
-set -a
-source .env
-set +a
-docker compose --env-file .env exec -T postgres psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" < environment-a/api-service/db/seeds/dev_admin.sql
+make compose-seed
 ```
+
+Untuk fixture lokal lengkap pada database Compose, gunakan `make
+compose-seed-full`. Untuk database standalone, jalankan `make seed` atau `make
+seed-full` dari folder `environment-a/api-service` dengan `DATABASE_URL` pada
+`.env` service. Seeder full membuat data sintetis untuk semua tabel metadata
+dan mengunggah 500 dummy files nyata ke Vault Core. Password akun sintetis
+adalah `seed-password`, sedangkan dua akun bootstrap tetap memakai `password`.
 
 4. Akses aplikasi:
 - Web UI: http://localhost:5173

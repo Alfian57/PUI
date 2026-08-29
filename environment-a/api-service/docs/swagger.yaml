@@ -258,8 +258,20 @@ definitions:
         items:
           $ref: '#/definitions/dto.FileDTO'
         type: array
+      limit:
+        type: integer
+      offset:
+        type: integer
+      reused_chunks:
+        type: integer
       status:
         type: string
+      total:
+        type: integer
+      total_bytes:
+        type: integer
+      total_chunks:
+        type: integer
     type: object
   dto.FileManifestResponse:
     properties:
@@ -478,12 +490,22 @@ definitions:
         items:
           $ref: '#/definitions/dto.DirectoryDTO'
         type: array
+      directory_total:
+        type: integer
+      file_total:
+        type: integer
       files:
         items:
           $ref: '#/definitions/dto.FileDTO'
         type: array
+      limit:
+        type: integer
+      offset:
+        type: integer
       status:
         type: string
+      total:
+        type: integer
     type: object
   dto.TrashResponse:
     properties:
@@ -491,12 +513,22 @@ definitions:
         items:
           $ref: '#/definitions/dto.DirectoryDTO'
         type: array
+      directory_total:
+        type: integer
+      file_total:
+        type: integer
       files:
         items:
           $ref: '#/definitions/dto.FileDTO'
         type: array
+      limit:
+        type: integer
+      offset:
+        type: integer
       status:
         type: string
+      total:
+        type: integer
     type: object
   dto.UpdateProfileRequest:
     properties:
@@ -1096,6 +1128,26 @@ paths:
         in: query
         name: include_deleted
         type: boolean
+      - description: 'Urutan: newest, oldest, name-asc, name-desc, type, starred'
+        in: query
+        name: sort
+        type: string
+      - description: Batas waktu awal RFC3339
+        in: query
+        name: created_from
+        type: string
+      - description: Batas waktu akhir RFC3339
+        in: query
+        name: created_to
+        type: string
+      - description: Ukuran halaman (1-200, default 40)
+        in: query
+        name: limit
+        type: integer
+      - description: Offset (default 0)
+        in: query
+        name: offset
+        type: integer
       produces:
       - application/json
       responses:
@@ -1312,6 +1364,26 @@ paths:
         in: query
         name: include_deleted
         type: boolean
+      - description: 'Urutan: newest, oldest, name-asc, name-desc, type, starred'
+        in: query
+        name: sort
+        type: string
+      - description: Batas waktu awal RFC3339
+        in: query
+        name: created_from
+        type: string
+      - description: Batas waktu akhir RFC3339
+        in: query
+        name: created_to
+        type: string
+      - description: Ukuran halaman (1-200, default 40)
+        in: query
+        name: limit
+        type: integer
+      - description: Offset (default 0)
+        in: query
+        name: offset
+        type: integer
       produces:
       - application/json
       responses:
@@ -1794,6 +1866,15 @@ paths:
   /starred:
     get:
       description: Menampilkan berkas dan direktori berbintang milik pengguna
+      parameters:
+      - description: Ukuran halaman per jenis item (1-200, default 40)
+        in: query
+        name: limit
+        type: integer
+      - description: Offset per jenis item (default 0)
+        in: query
+        name: offset
+        type: integer
       produces:
       - application/json
       responses:
@@ -1832,6 +1913,15 @@ paths:
     get:
       description: Menampilkan berkas dan root direktori yang dihapus secara logis
         oleh pengguna
+      parameters:
+      - description: Ukuran halaman per jenis item (1-200, default 40)
+        in: query
+        name: limit
+        type: integer
+      - description: Offset per jenis item (default 0)
+        in: query
+        name: offset
+        type: integer
       produces:
       - application/json
       responses:

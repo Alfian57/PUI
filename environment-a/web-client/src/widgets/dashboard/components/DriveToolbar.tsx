@@ -1,17 +1,12 @@
 import { ChangeEvent, useRef, useState } from "react";
 import { FolderPlus, Home, UploadCloud } from "lucide-react";
-import { Breadcrumb } from "@/features/directories/components/Breadcrumb";
-import { Button } from "@/shared/ui/Button";
-import { ViewToggle, type ViewMode } from "@/shared/ui/ViewToggle";
-import type { WorkspaceSortOption } from "@/widgets/dashboard/components/WorkspaceItemsView";
+import { Breadcrumb } from "@/pages/dashboard/_components/Breadcrumb";
+import { Button } from "@/components/ui/Button";
+import { ViewToggle, type ViewMode } from "@/components/shared/ViewToggle";
+import type { WorkspaceSortOption } from "./_types/workspace";
+import type { WorkspaceCustomTimeRange, WorkspaceTimeFilter } from "./_types/driveToolbar";
 
 const MAX_FILE_SIZE = 512 * 1024 * 1024;
-
-export type WorkspaceTimeFilter = "all" | "today" | "7d" | "30d" | "month" | "year" | "custom";
-export type WorkspaceCustomTimeRange = {
-    from: string;
-    to: string;
-};
 
 type DriveToolbarProps = {
     directoryID: string | null;

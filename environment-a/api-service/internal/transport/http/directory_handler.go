@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/alfiang/pui/environment-a/api-service/internal/domain"
 	"github.com/alfiang/pui/environment-a/api-service/internal/transport/http/dto"
 	"github.com/gin-gonic/gin"
 )
@@ -86,6 +87,11 @@ func (a *API) handleDirectoryTree(c *gin.Context) {
 // @Produce json
 // @Param id path string true "UUID direktori"
 // @Param include_deleted query bool false "Sertakan berkas yang sudah soft delete"
+// @Param sort query string false "Urutan: newest, oldest, name-asc, name-desc, type, starred"
+// @Param created_from query string false "Batas waktu awal RFC3339"
+// @Param created_to query string false "Batas waktu akhir RFC3339"
+// @Param limit query int false "Ukuran halaman (1-200, default 40)"
+// @Param offset query int false "Offset (default 0)"
 // @Success 200 {object} dto.FileListResponse
 // @Failure 400 {object} dto.ErrorResponse
 // @Failure 401 {object} dto.ErrorResponse
@@ -99,16 +105,47 @@ func (a *API) handleDirectoryFiles(c *gin.Context) {
 
 	directoryID := strings.TrimSpace(c.Param("id"))
 	includeDeleted := parseBoolQuery(c.Query("include_deleted"))
-	files, err := a.fileService.ListByDirectory(c.Request.Context(), user, directoryID, includeDeleted)
+	limit, offset, err := parsePaginationQuery(c)
+	if err != nil {
+		writeError(c, http.StatusBadRequest, err)
+		return
+	}
+
+	createdFrom, err := parseOptionalTime(c.Query("created_from"))
+	if err != nil {
+		writeError(c, http.StatusBadRequest, err)
+		return
+	}
+	createdTo, err := parseOptionalTime(c.Query("created_to"))
+	if err != nil {
+		writeError(c, http.StatusBadRequest, err)
+		return
+	}
+
+	files, total, stats, normalizedLimit, normalizedOffset, err := a.fileService.ListByDirectoryPage(c.Request.Context(), user, domain.FileListFilter{
+		DirectoryID:    directoryID,
+		IncludeDeleted: includeDeleted,
+		Sort:           strings.TrimSpace(c.Query("sort")),
+		CreatedFrom:    createdFrom,
+		CreatedTo:      createdTo,
+		Limit:          limit,
+		Offset:         offset,
+	})
 	if err != nil {
 		writeError(c, statusFromError(err), err)
 		return
 	}
 
 	c.JSON(http.StatusOK, dto.FileListResponse{
-		Status:      "ok",
-		DirectoryID: directoryID,
-		Files:       toFileDTOs(files),
+		Status:       "ok",
+		DirectoryID:  directoryID,
+		Total:        total,
+		Limit:        normalizedLimit,
+		Offset:       normalizedOffset,
+		TotalBytes:   stats.TotalBytes,
+		TotalChunks:  stats.TotalChunks,
+		ReusedChunks: stats.ReusedChunks,
+		Files:        toFileDTOs(files),
 	})
 }
 
@@ -287,6 +324,8 @@ func (a *API) handleSetStarredDirectory(c *gin.Context, starred bool) {
 // @Tags workspace
 // @Security BearerAuth
 // @Produce json
+// @Param limit query int false "Ukuran halaman per jenis item (1-200, default 40)"
+// @Param offset query int false "Offset per jenis item (default 0)"
 // @Success 200 {object} dto.TrashResponse
 // @Failure 401 {object} dto.ErrorResponse
 // @Failure 500 {object} dto.ErrorResponse
@@ -297,21 +336,32 @@ func (a *API) handleTrash(c *gin.Context) {
 		return
 	}
 
-	directories, err := a.directoryService.Trash(c.Request.Context(), user)
+	limit, offset, err := parsePaginationQuery(c)
+	if err != nil {
+		writeError(c, http.StatusBadRequest, err)
+		return
+	}
+
+	directories, directoryTotal, normalizedLimit, normalizedOffset, err := a.directoryService.TrashPage(c.Request.Context(), user, limit, offset)
 	if err != nil {
 		writeError(c, statusFromError(err), err)
 		return
 	}
-	files, err := a.fileService.Trash(c.Request.Context(), user)
+	files, fileTotal, _, _, err := a.fileService.TrashPage(c.Request.Context(), user, normalizedLimit, normalizedOffset)
 	if err != nil {
 		writeError(c, statusFromError(err), err)
 		return
 	}
 
 	c.JSON(http.StatusOK, dto.TrashResponse{
-		Status:      "ok",
-		Directories: toDirectoryDTOs(directories),
-		Files:       toFileDTOs(files),
+		Status:         "ok",
+		Total:          directoryTotal + fileTotal,
+		DirectoryTotal: directoryTotal,
+		FileTotal:      fileTotal,
+		Limit:          normalizedLimit,
+		Offset:         normalizedOffset,
+		Directories:    toDirectoryDTOs(directories),
+		Files:          toFileDTOs(files),
 	})
 }
 
@@ -321,6 +371,8 @@ func (a *API) handleTrash(c *gin.Context) {
 // @Tags workspace
 // @Security BearerAuth
 // @Produce json
+// @Param limit query int false "Ukuran halaman per jenis item (1-200, default 40)"
+// @Param offset query int false "Offset per jenis item (default 0)"
 // @Success 200 {object} dto.StarredResponse
 // @Failure 401 {object} dto.ErrorResponse
 // @Failure 500 {object} dto.ErrorResponse
@@ -331,20 +383,31 @@ func (a *API) handleStarred(c *gin.Context) {
 		return
 	}
 
-	directories, err := a.directoryService.Starred(c.Request.Context(), user)
+	limit, offset, err := parsePaginationQuery(c)
+	if err != nil {
+		writeError(c, http.StatusBadRequest, err)
+		return
+	}
+
+	directories, directoryTotal, normalizedLimit, normalizedOffset, err := a.directoryService.StarredPage(c.Request.Context(), user, limit, offset)
 	if err != nil {
 		writeError(c, statusFromError(err), err)
 		return
 	}
-	files, err := a.fileService.Starred(c.Request.Context(), user)
+	files, fileTotal, _, _, err := a.fileService.StarredPage(c.Request.Context(), user, normalizedLimit, normalizedOffset)
 	if err != nil {
 		writeError(c, statusFromError(err), err)
 		return
 	}
 
 	c.JSON(http.StatusOK, dto.StarredResponse{
-		Status:      "ok",
-		Directories: toDirectoryDTOs(directories),
-		Files:       toFileDTOs(files),
+		Status:         "ok",
+		Total:          directoryTotal + fileTotal,
+		DirectoryTotal: directoryTotal,
+		FileTotal:      fileTotal,
+		Limit:          normalizedLimit,
+		Offset:         normalizedOffset,
+		Directories:    toDirectoryDTOs(directories),
+		Files:          toFileDTOs(files),
 	})
 }
