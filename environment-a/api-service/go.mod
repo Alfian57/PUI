@@ -6,7 +6,6 @@ require (
 	github.com/gin-gonic/gin v1.12.0
 	github.com/go-playground/validator/v10 v10.30.2
 	github.com/golang-migrate/migrate/v4 v4.19.1
-	github.com/joho/godotenv v1.5.1
 	github.com/phpdave11/gofpdf v1.4.3
 	github.com/spf13/viper v1.21.0
 	github.com/swaggo/files v1.0.1

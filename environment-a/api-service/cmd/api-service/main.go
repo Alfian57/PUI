@@ -43,7 +43,7 @@ func main() {
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 
-	log.Printf("api-service listening on %s", cfg.HTTPAddr)
+	log.Printf("%s api-service listening on %s", cfg.AppName, cfg.HTTPAddr)
 	log.Printf("api-service migrations path %s", cfg.MigrationsPath)
 	log.Printf("api-service vault uds path %s", cfg.VaultUDSPath)
 

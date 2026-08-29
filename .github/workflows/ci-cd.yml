@@ -105,7 +105,7 @@ jobs:
               uses: actions/checkout@v4
 
             - name: Validate docker compose
-              run: docker compose -f docker-compose.yml config -q
+              run: docker compose --env-file .env.example -f docker-compose.yml config -q
 
     cd-images:
         name: CD Build and Push Images
@@ -173,7 +173,7 @@ jobs:
                   labels: ${{ steps.meta.outputs.labels }}
                   build-args: |
                       VITE_API_BASE_URL=${{ vars.VITE_API_BASE_URL || 'https://pui-api.alfian-gading.my.id' }}
-                      VITE_ENVIRONMENT_NAME=${{ vars.VITE_ENVIRONMENT_NAME || 'production' }}
+                      VITE_SECURITY_LAB_ENABLED=${{ vars.VITE_SECURITY_LAB_ENABLED || 'false' }}
                   cache-from: type=gha
                   cache-to: type=gha,mode=max
 

@@ -10,13 +10,13 @@ ENV_RUN = set -a; [ -f "$(ENV_FILE)" ] && . "$(ENV_FILE)"; set +a
 help: ## Show available make targets
 	@awk 'BEGIN {FS = ":.*##"; print "Usage: make <target>\n"} /^[a-zA-Z0-9_.-]+:.*##/ {printf "  %-20s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
-doctor: ## Check local prerequisites and .env-derived settings
+doctor: ## Check local prerequisites and required database setting
 	@bash -lc '$(ENV_RUN); \
 		echo "ENV_FILE=$(ENV_FILE)"; \
 		if [ ! -f "$(ENV_FILE)" ]; then echo "warning: $(ENV_FILE) not found"; fi; \
 		command -v go >/dev/null || { echo "error: go is not installed"; exit 1; }; \
 		if [ -z "$${DATABASE_URL}" ]; then echo "warning: DATABASE_URL is empty"; else echo "DATABASE_URL is set"; fi; \
-		if [ -z "$${MIGRATIONS_PATH}" ]; then echo "warning: MIGRATIONS_PATH is empty"; else echo "MIGRATIONS_PATH=$${MIGRATIONS_PATH}"; fi; \
+		echo "internal defaults: internal/config/defaults.go"; \
 		if command -v psql >/dev/null; then echo "psql is available"; else echo "warning: psql is not installed"; fi'
 
 run: ## Run api-service locally using service .env

@@ -6,11 +6,11 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/joho/godotenv"
 	"github.com/spf13/viper"
 )
 
 type Config struct {
+	AppName                   string
 	AppEnv                    string
 	HTTPAddr                  string
 	AllowedOrigin             string
@@ -35,28 +35,28 @@ type Config struct {
 }
 
 func Load() (Config, error) {
-	_ = godotenv.Load()
-
+	defaults := defaults()
 	viper.AutomaticEnv()
-	viper.SetDefault("APP_ENV", "environment-a")
-	viper.SetDefault("HTTP_ADDR", ":8080")
-	viper.SetDefault("ALLOWED_ORIGIN", "http://localhost:5173")
-	viper.SetDefault("VAULT_UDS_PATH", "/var/run/pui/uds/vault-core.sock")
-	viper.SetDefault("MAX_UPLOAD_SIZE_BYTES", int64(536870912))
-	viper.SetDefault("RATE_LIMIT_PER_MINUTE", 120)
-	viper.SetDefault("SESSION_TTL_MINUTES", 1440)
-	viper.SetDefault("SMTP_PORT", 587)
-	viper.SetDefault("SMTP_FROM_NAME", "HashBox")
-	viper.SetDefault("PUBLIC_WEB_URL", "http://localhost:5173")
-	viper.SetDefault("PASSWORD_RESET_TTL_MINUTES", 30)
-	viper.SetDefault("MIGRATIONS_PATH", "db/migrations")
-	viper.SetDefault("TRUSTED_PROXIES", "")
+	viper.SetDefault("APP_NAME", defaults.AppName)
+	viper.SetDefault("APP_ENV", defaults.AppEnv)
+	viper.SetDefault("HTTP_ADDR", defaults.HTTPAddr)
+	viper.SetDefault("ALLOWED_ORIGIN", defaults.AllowedOrigin)
+	viper.SetDefault("VAULT_UDS_PATH", defaults.VaultUDSPath)
+	viper.SetDefault("MAX_UPLOAD_SIZE_BYTES", defaults.MaxUploadSizeBytes)
+	viper.SetDefault("RATE_LIMIT_PER_MINUTE", defaults.RateLimitPerMinute)
+	viper.SetDefault("SESSION_TTL_MINUTES", defaults.SessionTTLMinutes)
+	viper.SetDefault("SMTP_PORT", defaults.SMTPPort)
+	viper.SetDefault("SMTP_FROM_NAME", defaults.SMTPFromName)
+	viper.SetDefault("PUBLIC_WEB_URL", defaults.PublicWebURL)
+	viper.SetDefault("PASSWORD_RESET_TTL_MINUTES", defaults.PasswordResetTTLMinutes)
+	viper.SetDefault("MIGRATIONS_PATH", defaults.MigrationsPath)
+	viper.SetDefault("TRUSTED_PROXIES", defaults.TrustedProxies)
 	// Security Lab (ransomware-mitigation demo) is OFF by default. It must only be
 	// enabled in the demo/skripsi environment because it performs real uploads and
 	// permanent deletions on the calling user's account.
-	viper.SetDefault("SECURITY_LAB_ENABLED", false)
-	viper.SetDefault("SECURITY_EVENTS_UDS_PATH", "/var/run/pui/uds/security-events.sock")
-	viper.SetDefault("SECURITY_EVENTS_ALLOWED_UIDS", "10002")
+	viper.SetDefault("SECURITY_LAB_ENABLED", defaults.SecurityLabEnabled)
+	viper.SetDefault("SECURITY_EVENTS_UDS_PATH", defaults.SecurityEventsUDSPath)
+	viper.SetDefault("SECURITY_EVENTS_ALLOWED_UIDS", defaults.SecurityEventsAllowedUIDs)
 
 	migrationsPath := filepath.Clean(viper.GetString("MIGRATIONS_PATH"))
 
@@ -75,6 +75,7 @@ func Load() (Config, error) {
 	}
 
 	cfg := Config{
+		AppName:                   viper.GetString("APP_NAME"),
 		AppEnv:                    viper.GetString("APP_ENV"),
 		HTTPAddr:                  viper.GetString("HTTP_ADDR"),
 		AllowedOrigin:             viper.GetString("ALLOWED_ORIGIN"),

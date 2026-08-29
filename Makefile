@@ -6,6 +6,7 @@ WEB_DIR := environment-a/web-client
 API_DIR := environment-a/api-service
 VAULT_DIR := environment-b/vault-core
 COMPOSE_FILE := docker-compose.yml
+COMPOSE_ENV_FILE ?= .env
 
 .PHONY: help deps ci ci-go ci-web ci-compose \
 	go-fmt go-fmt-check go-vet \
@@ -13,6 +14,7 @@ COMPOSE_FILE := docker-compose.yml
 	blackbox-test blackbox-ui-headless blackbox-ui-headed blackbox-ui-gui \
 	security-test security-demo \
 	prove-chunking \
+	env-check \
 	test-all \
 	web-install web-build web-dev \
 	compose-config compose-up compose-down compose-logs \
@@ -112,6 +114,9 @@ security-test: ## [Tipe 2/dev] Run security integration test (ransomware mitigat
 prove-chunking: ## Bukti visual: upload sebuah berkas lalu tunjukkan pemecahan chunk, dedup & integritas (butuh stack hidup + curl + jq)
 	@bash scripts/prove_chunking.sh
 
+env-check: ## Check required env templates and Compose references
+	@bash scripts/check_env_templates.sh
+
 # ===== TEST AGGREGATES =====
 
 test-all: blackbox-test security-test ## Run all automated tests: blackbox (Playwright) + security
@@ -126,16 +131,18 @@ web-dev: ## Start web-client dev server
 	@cd $(WEB_DIR) && npm run dev
 
 compose-config: ## Validate docker-compose configuration
-	@docker compose -f $(COMPOSE_FILE) config -q
+	@test -f "$(COMPOSE_ENV_FILE)" || { echo "error: $(COMPOSE_ENV_FILE) not found; copy .env.example to .env first"; exit 1; }
+	@docker compose --env-file "$(COMPOSE_ENV_FILE)" -f $(COMPOSE_FILE) config -q
 
 compose-up: ## Start full stack via docker compose
-	@docker compose -f $(COMPOSE_FILE) up -d --build
+	@$(MAKE) compose-config COMPOSE_ENV_FILE="$(COMPOSE_ENV_FILE)"
+	@docker compose --env-file "$(COMPOSE_ENV_FILE)" -f $(COMPOSE_FILE) up -d --build
 
 compose-down: ## Stop full stack via docker compose
-	@docker compose -f $(COMPOSE_FILE) down
+	@docker compose --env-file "$(COMPOSE_ENV_FILE)" -f $(COMPOSE_FILE) down
 
 compose-logs: ## Tail logs from docker compose stack
-	@docker compose -f $(COMPOSE_FILE) logs -f
+	@docker compose --env-file "$(COMPOSE_ENV_FILE)" -f $(COMPOSE_FILE) logs -f
 
 docker-build-api: ## Build local api-service image
 	@docker build -t pui-api-service:local $(API_DIR)
@@ -157,10 +164,10 @@ ci-compose: compose-config ## Run compose config validation
 ci: ci-go ci-web ci-compose ## Run all local CI checks
 
 run-api: ## Run api-service locally
-	@cd $(API_DIR) && go run ./cmd/api-service
+	@$(MAKE) -C $(API_DIR) run
 
 run-vault: ## Run vault-core locally
-	@cd $(VAULT_DIR) && go run ./cmd/vault-core
+	@$(MAKE) -C $(VAULT_DIR) run
 
 clean: ## Clean generated web artifacts
 	@rm -rf $(WEB_DIR)/dist

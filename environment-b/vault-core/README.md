@@ -42,25 +42,29 @@ ke API Service melalui socket lokal `SECURITY_EVENTS_UDS_PATH`.
 Lifecycle `retire`/`retain` hanya mengubah state tombstone manifest melalui UDS
 peer-authorized; tidak ada endpoint untuk menghapus atau menimpa content fisik.
 
-## Konfigurasi Environment
+## Konfigurasi
 
-Contoh env: [.env.example](.env.example)
+Default runtime tersimpan di
+[`internal/config/defaults.go`](internal/config/defaults.go). Process environment
+hanya dipakai sebagai override; binary tidak memuat `.env` secara implisit.
 
-| Variable | Default/Contoh | Keterangan |
-|---|---|---|
-| APP_ENV | environment-b | nama environment |
-| UDS_PATH | ../../shared/uds/vault-core.sock | path unix socket lokal |
-| BADGER_PATH | ../../data/vault/badger | lokasi data badger lokal |
-| CHUNK_ROOT | ../../data/vault/chunks | root penyimpanan chunk lokal |
-| FASTCDC_MIN_CHUNK_SIZE | 65536 | ukuran minimum chunk |
-| FASTCDC_AVG_CHUNK_SIZE | 262144 | ukuran target rata-rata chunk |
-| FASTCDC_MAX_CHUNK_SIZE | 1048576 | ukuran maksimum chunk |
-| SECURITY_EVENTS_UDS_PATH | ../../data/uds/security-events.sock | socket event keamanan ke API Service |
+Vault Core tidak memiliki input environment wajib untuk standalone. File
+`.env.example` tetap mendokumentasikan tuning FastCDC dan strict verification;
+path storage, UDS, ownership, dan service identity tetap dikelola oleh default
+config atau Compose.
 
-Pada docker-compose root juga ada variabel tambahan ownership socket:
-- `UDS_OWNER_UID`
-- `UDS_OWNER_GID`
-- `UDS_ALLOWED_UIDS`
+Default standalone memakai:
+
+- `APP_NAME`: `HashBox PUI`
+- `APP_ENV`: `environment-b`
+- UDS: `../../data/uds/vault-core.sock`
+- Badger: `../../data/vault/badger`
+- Chunk root: `../../data/vault/chunks`
+- UID/GID ownership dan peer allowlist: identitas proses saat ini
+- FastCDC dan strict verification: nilai default pada file config
+
+Compose mengoverride seluruh path ke `/var/run/pui` dan `/var/lib/pui`, serta
+menggunakan UID/GID container `10002:20000` dan peer API `10001`.
 
 ## Menjalankan Service
 
@@ -103,9 +107,10 @@ make ci
 
 Catatan:
 - Makefile lokal membaca secret/config dari `environment-b/vault-core/.env`.
-- runtime `vault-core` lokal juga akan load `.env` service secara otomatis.
+- Makefile memuat `.env` service secara eksplisit untuk runtime lokal.
 - root `.env` dipakai untuk docker-compose, bukan untuk `make` lokal service ini.
-- gunakan `.env.example` sebagai template local-safe path yang writable oleh user.
+- default config sudah menggunakan path local-safe yang writable oleh user.
+- pemanggilan raw `go run` tidak memuat file `.env`; export variable secara manual atau gunakan `make run`.
 
 ## Quality Check
 

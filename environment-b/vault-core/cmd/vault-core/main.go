@@ -87,7 +87,7 @@ func main() {
 
 	handler := uds.NewHandler(cfg, db)
 
-	log.Printf("vault-core starting")
+	log.Printf("%s vault-core starting", cfg.AppName)
 	log.Printf("vault-core uds path %s", cfg.UDSPath)
 	log.Printf("vault-core badger path %s", cfg.BadgerPath)
 	log.Printf("vault-core chunk root %s", cfg.ChunkRoot)

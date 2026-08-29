@@ -18,6 +18,18 @@
 
 set -euo pipefail
 
+# The proof runs against the Docker Compose stack, so load the root Compose
+# environment explicitly. HASHBOX_* variables remain deliberate test-only
+# overrides and are not part of application runtime configuration.
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ROOT_ENV_FILE="${HASHBOX_ENV_FILE:-$PROJECT_ROOT/.env}"
+if [[ -f "$ROOT_ENV_FILE" ]]; then
+    set -a
+    # shellcheck disable=SC1090
+    source "$ROOT_ENV_FILE"
+    set +a
+fi
+
 # ── Warna ────────────────────────────────────────────────────────────────────
 BLU='\033[0;34m'; GRN='\033[0;32m'; YEL='\033[0;33m'; CYN='\033[0;36m'
 BOLD='\033[1m'; DIM='\033[2m'; NC='\033[0m'
@@ -28,7 +40,9 @@ EMAIL="${HASHBOX_TEST_EMAIL:-gading@gmail.com}"
 PASSWORD="${HASHBOX_TEST_PASSWORD:-password}"
 VAULT_CONTAINER="pui-vault-core"
 PG_CONTAINER="pui-postgres"
-CHUNK_ROOT="/var/lib/pui/chunks"
+PG_USER="${POSTGRES_USER:-pui}"
+PG_DB="${POSTGRES_DB:-pui}"
+CHUNK_ROOT="${HASHBOX_CHUNK_ROOT:-/var/lib/pui/chunks}"
 # Ukuran berkas demo (MB). >1MB agar terpecah menjadi banyak chunk (FastCDC max 1MB).
 DEMO_SIZE_MB="${DEMO_SIZE_MB:-4}"
 
@@ -154,7 +168,7 @@ echo "$MANIFEST_RESP" | jq '.manifest' | sed 's/^/      /'
 
 echo
 info "Baris metadata berkas di PostgreSQL (lapisan aplikasi):"
-docker exec "$PG_CONTAINER" psql -U pui -d pui -P pager=off -x -c \
+docker exec "$PG_CONTAINER" psql -U "$PG_USER" -d "$PG_DB" -P pager=off -x -c \
     "SELECT id_berkas, nama, ukuran, id_manifest, chunk_count, new_chunk_count, reuse_chunk_count, status_penyimpanan
      FROM files WHERE id_berkas = '$FILE_ID';" 2>&1 | sed 's/^/      /'
 note "Perhatikan: PostgreSQL hanya menyimpan METADATA + id_manifest."

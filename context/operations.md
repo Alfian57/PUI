@@ -4,8 +4,12 @@
 
 ```bash
 cp .env.example .env
+make env-check
 make compose-up
-docker exec -i pui-postgres psql -U pui -d pui < environment-a/api-service/db/seeds/dev_admin.sql
+set -a
+source .env
+set +a
+docker compose --env-file .env exec -T postgres psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" < environment-a/api-service/db/seeds/dev_admin.sql
 ```
 
 Web tersedia di `http://localhost:5173`, API di `http://localhost:8080/api/v1`, dan Swagger di `/api/v1/swagger/index.html`.

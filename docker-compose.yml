@@ -1,3 +1,5 @@
+name: hashbox-pui
+
 services:
   web-client:
     build:
@@ -6,8 +8,7 @@ services:
     depends_on:
       - api-service
     environment:
-      VITE_API_BASE_URL: ${VITE_API_BASE_URL}
-      VITE_ENVIRONMENT_NAME: ${VITE_ENVIRONMENT_NAME}
+      VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:8080}
       VITE_SECURITY_LAB_ENABLED: ${VITE_SECURITY_LAB_ENABLED:-false}
     networks:
       - public_net
@@ -32,18 +33,25 @@ services:
       vault-core:
         condition: service_started
     environment:
-      APP_ENV: environment-a
-      HTTP_ADDR: ${API_HTTP_ADDR}
-      ALLOWED_ORIGIN: ${API_ALLOWED_ORIGIN}
-      DATABASE_URL: ${API_DATABASE_URL}
-      VAULT_UDS_PATH: ${VAULT_UDS_PATH}
-      SECURITY_EVENTS_UDS_PATH: ${SECURITY_EVENTS_UDS_PATH:-/var/run/pui/uds/security-events.sock}
-      SECURITY_EVENTS_ALLOWED_UIDS: ${SECURITY_EVENTS_ALLOWED_UIDS:-10002}
-      MIGRATIONS_PATH: ${API_MIGRATIONS_PATH}
-      MAX_UPLOAD_SIZE_BYTES: ${MAX_UPLOAD_SIZE_BYTES}
-      RATE_LIMIT_PER_MINUTE: ${RATE_LIMIT_PER_MINUTE}
-      SESSION_TTL_MINUTES: ${SESSION_TTL_MINUTES}
+      ALLOWED_ORIGIN: ${API_ALLOWED_ORIGIN:-http://localhost:5173}
+      DATABASE_URL: ${API_DATABASE_URL:?API_DATABASE_URL is required}
+      VAULT_UDS_PATH: /var/run/pui/uds/vault-core.sock
+      TRUSTED_PROXIES: ${TRUSTED_PROXIES:-}
+      SECURITY_EVENTS_UDS_PATH: /var/run/pui/uds/security-events.sock
+      SECURITY_EVENTS_ALLOWED_UIDS: "10002"
+      MIGRATIONS_PATH: db/migrations
+      MAX_UPLOAD_SIZE_BYTES: ${MAX_UPLOAD_SIZE_BYTES:-536870912}
+      RATE_LIMIT_PER_MINUTE: ${RATE_LIMIT_PER_MINUTE:-120}
+      SESSION_TTL_MINUTES: ${SESSION_TTL_MINUTES:-1440}
       SECURITY_LAB_ENABLED: ${SECURITY_LAB_ENABLED:-false}
+      PUBLIC_WEB_URL: ${API_PUBLIC_WEB_URL:-http://localhost:5173}
+      PASSWORD_RESET_TTL_MINUTES: ${API_PASSWORD_RESET_TTL_MINUTES:-30}
+      SMTP_HOST: ${API_SMTP_HOST:-}
+      SMTP_PORT: ${API_SMTP_PORT:-587}
+      SMTP_USERNAME: ${API_SMTP_USERNAME:-}
+      SMTP_PASSWORD: ${API_SMTP_PASSWORD:-}
+      SMTP_FROM_EMAIL: ${API_SMTP_FROM_EMAIL:-}
+      SMTP_FROM_NAME: ${API_SMTP_FROM_NAME:-HashBox}
     networks:
       - public_net
       - database_net
@@ -64,9 +72,9 @@ services:
     image: postgres:16-alpine
     container_name: pui-postgres
     environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB is required}
+      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER is required}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
       PGDATA: /var/lib/postgresql/data/pgdata
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
@@ -87,26 +95,27 @@ services:
       context: ./environment-b/vault-core
     container_name: pui-vault-core
     environment:
-      APP_ENV: environment-b
-      UDS_PATH: ${VAULT_UDS_PATH}
-      SECURITY_EVENTS_UDS_PATH: ${SECURITY_EVENTS_UDS_PATH:-/var/run/pui/uds/security-events.sock}
-      BADGER_PATH: ${BADGER_PATH}
-      CHUNK_ROOT: ${CHUNK_ROOT}
-      FASTCDC_MIN_CHUNK_SIZE: ${FASTCDC_MIN_CHUNK_SIZE}
-      FASTCDC_AVG_CHUNK_SIZE: ${FASTCDC_AVG_CHUNK_SIZE}
-      FASTCDC_MAX_CHUNK_SIZE: ${FASTCDC_MAX_CHUNK_SIZE}
-      UDS_OWNER_UID: ${UDS_OWNER_UID:-10002}
-      UDS_OWNER_GID: ${UDS_OWNER_GID:-20000}
-      UDS_ALLOWED_UIDS: ${UDS_ALLOWED_UIDS:-10001}
+      UDS_PATH: /var/run/pui/uds/vault-core.sock
+      SECURITY_EVENTS_UDS_PATH: /var/run/pui/uds/security-events.sock
+      BADGER_PATH: /var/lib/pui/badger
+      CHUNK_ROOT: /var/lib/pui/chunks
+      FASTCDC_MIN_CHUNK_SIZE: ${FASTCDC_MIN_CHUNK_SIZE:-65536}
+      FASTCDC_AVG_CHUNK_SIZE: ${FASTCDC_AVG_CHUNK_SIZE:-262144}
+      FASTCDC_MAX_CHUNK_SIZE: ${FASTCDC_MAX_CHUNK_SIZE:-1048576}
+      UDS_OWNER_UID: "10002"
+      UDS_OWNER_GID: "20000"
+      UDS_ALLOWED_UIDS: "10001"
+      STRICT_DOWNLOAD_VERIFY: ${STRICT_DOWNLOAD_VERIFY:-true}
+      STRICT_VERIFY_MAX_BYTES: ${STRICT_VERIFY_MAX_BYTES:-67108864}
     command:
       [
         "sh",
         "-c",
         "mkdir -p /var/run/pui/uds /var/lib/pui/badger /var/lib/pui/chunks &&
-          chown 10002:20000 /var/run/pui/uds && chown -R 10002:20000
-          /var/lib/pui/badger /var/lib/pui/chunks && chmod 0750 /var/run/pui/uds
-          /var/lib/pui/badger /var/lib/pui/chunks && exec su-exec 10002:20000
-          vault-core",
+          chown 10002:20000 /var/run/pui/uds &&
+          chown -R 10002:20000 /var/lib/pui/badger /var/lib/pui/chunks &&
+          chmod 0750 /var/run/pui/uds &&
+          exec su-exec 10002:20000 vault-core",
       ]
     network_mode: "none"
     volumes:
@@ -124,9 +133,11 @@ services:
   pgadmin:
     image: dpage/pgadmin4:latest
     container_name: pui-pgadmin
+    profiles:
+      - tools
     environment:
-      PGADMIN_DEFAULT_EMAIL: kykyrizky57@gmail.com
-      PGADMIN_DEFAULT_PASSWORD: postgres
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-admin@example.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-change_me}
     ports:
       - "8082:80"
     networks:

@@ -200,6 +200,11 @@ Prasyarat: stack berjalan (`make compose-up`), host punya `curl` dan `jq`.
 make prove-chunking
 ```
 
+Script ini memakai root `.env` Compose untuk kredensial/database metadata.
+Port API dan path chunk mengikuti default Compose container. Override khusus
+test tetap memakai `HASHBOX_API_BASE_URL`, `HASHBOX_CHUNK_ROOT`,
+`HASHBOX_TEST_EMAIL`, dan `HASHBOX_TEST_PASSWORD`.
+
 Skrip menjalankan 6 langkah:
 
 | Langkah | Apa yang dibuktikan |
@@ -225,7 +230,9 @@ docker exec pui-vault-core sh -c "find /var/lib/pui/chunks -type f -name '*.bin'
 docker exec pui-vault-core sh -c "find /var/lib/pui/chunks -type f -name '*.bin' | head"
 
 # Metadata berkas di PostgreSQL
-docker exec pui-postgres psql -U pui -d pui -c \
+set -a
+source .env
+set +a
+docker compose --env-file .env exec -T postgres psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c \
   "SELECT nama, ukuran, id_manifest, chunk_count FROM files ORDER BY dibuat_pada DESC LIMIT 5;"
 ```
-

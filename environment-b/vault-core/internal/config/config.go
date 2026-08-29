@@ -5,11 +5,10 @@ import (
 	"os"
 	"strconv"
 	"strings"
-
-	"github.com/joho/godotenv"
 )
 
 type Config struct {
+	AppName               string
 	AppEnv                string
 	UDSPath               string
 	SecurityEventsUDSPath string
@@ -28,52 +27,53 @@ type Config struct {
 }
 
 func Load() (Config, error) {
-	_ = godotenv.Load()
+	defaults := defaults()
 
-	minChunkSize, err := intFromEnv("FASTCDC_MIN_CHUNK_SIZE", 65536)
+	minChunkSize, err := intFromEnv("FASTCDC_MIN_CHUNK_SIZE", defaults.FastCDCMinChunkSize)
 	if err != nil {
 		return Config{}, err
 	}
 
-	avgChunkSize, err := intFromEnv("FASTCDC_AVG_CHUNK_SIZE", 262144)
+	avgChunkSize, err := intFromEnv("FASTCDC_AVG_CHUNK_SIZE", defaults.FastCDCAvgChunkSize)
 	if err != nil {
 		return Config{}, err
 	}
 
-	maxChunkSize, err := intFromEnv("FASTCDC_MAX_CHUNK_SIZE", 1048576)
+	maxChunkSize, err := intFromEnv("FASTCDC_MAX_CHUNK_SIZE", defaults.FastCDCMaxChunkSize)
 	if err != nil {
 		return Config{}, err
 	}
 
-	udsOwnerUID, err := intFromEnv("UDS_OWNER_UID", 10002)
+	udsOwnerUID, err := intFromEnv("UDS_OWNER_UID", defaults.UDSOwnerUID)
 	if err != nil {
 		return Config{}, err
 	}
 
-	udsOwnerGID, err := intFromEnv("UDS_OWNER_GID", 20000)
+	udsOwnerGID, err := intFromEnv("UDS_OWNER_GID", defaults.UDSOwnerGID)
 	if err != nil {
 		return Config{}, err
 	}
 
-	udsAllowedUIDs, err := uint32ListFromEnv("UDS_ALLOWED_UIDS", []uint32{10001})
+	udsAllowedUIDs, err := uint32ListFromEnv("UDS_ALLOWED_UIDS", defaults.UDSAllowedUIDs)
 	if err != nil {
 		return Config{}, err
 	}
 
 	cfg := Config{
-		AppEnv:                stringFromEnv("APP_ENV", "environment-b"),
-		UDSPath:               stringFromEnv("UDS_PATH", "/var/run/pui/uds/vault-core.sock"),
-		SecurityEventsUDSPath: stringFromEnv("SECURITY_EVENTS_UDS_PATH", "/var/run/pui/uds/security-events.sock"),
-		BadgerPath:            stringFromEnv("BADGER_PATH", "/var/lib/pui/badger"),
-		ChunkRoot:             stringFromEnv("CHUNK_ROOT", "/var/lib/pui/chunks"),
+		AppName:               stringFromEnv("APP_NAME", defaults.AppName),
+		AppEnv:                stringFromEnv("APP_ENV", defaults.AppEnv),
+		UDSPath:               stringFromEnv("UDS_PATH", defaults.UDSPath),
+		SecurityEventsUDSPath: stringFromEnv("SECURITY_EVENTS_UDS_PATH", defaults.SecurityEventsUDSPath),
+		BadgerPath:            stringFromEnv("BADGER_PATH", defaults.BadgerPath),
+		ChunkRoot:             stringFromEnv("CHUNK_ROOT", defaults.ChunkRoot),
 		UDSOwnerUID:           udsOwnerUID,
 		UDSOwnerGID:           udsOwnerGID,
 		UDSAllowedUIDs:        udsAllowedUIDs,
 		FastCDCMinChunkSize:   minChunkSize,
 		FastCDCAvgChunkSize:   avgChunkSize,
 		FastCDCMaxChunkSize:   maxChunkSize,
-		StrictDownloadVerify:  boolFromEnv("STRICT_DOWNLOAD_VERIFY", true),
-		StrictVerifyMaxBytes:  int64FromEnv("STRICT_VERIFY_MAX_BYTES", 64*1024*1024),
+		StrictDownloadVerify:  boolFromEnv("STRICT_DOWNLOAD_VERIFY", defaults.StrictDownloadVerify),
+		StrictVerifyMaxBytes:  int64FromEnv("STRICT_VERIFY_MAX_BYTES", defaults.StrictVerifyMaxBytes),
 	}
 
 	if cfg.FastCDCMinChunkSize <= 0 || cfg.FastCDCAvgChunkSize <= 0 || cfg.FastCDCMaxChunkSize <= 0 {

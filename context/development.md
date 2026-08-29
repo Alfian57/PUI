@@ -7,7 +7,12 @@ PUI telah selesai dan lulus. Pengembangan aktif sekarang berada pada fase Proyek
 - Perintah lintas project dijalankan dari root dengan `Makefile`.
 - API dan Vault adalah Go module terpisah.
 - Web Client menggunakan React, TypeScript, Vite, dan Tailwind.
-- Konfigurasi lokal berasal dari `.env`; gunakan `.env.example` sebagai template dan jangan commit secret.
+- Default konfigurasi disimpan di file config masing-masing app; lihat `internal/config/defaults.go` untuk service Go dan `src/shared/config/defaults.ts` untuk Web Client.
+- Root `.env` berisi database serta setting deployment penting seperti port, URL, CORS/proxy, SMTP, dan feature flag.
+- `.env.example` tiap app mendokumentasikan setting penting untuk override; path internal dan identity service tetap berada di default config.
+- Jangan mencampur file Compose dan app-local karena endpoint database, path socket, path storage, dan UID dapat berbeda.
+- API Service dan Vault Core hanya membaca process environment; Makefile adalah loader eksplisit untuk `.env` standalone.
+- Compose menghardcode path container dan ownership socket yang berbeda dari default standalone.
 
 ## Command utama
 
@@ -18,6 +23,7 @@ make compose-up
 make compose-down
 make run-api
 make run-vault
+make env-check
 ```
 
 Command per area tersedia di `environment-a/api-service/Makefile` dan `environment-b/vault-core/Makefile`.

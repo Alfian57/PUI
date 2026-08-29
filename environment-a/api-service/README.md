@@ -6,7 +6,7 @@ API Service adalah backend publik untuk autentikasi, manajemen direktori, metada
 
 - Go + Gin
 - GORM + PostgreSQL
-- Viper + dotenv
+- Viper + process environment
 - golang-migrate
 - Swagger (Swaggo)
 
@@ -42,23 +42,45 @@ Base path: `/api/v1`
 - `GET /admin/security-monitor/events`
 - `GET /admin/security-monitor/stream` (SSE)
 
-## Konfigurasi Environment
+## Konfigurasi
 
-Contoh env: [.env.example](.env.example)
+Default runtime tersimpan di
+[`internal/config/defaults.go`](internal/config/defaults.go). Process environment
+hanya dipakai sebagai override; tidak ada pencarian `.env` implisit oleh binary.
 
-| Variable | Default/Contoh | Keterangan |
-|---|---|---|
-| APP_ENV | environment-a | nama environment |
-| HTTP_ADDR | :8080 | bind address API |
-| ALLOWED_ORIGIN | http://localhost:5173 | CORS origin |
-| DATABASE_URL | postgres://...@localhost:5432/... | koneksi PostgreSQL lokal |
-| VAULT_UDS_PATH | ../../data/uds/vault-core.sock | path socket lokal ke vault-core |
-| MIGRATIONS_PATH | db/migrations | lokasi file migration |
-| MAX_UPLOAD_SIZE_BYTES | 536870912 | batas upload |
-| RATE_LIMIT_PER_MINUTE | 120 | rate limit request |
-| SESSION_TTL_MINUTES | 1440 | masa aktif bearer access token untuk sesi login |
-| SECURITY_EVENTS_UDS_PATH | /var/run/pui/uds/security-events.sock | socket event keamanan dari Vault Core |
-| SECURITY_EVENTS_ALLOWED_UIDS | 10002 | UID Vault Core yang diizinkan mengirim event |
+`.env.example` memuat database dan setting penting yang dapat berbeda antar
+local, staging, dan production. Path internal tetap tidak ditulis di template.
+Makefile memuat `environment-a/api-service/.env` secara eksplisit sebelum
+menjalankan service atau migration.
+
+Format `DATABASE_URL` adalah:
+
+```text
+postgres://USERNAME:PASSWORD@HOST:PORT/DATABASE?sslmode=disable
+```
+
+Pada template standalone, `USERNAME` adalah `pui`, `PASSWORD` adalah
+`change_me`, `HOST` adalah `localhost`, `PORT` adalah `5432`, dan `DATABASE`
+adalah `pui`. Untuk Compose, gunakan host `postgres` seperti pada root template.
+Karakter khusus pada username/password harus di-URL-encode, misalnya `@`
+menjadi `%40`.
+
+Default penting untuk standalone:
+
+- `APP_NAME`: `HashBox PUI`
+- `APP_ENV`: `environment-a`
+- `HTTP_ADDR`: `:8080`
+- `ALLOWED_ORIGIN` dan `PUBLIC_WEB_URL`: `http://localhost:5173`
+- `VAULT_UDS_PATH`: `../../data/uds/vault-core.sock`
+- `SECURITY_EVENTS_UDS_PATH`: `../../data/uds/security-events.sock`
+- `MIGRATIONS_PATH`: `db/migrations`
+- limit upload, rate limit, session, SMTP, dan Security Lab memakai default di file config.
+
+Compose mengoverride path UDS dengan path container `/var/run/pui/uds/...` dan
+memasukkan database URL dari root `.env`. Template root dan template standalone
+menunjukkan override penting seperti `ALLOWED_ORIGIN`, `TRUSTED_PROXIES`,
+`SECURITY_LAB_ENABLED`, `PUBLIC_WEB_URL`, dan `SMTP_*` agar developer tidak perlu
+menebak nama variable-nya.
 
 ## Menjalankan Service
 
@@ -107,11 +129,12 @@ make migrate-fresh
 
 Catatan:
 - Makefile lokal membaca secret/config dari `environment-a/api-service/.env`.
-- gunakan `.env.example` sebagai template local run; default-nya sudah memakai host DB `localhost` dan path socket repo-shared.
+- gunakan `.env.example` sebagai template database dan setting penting; path internal memakai default config.
 - `migrate-down` rollback 1 step.
 - `migrate-fresh` bersifat destruktif dan hanya aman untuk local/dev database.
 - startup service tetap menjalankan migrate-up otomatis.
 - root `.env` dipakai untuk docker-compose, bukan untuk `make` lokal service ini.
+- pemanggilan raw `go run` tidak memuat file `.env`; export variable secara manual atau gunakan `make run`.
 
 ## Migration
 

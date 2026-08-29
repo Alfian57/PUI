@@ -4,7 +4,6 @@ go 1.25.0
 
 require (
 	github.com/dgraph-io/badger/v4 v4.3.1
-	github.com/joho/godotenv v1.5.1
 	github.com/zeebo/blake3 v0.2.4
 	golang.org/x/sys v0.25.0
 )

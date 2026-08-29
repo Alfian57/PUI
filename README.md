@@ -44,6 +44,13 @@ Business flow, technical flow, dan acceptance criteria PP tersedia di folder [co
 cp .env.example .env
 ```
 
+Validasi template dan konfigurasi Compose:
+
+```bash
+make env-check
+make compose-config
+```
+
 2. Jalankan semua service:
 
 ```bash
@@ -53,7 +60,10 @@ make compose-up
 3. Seed user development (opsional):
 
 ```bash
-docker exec -i pui-postgres psql -U pui -d pui < environment-a/api-service/db/seeds/dev_admin.sql
+set -a
+source .env
+set +a
+docker compose --env-file .env exec -T postgres psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" < environment-a/api-service/db/seeds/dev_admin.sql
 ```
 
 4. Akses aplikasi:
@@ -85,6 +95,56 @@ make ci-web
 make ci-compose
 make compose-logs
 ```
+
+## Sumber Konfigurasi
+
+Nama aplikasi adalah `HashBox PUI` dan nama machine-readable Docker Compose
+adalah `hashbox-pui`.
+
+Default konfigurasi disimpan dekat dengan service:
+
+- API Service: `environment-a/api-service/internal/config/defaults.go`
+- Vault Core: `environment-b/vault-core/internal/config/defaults.go`
+- Web Client: `environment-a/web-client/src/shared/config/defaults.ts`
+
+HashBox memiliki dua execution mode yang sengaja dipisahkan:
+
+- Root `.env` memuat konfigurasi database dan setting deployment penting seperti
+  port, URL, CORS/proxy, SMTP, limit, dan feature flag.
+- File `.env` di masing-masing app digunakan untuk override saat service
+  dijalankan standalone dari direktorinya masing-masing; template app tetap
+  mendokumentasikan setting penting yang tersedia.
+- `.env.example` tidak memuat default internal seperti `APP_ENV`, path UDS,
+  migration, storage, atau ownership socket.
+
+Makefile service memuat file lokal secara eksplisit. API Service dan Vault Core
+tidak lagi mencari `.env` berdasarkan current working directory. Jangan menyalin
+file Compose ke app-local karena path database, socket, storage, dan UID
+container memang berbeda antar mode. Compose menghardcode path container yang
+tidak dapat dipakai langsung saat standalone.
+
+### Format `DATABASE_URL`
+
+Format koneksi PostgreSQL yang digunakan API adalah:
+
+```text
+postgres://USERNAME:PASSWORD@HOST:PORT/DATABASE?sslmode=disable
+```
+
+Pada Compose, contoh di `.env.example` berarti:
+
+| Bagian | Nilai contoh | Keterangan |
+|---|---|---|
+| `USERNAME` | `pui` | sama dengan `POSTGRES_USER` |
+| `PASSWORD` | `change_me` | sama dengan `POSTGRES_PASSWORD`; gunakan URL encoding untuk karakter khusus |
+| `HOST` | `postgres` | nama service PostgreSQL di Compose |
+| `PORT` | `5432` | port PostgreSQL |
+| `DATABASE` | `pui` | sama dengan `POSTGRES_DB` |
+| `sslmode` | `disable` | sesuai konfigurasi local Compose |
+
+Untuk standalone, gunakan `HOST=localhost` dan database URL pada template API.
+Untuk staging/production, ganti host, credential, database, dan opsi TLS sesuai
+infrastruktur environment tersebut.
 
 ## CI/CD GitHub Actions
 

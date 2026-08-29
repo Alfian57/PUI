@@ -22,12 +22,16 @@ Web Client adalah antarmuka React untuk mengelola file immutable pada HashBox.
 
 ## Konfigurasi Environment
 
-Contoh env: [.env.example](.env.example)
+Default runtime tersimpan di [`src/shared/config/defaults.ts`](src/shared/config/defaults.ts).
+Web Client tidak memiliki input environment wajib, tetapi `.env.example` tetap
+disediakan sebagai katalog override penting.
 
-| Variable | Default/Contoh | Keterangan |
+Override opsional dapat ditambahkan ke `.env` lokal:
+
+| Variable | Default | Keterangan |
 |---|---|---|
-| VITE_API_BASE_URL | http://localhost:8080 | base URL API |
-| VITE_ENVIRONMENT_NAME | environment-a | label runtime pada UI |
+| `VITE_API_BASE_URL` | `http://localhost:8080` | base URL API |
+| `VITE_SECURITY_LAB_ENABLED` | `false` | menampilkan menu Security Lab; enforcement tetap di API |
 
 ## Menjalankan Aplikasi
 
@@ -44,6 +48,10 @@ cd environment-a/web-client
 npm ci
 npm run dev
 ```
+
+Vite memuat `environment-a/web-client/.env` untuk mode standalone. Saat
+menjalankan Compose, default config dipakai dan hanya override opsional yang
+diteruskan oleh Compose.
 
 Atau dari root:
 

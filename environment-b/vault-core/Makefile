@@ -9,15 +9,12 @@ ENV_RUN = set -a; [ -f "$(ENV_FILE)" ] && . "$(ENV_FILE)"; set +a
 help: ## Show available make targets
 	@awk 'BEGIN {FS = ":.*##"; print "Usage: make <target>\n"} /^[a-zA-Z0-9_.-]+:.*##/ {printf "  %-20s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
-doctor: ## Check local prerequisites and .env-derived settings
+doctor: ## Check local prerequisites and config defaults
 	@bash -lc '$(ENV_RUN); \
 		echo "ENV_FILE=$(ENV_FILE)"; \
 		if [ ! -f "$(ENV_FILE)" ]; then echo "warning: $(ENV_FILE) not found"; fi; \
 		command -v go >/dev/null || { echo "error: go is not installed"; exit 1; }; \
-		for key in UDS_PATH BADGER_PATH CHUNK_ROOT; do \
-			value=$${!key}; \
-			if [ -z "$$value" ]; then echo "warning: $$key is empty"; else echo "$$key=$$value"; fi; \
-		done'
+		echo "internal defaults: internal/config/defaults.go"'
 
 run: ## Run vault-core locally using service .env
 	@bash -lc '$(ENV_RUN); go run ./cmd/vault-core'
