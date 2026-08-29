@@ -12,6 +12,7 @@ Context ini adalah peta kerja singkat untuk AI agent. Baca `AGENTS.md` dan [prop
 | Mengubah alur teknis atau boundary service | [technical-flow.md](technical-flow.md), [security.md](security.md) |
 | Mengerjakan fitur PP | [pp-roadmap.md](pp-roadmap.md), [business-flow.md](business-flow.md), [technical-flow.md](technical-flow.md) |
 | Menambah atau memperbaiki test | [testing.md](testing.md), lalu context service terkait |
+| Menjaga konsistensi visual maskot AI | [ai-visual-reference.md](ai-visual-reference.md), [asset turnaround](assets/hashbox-mascot-turnaround-reference.png) |
 | Memeriksa hasil test terakhir | [test-evidence.md](test-evidence.md) |
 | Menyentuh auth, UDS, storage, atau monitoring | [security.md](security.md), [architecture.md](architecture.md) |
 | Menjalankan stack atau troubleshooting | [operations.md](operations.md) |

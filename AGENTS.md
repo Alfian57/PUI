@@ -25,7 +25,7 @@ Kode dan konfigurasi menunjukkan perilaku yang sedang berjalan, bukan authority 
 - Mulai dengan discovery memakai `rg`, `rg --files`, dan inspeksi entrypoint/config yang relevan.
 - Untuk task non-trivial, tulis rencana singkat sebelum mengubah file.
 - Pertahankan boundary antar environment dan lakukan perubahan sekecil mungkin.
-- Setelah implementasi fitur, jalankan hanya pemeriksaan ringan yang relevan: formatter check, linter, type check, static check, atau validasi konfigurasi. Jangan menjalankan test otomatis pada tahap ini.
+- Setelah implementasi fitur, jalankan hanya pemeriksaan ringan yang relevan: formatter check, linter, type check, static check, atau validasi konfigurasi. Jangan menjalankan test otomatis dan build pada tahap ini.
 - Setelah pemeriksaan ringan selesai, selalu tanyakan kepada user apakah test ingin dijalankan. Jangan menjalankan unit, integration, blackbox, atau security test sebelum user menyetujui.
 - Handoff harus menyebutkan hasil, file penting, command verifikasi, dan risiko atau blocker.
 
