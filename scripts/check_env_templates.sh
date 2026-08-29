@@ -3,7 +3,7 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-COMPOSE_FILE="$ROOT_DIR/docker-compose.yml"
+COMPOSE_FILE="$ROOT_DIR/docker-compose.dev.yml"
 ROOT_TEMPLATE="$ROOT_DIR/.env.example"
 API_TEMPLATE="$ROOT_DIR/environment-a/api-service/.env.example"
 WEB_TEMPLATE="$ROOT_DIR/environment-a/web-client/.env.example"

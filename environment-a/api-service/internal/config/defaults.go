@@ -46,7 +46,7 @@ func defaults() defaultValues {
 		MigrationsPath:            "db/migrations",
 		TrustedProxies:            "",
 		SecurityLabEnabled:        false,
-		SecurityEventsUDSPath:     "../../data/uds/security-events.sock",
+		SecurityEventsUDSPath:     "../../data/uds/api/security-events.sock",
 		SecurityEventsAllowedUIDs: uid,
 	}
 }

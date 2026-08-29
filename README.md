@@ -174,7 +174,7 @@ Workflow: [.github/workflows/ci-cd.yml](.github/workflows/ci-cd.yml)
 ├── context/
 ├── AGENTS.md
 ├── proposal-pui.md
-├── docker-compose.yml
+├── docker-compose.dev.yml
 ├── Makefile
 └── .github/workflows/ci-cd.yml
 ```

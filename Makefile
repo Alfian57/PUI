@@ -5,7 +5,7 @@ GO_MODULES := environment-a/api-service environment-b/vault-core shared/uds
 WEB_DIR := environment-a/web-client
 API_DIR := environment-a/api-service
 VAULT_DIR := environment-b/vault-core
-COMPOSE_FILE := docker-compose.yml
+COMPOSE_FILE := docker-compose.dev.yml
 COMPOSE_ENV_FILE ?= .env
 
 .PHONY: help deps ci ci-go ci-web ci-compose \

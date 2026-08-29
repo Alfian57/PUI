@@ -9,7 +9,7 @@ Evidence eksekusi terakhir dan status `PASS`/`SKIP`/`BLOCKED` dicatat di
 | API Service | `cd environment-a/api-service && go test ./... && go vet ./...` |
 | Vault Core | `cd environment-b/vault-core && go test ./... && go vet ./...` |
 | Web Client | `cd environment-a/web-client && npm run lint && npm run build` |
-| Compose | `docker compose -f docker-compose.yml config -q` |
+| Compose | `docker compose -f docker-compose.dev.yml config -q` |
 | UI blackbox | `make blackbox-ui-headless` atau target headed |
 | Security Lab | `make security-test` untuk CI/headless, `make security-demo` untuk demo browser |
 

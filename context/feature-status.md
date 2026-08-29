@@ -33,7 +33,7 @@ sampai test dan demo yang relevan dijalankan.
 | Fitur | Status | Kondisi aktual dan pekerjaan tersisa |
 |---|---:|---|
 | Concurrent Garbage Collection | ✅ | `environment-b/vault-core/internal/cas/garbage_collector.go` melakukan authoritative manifest scan, active-upload protection, physical orphan cleanup, fail-safe malformed metadata, retry-safe deletion, scheduler, dan grace period. Manifest retired memakai `retired_at`; API mengantrekan retirement terakhir melalui outbox dan worker UDS retry. |
-| Read-Proxy | ✅ | API memakai UDS endpoint `GET /internal/v1/read-proxy/objects/{manifest_id}`; Vault Core membaca manifest/chunk dan mengalirkan object. API tidak memiliki mount direktori chunk. Evidence: `environment-a/api-service/internal/vaultclient/uds.go`, `environment-b/vault-core/internal/uds/server.go`, `docker-compose.yml`. |
+| Read-Proxy | ✅ | API memakai UDS endpoint `GET /internal/v1/read-proxy/objects/{manifest_id}`; Vault Core membaca manifest/chunk dan mengalirkan object. API tidak memiliki mount direktori chunk. Evidence: `environment-a/api-service/internal/vaultclient/uds.go`, `environment-b/vault-core/internal/uds/server.go`, `docker-compose.dev.yml`. |
 | Integrasi/regresi PP | ◐ | Unit test GC/retirement/UDS sudah lulus, tetapi evidence gabungan live GC + Read-Proxy + upload/commit/retrieval/restore/crash belum dijalankan karena stack tidak aktif. Detail ada di [test-evidence.md](test-evidence.md). |
 
 ## Pekerjaan tersisa
