@@ -5,7 +5,7 @@ import { queryKeys } from "@/shared/lib/queryKeys";
 
 export function useAdminAnalyticsRange(initialRange: AdminAnalyticsRange = "30d") {
     const { value, setValue } = useQueryParamState<AdminAnalyticsRange>({
-        key: "analytics[range]",
+        key: "analytics.range",
         defaultValue: initialRange,
         parse: parseEnumQueryParam(["7d", "30d", "90d"], initialRange)
     });

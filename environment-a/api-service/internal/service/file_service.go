@@ -46,6 +46,7 @@ type fileMetadataRepository interface {
 
 type directoryOwnershipRepository interface {
 	IsOwnedByUser(ctx context.Context, directoryID, userID string) (bool, error)
+	IsOwnedByUserIncludingDeleted(ctx context.Context, directoryID, userID string) (bool, error)
 }
 
 type UploadOutcome struct {
@@ -85,7 +86,7 @@ func (s *FileService) ListByDirectory(ctx context.Context, user domain.AuthUser,
 		return nil, domain.NewValidationError("directory id tidak valid")
 	}
 
-	owned, err := s.directoryRepo.IsOwnedByUser(ctx, directoryID, user.UserID)
+	owned, err := s.directoryOwned(ctx, directoryID, user.UserID, includeDeleted)
 	if err != nil {
 		return nil, err
 	}
@@ -121,7 +122,7 @@ func (s *FileService) ListByDirectoryPage(ctx context.Context, user domain.AuthU
 			return nil, 0, domain.FileListStats{}, 0, 0, fmt.Errorf("%w: directory_id tidak valid", domain.ErrInvalidInput)
 		}
 
-		owned, err := s.directoryRepo.IsOwnedByUser(ctx, filter.DirectoryID, user.UserID)
+		owned, err := s.directoryOwned(ctx, filter.DirectoryID, user.UserID, filter.IncludeDeleted)
 		if err != nil {
 			return nil, 0, domain.FileListStats{}, 0, 0, err
 		}
@@ -136,6 +137,14 @@ func (s *FileService) ListByDirectoryPage(ctx context.Context, user domain.AuthU
 	}
 
 	return files, total, stats, filter.Limit, filter.Offset, nil
+}
+
+func (s *FileService) directoryOwned(ctx context.Context, directoryID, userID string, includeDeleted bool) (bool, error) {
+	if includeDeleted {
+		return s.directoryRepo.IsOwnedByUserIncludingDeleted(ctx, directoryID, userID)
+	}
+
+	return s.directoryRepo.IsOwnedByUser(ctx, directoryID, userID)
 }
 
 func (s *FileService) Upload(ctx context.Context, user domain.AuthUser, directoryID, fileName, mimeType string, reader io.Reader) (UploadOutcome, error) {

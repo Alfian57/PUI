@@ -1,21 +1,38 @@
-import { useQuery } from "@tanstack/react-query";
 import { ChevronRight, Home } from "lucide-react";
-import { getBreadcrumb } from "@/pages/dashboard/_api/directoryApi";
-import { queryKeys } from "@/shared/lib/queryKeys";
+import type { DirectoryRecord } from "@/shared/types/directories";
 
 type BreadcrumbProps = {
     directoryID: string | null;
+    directories: DirectoryRecord[];
     onNavigate: (directoryID: string | null) => void;
 };
 
-export function Breadcrumb({ directoryID, onNavigate }: BreadcrumbProps): JSX.Element | null {
-    const { data: items } = useQuery({
-        queryKey: queryKeys.directories.breadcrumb(directoryID ?? "none"),
-        queryFn: () => getBreadcrumb(directoryID!),
-        enabled: Boolean(directoryID)
-    });
+function buildPath(directories: DirectoryRecord[], directoryID: string | null): DirectoryRecord[] {
+    if (!directoryID) {
+        return [];
+    }
 
-    const pathItems = items ?? [];
+    const directoriesByID = new Map(directories.map((directory) => [directory.id, directory]));
+    const path: DirectoryRecord[] = [];
+    const visited = new Set<string>();
+    let currentID: string | null = directoryID;
+
+    while (currentID && !visited.has(currentID)) {
+        visited.add(currentID);
+        const directory = directoriesByID.get(currentID);
+        if (!directory) {
+            return [];
+        }
+
+        path.unshift(directory);
+        currentID = directory.parent_id ?? null;
+    }
+
+    return path;
+}
+
+export function Breadcrumb({ directoryID, directories, onNavigate }: BreadcrumbProps): JSX.Element {
+    const pathItems = buildPath(directories, directoryID);
 
     return (
         <nav className="flex min-w-0 items-center gap-1 overflow-x-auto text-sm text-brand-steel" aria-label="Lokasi direktori">

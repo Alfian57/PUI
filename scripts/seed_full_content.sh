@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Generate and upload deterministic dummy files for the PostgreSQL full seed.
+# Generate and upload deterministic fixture files for the PostgreSQL full seed.
 # The files are temporary: their durable content is written by Vault Core.
 
 set -euo pipefail
@@ -10,6 +10,9 @@ SEED_PASSWORD="${HASHBOX_SEED_PASSWORD:-password}"
 SEED_FILE_COUNT="${HASHBOX_SEED_FILE_COUNT:-500}"
 SEED_DELAY_SECONDS="${HASHBOX_SEED_DELAY_SECONDS:-0.6}"
 SEED_TEMP_ROOT="${HASHBOX_SEED_TEMP_ROOT:-${TMPDIR:-/tmp}}"
+SEED_PDF_FIXTURE_URL="${HASHBOX_SEED_PDF_FIXTURE_URL:-https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf}"
+SEED_VIDEO_FIXTURE_URL="${HASHBOX_SEED_VIDEO_FIXTURE_URL:-https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4}"
+SEED_REPAIR_INVALID_MEDIA="${HASHBOX_SEED_REPAIR_INVALID_MEDIA:-false}"
 
 case "$SEED_FILE_COUNT" in
     ''|*[!0-9]*|0)
@@ -18,7 +21,7 @@ case "$SEED_FILE_COUNT" in
         ;;
 esac
 
-for dependency in curl jq base64 dd mktemp seq; do
+for dependency in curl jq base64 grep head mktemp seq tr wc; do
     command -v "$dependency" >/dev/null || {
         echo "seed content: $dependency wajib terpasang" >&2
         exit 1
@@ -27,6 +30,44 @@ done
 
 TEMP_DIR="$(mktemp -d "$SEED_TEMP_ROOT/hashbox-seed-files.XXXXXX")"
 trap 'rm -rf "$TEMP_DIR"' EXIT
+PDF_FIXTURE_PATH="$TEMP_DIR/seed-fixture.pdf"
+VIDEO_FIXTURE_PATH="$TEMP_DIR/seed-fixture.mp4"
+
+download_fixture() {
+    local url="$1"
+    local output_path="$2"
+    local label="$3"
+
+    echo "seed content: downloading valid $label fixture..."
+    curl --silent --show-error --fail --location --retry 3 \
+        --output "$output_path" "$url"
+}
+
+ensure_pdf_fixture() {
+    if [ ! -s "$PDF_FIXTURE_PATH" ]; then
+        download_fixture "$SEED_PDF_FIXTURE_URL" "$PDF_FIXTURE_PATH" "PDF"
+    fi
+
+    if [ "$(head -c 5 "$PDF_FIXTURE_PATH")" != '%PDF-' ]; then
+        echo "seed content: downloaded PDF fixture is not a PDF" >&2
+        return 1
+    fi
+}
+
+ensure_video_fixture() {
+    if [ ! -s "$VIDEO_FIXTURE_PATH" ]; then
+        download_fixture "$SEED_VIDEO_FIXTURE_URL" "$VIDEO_FIXTURE_PATH" "MP4 video"
+    fi
+
+    if ! grep -a -m 1 -q 'ftyp' "$VIDEO_FIXTURE_PATH"; then
+        echo "seed content: downloaded video fixture is not an MP4 container" >&2
+        return 1
+    fi
+}
+
+fixture_size() {
+    wc -c <"$1" | tr -d '[:space:]'
+}
 
 create_dummy_file() {
     local output_path="$1"
@@ -35,14 +76,8 @@ create_dummy_file() {
 
     case "$mime_type" in
         application/pdf)
-            printf '%s\n' \
-                '%PDF-1.4' \
-                '1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj' \
-                '2 0 obj << /Type /Pages /Kids [3 0 R] /Count 1 >> endobj' \
-                '3 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 300 120] /Contents 4 0 R >> endobj' \
-                '4 0 obj << /Length 65 >> stream' \
-                'BT /F1 12 Tf 30 70 Td (HashBox dummy PDF fixture) Tj 30 50 Td (Sequence '"$sequence"') Tj ET' \
-                'endstream endobj xref trailer << /Root 1 0 R >> %%EOF' >"$output_path"
+            ensure_pdf_fixture
+            cp "$PDF_FIXTURE_PATH" "$output_path"
             ;;
         image/png)
             printf '%s' 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=' | base64 -d >"$output_path"
@@ -67,15 +102,65 @@ create_dummy_file() {
             } >"$output_path"
             ;;
         video/mp4)
-            # A small deterministic binary payload with an MP4-like MIME type.
-            # Vault stores bytes and does not inspect container codecs.
-            dd if=/dev/zero of="$output_path" bs=1024 count=64 status=none
+            ensure_video_fixture
+            cp "$VIDEO_FIXTURE_PATH" "$output_path"
             ;;
         *)
             echo "seed content: MIME fixture tidak dikenal: $mime_type" >&2
             return 1
             ;;
     esac
+}
+
+repair_existing_media_fixture() {
+    local token="$1"
+    local file_id="$2"
+    local file_name="$3"
+    local deleted_at="$4"
+
+    if [ "$SEED_REPAIR_INVALID_MEDIA" != 'true' ]; then
+        echo "seed content: $file_name is an invalid old media fixture; set HASHBOX_SEED_REPAIR_INVALID_MEDIA=true to replace it" >&2
+        return 1
+    fi
+
+    echo "seed content: replacing invalid media fixture $file_name"
+    if [ "$deleted_at" = 'null' ] || [ -z "$deleted_at" ]; then
+        api_delete "$token" "/files/$file_id"
+    fi
+    api_delete "$token" "/files/$file_id/permanent"
+}
+
+api_delete() {
+    local token="$1"
+    local path="$2"
+    local attempt=1
+    local http_code=''
+
+    while :; do
+        http_code="$(curl --silent --show-error \
+            -o /dev/null \
+            -w '%{http_code}' \
+            --request DELETE \
+            -H "Authorization: Bearer $token" \
+            "$API_BASE_URL$path" || true)"
+        case "$http_code" in
+            2??)
+                return 0
+                ;;
+            429)
+                if [ "$attempt" -ge 6 ]; then
+                    echo "seed content: DELETE $path gagal (HTTP $http_code)" >&2
+                    return 1
+                fi
+                sleep "$((attempt * 2))"
+                attempt=$((attempt + 1))
+                ;;
+            *)
+                echo "seed content: DELETE $path gagal (HTTP $http_code)" >&2
+                return 1
+                ;;
+        esac
+    done
 }
 
 fixture_properties() {
@@ -137,14 +222,40 @@ load_existing_files "$TOKEN"
 
 uploaded=0
 skipped=0
-echo "seed content: memastikan $SEED_FILE_COUNT dummy files committed melalui Vault Core..."
+echo "seed content: memastikan $SEED_FILE_COUNT fixture files committed melalui Vault Core..."
 
 for sequence in $(seq 1 "$SEED_FILE_COUNT"); do
     read -r mime_type extension < <(fixture_properties "$sequence")
     file_name="seed-content-$(printf '%04d' "$sequence").$extension"
     if jq -e --arg name "$file_name" 'any(.[]; .name == $name)' "$TEMP_DIR/existing-files.json" >/dev/null; then
-        skipped=$((skipped + 1))
-        continue
+        existing_fixture="$(jq -c --arg name "$file_name" 'first(.[] | select(.name == $name))' "$TEMP_DIR/existing-files.json")"
+        existing_status="$(jq -r '.status_penyimpanan // empty' <<<"$existing_fixture")"
+        existing_size="$(jq -r '.size_bytes // 0' <<<"$existing_fixture")"
+        existing_id="$(jq -r '.id // empty' <<<"$existing_fixture")"
+        existing_deleted_at="$(jq -r 'if .deleted_at == null then "null" else .deleted_at end' <<<"$existing_fixture")"
+        expected_size=''
+
+        case "$mime_type" in
+            application/pdf)
+                ensure_pdf_fixture
+                expected_size="$(fixture_size "$PDF_FIXTURE_PATH")"
+                ;;
+            video/mp4)
+                ensure_video_fixture
+                expected_size="$(fixture_size "$VIDEO_FIXTURE_PATH")"
+                ;;
+        esac
+
+        if [ -n "$expected_size" ] \
+            && [ "$existing_status" = 'committed' ] \
+            && [ "$existing_size" != "$expected_size" ]; then
+            repair_existing_media_fixture "$TOKEN" "$existing_id" "$file_name" "$existing_deleted_at"
+            jq --arg name "$file_name" '[.[] | select(.name != $name)]' "$TEMP_DIR/existing-files.json" >"$TEMP_DIR/existing-files-next.json"
+            mv "$TEMP_DIR/existing-files-next.json" "$TEMP_DIR/existing-files.json"
+        else
+            skipped=$((skipped + 1))
+            continue
+        fi
     fi
 
     file_path="$TEMP_DIR/$file_name"

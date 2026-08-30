@@ -5,7 +5,8 @@ export const queryKeys = {
   },
   directories: {
     tree: ["directories", "tree"] as const,
-    breadcrumb: (id: string) => ["directories", "breadcrumb", id] as const
+    breadcrumb: (id: string) => ["directories", "breadcrumb", id] as const,
+    detail: (id: string, scope: "starred" | "trash") => ["directories", "detail", scope, id] as const
   },
   files: {
     byDirectory: (directoryID: string, filterKey?: string) => filterKey

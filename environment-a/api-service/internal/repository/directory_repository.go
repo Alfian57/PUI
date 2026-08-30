@@ -211,6 +211,107 @@ func (r *DirectoryRepository) Breadcrumb(ctx context.Context, userID, directoryI
 	return items, nil
 }
 
+func (r *DirectoryRepository) Detail(ctx context.Context, userID, directoryID string, scope domain.DirectoryDetailScope) (domain.DirectoryDetail, error) {
+	targetWhere := `d.dihapus_pada IS NULL AND EXISTS (
+			SELECT 1
+			FROM directory_closure starred_link
+			JOIN directories starred_root ON starred_root.id_direktori = starred_link.id_induk
+			WHERE starred_link.id_turunan = d.id_direktori
+			  AND starred_root.id_pengguna = d.id_pengguna
+			  AND starred_root.dihapus_pada IS NULL
+			  AND starred_root.dibintang_pada IS NOT NULL
+		)`
+	directoryWhere := `d.dihapus_pada IS NULL`
+	fileWhere := `f.dihapus_pada IS NULL AND d.dihapus_pada IS NULL`
+	if scope == domain.DirectoryDetailScopeTrash {
+		targetWhere = `d.dihapus_pada IS NOT NULL`
+		directoryWhere = `d.dihapus_pada IS NOT NULL`
+		fileWhere = `f.dihapus_pada IS NOT NULL AND d.dihapus_pada IS NOT NULL`
+	}
+	if scope != domain.DirectoryDetailScopeStarred && scope != domain.DirectoryDetailScopeTrash {
+		return domain.DirectoryDetail{}, domain.NewValidationError("scope direktori tidak valid")
+	}
+
+	var detail domain.DirectoryDetail
+	err := r.db.WithContext(ctx).Raw(
+		`SELECT d.id_direktori::text AS id, d.nama AS name, 0 AS depth, parent.id_induk::text AS parent_id, d.dibuat_pada AS created_at, d.dihapus_pada AS deleted_at, d.dibintang_pada AS starred_at
+		 FROM directories d
+		 LEFT JOIN LATERAL (
+			SELECT dc.id_induk
+			FROM directory_closure dc
+			WHERE dc.id_turunan = d.id_direktori AND dc.kedalaman = 1
+			LIMIT 1
+		 ) parent ON true
+		 WHERE d.id_direktori = ?::uuid
+		   AND d.id_pengguna = ?::uuid
+		   AND `+targetWhere,
+		directoryID,
+		userID,
+	).Scan(&detail.Directory).Error
+	if err != nil {
+		return domain.DirectoryDetail{}, fmt.Errorf("query directory detail: %w", err)
+	}
+	if detail.Directory.ID == "" {
+		return domain.DirectoryDetail{}, domain.ErrNotFound
+	}
+
+	err = r.db.WithContext(ctx).Raw(
+		`WITH subtree AS (
+			SELECT id_turunan
+			FROM directory_closure
+			WHERE id_induk = ?::uuid
+		), directory_items AS (
+			SELECT d.id_direktori
+			FROM directories d
+			JOIN subtree s ON s.id_turunan = d.id_direktori
+			WHERE d.id_pengguna = ?::uuid
+			  AND `+directoryWhere+`
+		), file_items AS (
+			SELECT f.ukuran
+			FROM files f
+			JOIN directories d ON d.id_direktori = f.id_direktori
+			JOIN subtree s ON s.id_turunan = f.id_direktori
+			WHERE f.id_pengguna = ?::uuid
+			  AND f.status_penyimpanan = 'committed'
+			  AND `+fileWhere+`
+		)
+		SELECT
+			(SELECT COUNT(*) FROM directory_items WHERE id_direktori <> ?::uuid) AS directory_count,
+			(SELECT COUNT(*) FROM file_items) AS file_count,
+			COALESCE((SELECT SUM(ukuran) FROM file_items), 0) AS total_bytes`,
+		directoryID,
+		userID,
+		userID,
+		directoryID,
+	).Scan(&detail.Summary).Error
+	if err != nil {
+		return domain.DirectoryDetail{}, fmt.Errorf("query directory detail summary: %w", err)
+	}
+
+	childWhere := `d.dihapus_pada IS NULL`
+	if scope == domain.DirectoryDetailScopeTrash {
+		childWhere = `d.dihapus_pada IS NOT NULL`
+	}
+	detail.Directories = make([]domain.DirectoryRecord, 0, 16)
+	err = r.db.WithContext(ctx).Raw(
+		`SELECT d.id_direktori::text AS id, d.nama AS name, dc.kedalaman AS depth, dc.id_induk::text AS parent_id, d.dibuat_pada AS created_at, d.dihapus_pada AS deleted_at, d.dibintang_pada AS starred_at
+		 FROM directory_closure dc
+		 JOIN directories d ON d.id_direktori = dc.id_turunan
+		 WHERE dc.id_induk = ?::uuid
+		   AND dc.kedalaman = 1
+		   AND d.id_pengguna = ?::uuid
+		   AND `+childWhere+`
+		 ORDER BY d.nama, d.id_direktori`,
+		directoryID,
+		userID,
+	).Scan(&detail.Directories).Error
+	if err != nil {
+		return domain.DirectoryDetail{}, fmt.Errorf("query directory detail children: %w", err)
+	}
+
+	return detail, nil
+}
+
 func (r *DirectoryRepository) IsOwnedByUser(ctx context.Context, directoryID, userID string) (bool, error) {
 	var owned bool
 	err := r.db.WithContext(ctx).Raw(
@@ -220,6 +321,20 @@ func (r *DirectoryRepository) IsOwnedByUser(ctx context.Context, directoryID, us
 	).Scan(&owned).Error
 	if err != nil {
 		return false, fmt.Errorf("check directory ownership: %w", err)
+	}
+
+	return owned, nil
+}
+
+func (r *DirectoryRepository) IsOwnedByUserIncludingDeleted(ctx context.Context, directoryID, userID string) (bool, error) {
+	var owned bool
+	err := r.db.WithContext(ctx).Raw(
+		`SELECT EXISTS (SELECT 1 FROM directories WHERE id_direktori = ?::uuid AND id_pengguna = ?::uuid)`,
+		directoryID,
+		userID,
+	).Scan(&owned).Error
+	if err != nil {
+		return false, fmt.Errorf("check directory ownership including deleted: %w", err)
 	}
 
 	return owned, nil

@@ -62,6 +62,19 @@ func (s *DirectoryService) Breadcrumb(ctx context.Context, user domain.AuthUser,
 	return s.directoryRepo.Breadcrumb(ctx, user.UserID, directoryID)
 }
 
+func (s *DirectoryService) Detail(ctx context.Context, user domain.AuthUser, directoryID string, scope domain.DirectoryDetailScope) (domain.DirectoryDetail, error) {
+	directoryID = strings.TrimSpace(directoryID)
+	if !IsUUID(directoryID) {
+		return domain.DirectoryDetail{}, domain.NewValidationError("directory id tidak valid")
+	}
+
+	if scope != domain.DirectoryDetailScopeStarred && scope != domain.DirectoryDetailScopeTrash {
+		return domain.DirectoryDetail{}, domain.NewValidationError("scope direktori tidak valid")
+	}
+
+	return s.directoryRepo.Detail(ctx, user.UserID, directoryID, scope)
+}
+
 func (s *DirectoryService) IsOwnedByUser(ctx context.Context, user domain.AuthUser, directoryID string) (bool, error) {
 	if !IsUUID(directoryID) {
 		return false, domain.NewValidationError("directory id tidak valid")

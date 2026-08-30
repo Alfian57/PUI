@@ -31,6 +31,7 @@ type directoryServiceInterface interface {
 	Create(ctx context.Context, user domain.AuthUser, name, parentID string) (domain.DirectoryRecord, error)
 	Tree(ctx context.Context, user domain.AuthUser, rootID string) ([]domain.DirectoryRecord, error)
 	Breadcrumb(ctx context.Context, user domain.AuthUser, directoryID string) ([]domain.DirectoryRecord, error)
+	Detail(ctx context.Context, user domain.AuthUser, directoryID string, scope domain.DirectoryDetailScope) (domain.DirectoryDetail, error)
 	SoftDelete(ctx context.Context, user domain.AuthUser, directoryID string) (domain.DirectoryRecord, error)
 	Restore(ctx context.Context, user domain.AuthUser, directoryID string) (domain.DirectoryRecord, error)
 	PermanentDelete(ctx context.Context, user domain.AuthUser, directoryID string) error

@@ -10,9 +10,10 @@ import {
 } from "@/pages/dashboard/_api/directoryApi";
 import { queryKeys } from "@/shared/lib/queryKeys";
 
-export function useDirectoryTree(enabled: boolean) {
+export function useDirectoryTree(enabled: boolean, requestedDirectoryID: string | null = null) {
   const queryClient = useQueryClient();
   const [selectedDirectoryID, setSelectedDirectoryID] = useState<string | null>(null);
+  const [resolvedDirectoryRequest, setResolvedDirectoryRequest] = useState<string | null>(null);
 
   const directoriesQuery = useQuery({
     queryKey: queryKeys.directories.tree,
@@ -21,25 +22,23 @@ export function useDirectoryTree(enabled: boolean) {
   });
 
   useEffect(() => {
-    if (!directoriesQuery.data) {
+    if (!directoriesQuery.isSuccess) {
       return;
     }
 
-    if (directoriesQuery.data.length === 0) {
-      setSelectedDirectoryID(null);
-      return;
-    }
+    const resolvedDirectoryID = requestedDirectoryID
+      && directoriesQuery.data.some((item) => item.id === requestedDirectoryID)
+      ? requestedDirectoryID
+      : null;
+    setSelectedDirectoryID(resolvedDirectoryID);
+    setResolvedDirectoryRequest(requestedDirectoryID);
+  }, [directoriesQuery.data, directoriesQuery.isSuccess, requestedDirectoryID]);
 
-    setSelectedDirectoryID((current) => {
-      if (!current) {
-        return null;
-      }
-
-      return directoriesQuery.data.some((item) => item.id === current)
-        ? current
-        : null;
-    });
-  }, [directoriesQuery.data]);
+  const isDirectorySelectionReady = !requestedDirectoryID
+    || (directoriesQuery.isSuccess && resolvedDirectoryRequest === requestedDirectoryID);
+  const effectiveSelectedDirectoryID = resolvedDirectoryRequest === requestedDirectoryID
+    ? selectedDirectoryID
+    : null;
 
   const createFolderMutation = useMutation({
     mutationFn: ({ name, parentID }: { name: string; parentID?: string | null }) =>
@@ -82,8 +81,9 @@ export function useDirectoryTree(enabled: boolean) {
 
   return {
     directories: directoriesQuery.data ?? [],
-    selectedDirectoryID,
+    selectedDirectoryID: effectiveSelectedDirectoryID,
     setSelectedDirectoryID,
+    isDirectorySelectionReady,
     isLoading: directoriesQuery.isLoading,
     refresh,
     createFolder: (name: string, parentID?: string | null) =>

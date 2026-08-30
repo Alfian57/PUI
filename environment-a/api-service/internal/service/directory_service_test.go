@@ -36,6 +36,9 @@ func (f *fakeDirRepo) Tree(_ context.Context, _, _ string) ([]domain.DirectoryRe
 func (f *fakeDirRepo) Breadcrumb(_ context.Context, _, _ string) ([]domain.DirectoryRecord, error) {
 	return f.records, f.crumbErr
 }
+func (f *fakeDirRepo) Detail(_ context.Context, _, _ string, _ domain.DirectoryDetailScope) (domain.DirectoryDetail, error) {
+	return domain.DirectoryDetail{Directory: f.record}, nil
+}
 func (f *fakeDirRepo) IsOwnedByUser(_ context.Context, _, _ string) (bool, error) {
 	return f.owned, f.ownedErr
 }
@@ -154,6 +157,34 @@ func TestDirectoryServiceBreadcrumbSuccess(t *testing.T) {
 	}
 	if len(got) == 0 {
 		t.Fatal("expected non-empty breadcrumb")
+	}
+}
+
+func TestDirectoryServiceDetailRejectsInvalidID(t *testing.T) {
+	t.Parallel()
+	svc := &DirectoryService{}
+	if _, err := svc.Detail(context.Background(), dirUser, "bad-id", domain.DirectoryDetailScopeStarred); !errors.Is(err, domain.ErrInvalidInput) {
+		t.Fatalf("want ErrInvalidInput, got %v", err)
+	}
+}
+
+func TestDirectoryServiceDetailRejectsInvalidScope(t *testing.T) {
+	t.Parallel()
+	svc := &DirectoryService{}
+	if _, err := svc.Detail(context.Background(), dirUser, validDirID, "other"); !errors.Is(err, domain.ErrInvalidInput) {
+		t.Fatalf("want ErrInvalidInput, got %v", err)
+	}
+}
+
+func TestDirectoryServiceDetailSuccess(t *testing.T) {
+	t.Parallel()
+	repo := &fakeDirRepo{record: domain.DirectoryRecord{ID: validDirID, Name: "Folder A"}}
+	got, err := newDirSvc(repo).Detail(context.Background(), dirUser, validDirID, domain.DirectoryDetailScopeStarred)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if got.Directory.ID != validDirID {
+		t.Fatalf("id mismatch: %s", got.Directory.ID)
 	}
 }
 

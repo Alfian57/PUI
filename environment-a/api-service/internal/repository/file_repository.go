@@ -148,8 +148,10 @@ func (r *FileRepository) FindByIDForUser(ctx context.Context, fileID, userID str
 		LEFT JOIN directories d ON d.id_direktori = f.id_direktori
 		WHERE f.id_berkas = ?::uuid
 		  AND f.id_pengguna = ?::uuid
-		  AND f.status_penyimpanan = 'committed'
-		  AND (f.id_direktori IS NULL OR d.dihapus_pada IS NULL)`
+		  AND f.status_penyimpanan = 'committed'`
+	if !includeDeleted {
+		query += ` AND (f.id_direktori IS NULL OR d.dihapus_pada IS NULL)`
+	}
 	if !includeDeleted {
 		query += ` AND f.dihapus_pada IS NULL`
 	}
@@ -176,7 +178,10 @@ func (r *FileRepository) ListByDirectory(ctx context.Context, userID, directoryI
 	if strings.TrimSpace(directoryID) == "" {
 		query += ` AND f.id_direktori IS NULL`
 	} else {
-		query += ` AND f.id_direktori = ?::uuid AND d.dihapus_pada IS NULL`
+		query += ` AND f.id_direktori = ?::uuid`
+		if !includeDeleted {
+			query += ` AND d.dihapus_pada IS NULL`
+		}
 		args = append(args, directoryID)
 	}
 
@@ -201,7 +206,10 @@ func (r *FileRepository) ListByDirectoryPage(ctx context.Context, userID string,
 	if strings.TrimSpace(filter.DirectoryID) == "" {
 		where += ` AND f.id_direktori IS NULL`
 	} else {
-		where += ` AND f.id_direktori = ?::uuid AND d.dihapus_pada IS NULL`
+		where += ` AND f.id_direktori = ?::uuid`
+		if !filter.IncludeDeleted {
+			where += ` AND d.dihapus_pada IS NULL`
+		}
 		args = append(args, filter.DirectoryID)
 	}
 

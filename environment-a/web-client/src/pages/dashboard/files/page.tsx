@@ -34,7 +34,9 @@ export function FilesPage(): JSX.Element {
         [childFolders, customTimeRange, timeFilter]
     );
     const filteredFiles = files.files;
-    const loadingContent = directories.isLoading || files.filesState.isLoading;
+    const loadingContent = directories.isLoading
+        || !directories.isDirectorySelectionReady
+        || files.filesState.isLoading;
     const locationIsEmpty = !loadingContent && childFolders.length === 0 && files.filesTotal === 0;
     const filterIsActive = timeFilter !== "all";
     const filteredIsEmpty = !loadingContent

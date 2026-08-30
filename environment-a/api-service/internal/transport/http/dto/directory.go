@@ -34,6 +34,20 @@ type BreadcrumbResponse struct {
 	Breadcrumb  []DirectoryDTO `json:"breadcrumb"`
 }
 
+type DirectoryDetailSummaryDTO struct {
+	DirectoryCount int64 `json:"directory_count"`
+	FileCount      int64 `json:"file_count"`
+	TotalBytes     int64 `json:"total_bytes"`
+}
+
+type DirectoryDetailResponse struct {
+	Status      string                    `json:"status"`
+	Directory   DirectoryDTO              `json:"directory"`
+	Summary     DirectoryDetailSummaryDTO `json:"summary"`
+	Directories []DirectoryDTO            `json:"directories"`
+	Files       []FileDTO                 `json:"files"`
+}
+
 type DirectoryMutationResponse struct {
 	Status    string       `json:"status"`
 	Directory DirectoryDTO `json:"directory"`

@@ -1,16 +1,18 @@
 import { useCallback } from "react";
+import { generatePath, useNavigate } from "react-router-dom";
 import { Trash2 } from "lucide-react";
 import { useWorkspaceCollection } from "@/pages/dashboard/_hooks/useWorkspaceCollection";
 import { WorkspaceItemsView } from "@/widgets/dashboard/components/WorkspaceItemsView";
 import { useDashboardWorkspace } from "@/widgets/dashboard/hooks/useDashboardWorkspace";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { useInfiniteScroll } from "@/shared/hooks/useInfiniteScroll";
+import { ROUTES } from "@/app/routes";
 
 export function TrashPage(): JSX.Element {
+    const navigate = useNavigate();
     const {
         files: workspaceFiles,
         viewMode,
-        onSelectDirectory,
         onSelectFile,
         onDownload,
         onRestoreFile,
@@ -21,6 +23,9 @@ export function TrashPage(): JSX.Element {
         onBulkPermanentDelete
     } = useDashboardWorkspace();
     const trash = useWorkspaceCollection("trash");
+    const handleOpenFolder = useCallback((directoryID: string) => {
+        navigate(generatePath(ROUTES.app.trashFolderDetail, { folderID: directoryID }));
+    }, [navigate]);
     const loadMore = useCallback(() => {
         void trash.loadMore();
     }, [trash.loadMore]);
@@ -64,7 +69,7 @@ export function TrashPage(): JSX.Element {
                         selectedFileID={workspaceFiles.selectedFileID}
                         loading={trash.isLoading}
                         viewMode={viewMode}
-                        onOpenFolder={onSelectDirectory}
+                        onOpenFolder={handleOpenFolder}
                         onSelectFile={onSelectFile}
                         onDownload={onDownload}
                         onRestoreFile={onRestoreFile}

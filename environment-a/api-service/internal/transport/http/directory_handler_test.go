@@ -34,6 +34,9 @@ func (f *fakeDirSvc) Tree(_ context.Context, _ domain.AuthUser, _ string) ([]dom
 func (f *fakeDirSvc) Breadcrumb(_ context.Context, _ domain.AuthUser, _ string) ([]domain.DirectoryRecord, error) {
 	return f.records, f.err
 }
+func (f *fakeDirSvc) Detail(_ context.Context, _ domain.AuthUser, _ string, _ domain.DirectoryDetailScope) (domain.DirectoryDetail, error) {
+	return domain.DirectoryDetail{Directory: f.record}, f.err
+}
 func (f *fakeDirSvc) SoftDelete(_ context.Context, _ domain.AuthUser, _ string) (domain.DirectoryRecord, error) {
 	return f.record, f.err
 }
@@ -174,6 +177,26 @@ func TestHandleDirectoryTreeSuccess(t *testing.T) {
 
 	if w.Code != http.StatusOK {
 		t.Fatalf("expected 200, got %d", w.Code)
+	}
+}
+
+func TestHandleDirectoryDetailSuccess(t *testing.T) {
+	t.Parallel()
+	record := domain.DirectoryRecord{ID: "d1", Name: "Folder A"}
+	api := newAPIWithFakes(&fakeDirSvc{record: record}, &fakeFileSvc{}, &fakeAuthSvc{})
+
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+	c.Request = httptest.NewRequest(http.MethodGet, "/directories/d1/detail?scope=starred", nil)
+	injectUser(c)
+
+	api.handleDirectoryDetail(c)
+
+	if w.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", w.Code)
+	}
+	if !bytes.Contains(w.Body.Bytes(), []byte(`"directory"`)) || !bytes.Contains(w.Body.Bytes(), []byte(`"summary"`)) {
+		t.Fatalf("expected directory detail response, got %s", w.Body.String())
 	}
 }
 

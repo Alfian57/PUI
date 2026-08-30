@@ -20,11 +20,11 @@ export type WorkspaceInteractionHandlers = {
     onOpenDetails?: () => void;
     onDownload: (file: FileRecord) => Promise<void>;
     onSoftDelete?: (file: FileRecord) => Promise<void>;
-    onSoftDeleteFolder?: (directoryID: string, name: string) => Promise<void>;
+    onSoftDeleteFolder?: (directoryID: string, name: string) => Promise<boolean>;
     onToggleFileStarred?: (file: FileRecord) => Promise<void>;
-    onToggleFolderStarred?: (directoryID: string, name: string, starred: boolean) => Promise<void>;
+    onToggleFolderStarred?: (directoryID: string, name: string, starred: boolean) => Promise<boolean>;
     onRestoreFile?: (file: FileRecord) => Promise<void>;
-    onRestoreFolder?: (directoryID: string, name: string) => Promise<void>;
+    onRestoreFolder?: (directoryID: string, name: string) => Promise<boolean>;
     onPermanentDeleteFile?: (file: FileRecord) => Promise<void>;
-    onPermanentDeleteFolder?: (directoryID: string, name: string) => Promise<void>;
+    onPermanentDeleteFolder?: (directoryID: string, name: string) => Promise<boolean>;
 };

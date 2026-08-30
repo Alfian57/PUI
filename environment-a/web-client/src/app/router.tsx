@@ -15,6 +15,7 @@ import { InsightPage } from "@/pages/dashboard/insights/page";
 import { ProfilePage } from "@/pages/dashboard/profile/page";
 import { StarredPage } from "@/pages/dashboard/starred/page";
 import { TrashPage } from "@/pages/dashboard/trash/page";
+import { FolderDetailPage } from "@/pages/dashboard/folder-detail/page";
 import { SecurityLabPage } from "@/pages/dashboard/security-lab/page";
 import { AdminSecurityMonitoringPage } from "@/pages/dashboard/admin/security-monitoring/page";
 import { env } from "@/shared/config/env";
@@ -71,8 +72,16 @@ export const router = createBrowserRouter([
                         element: <RequireRole role="user"><StarredPage /></RequireRole>
                     },
                     {
+                        path: ROUTE_SEGMENTS.app.starredFolderDetail,
+                        element: <RequireRole role="user"><FolderDetailPage scope="starred" /></RequireRole>
+                    },
+                    {
                         path: ROUTE_SEGMENTS.app.trash,
                         element: <RequireRole role="user"><TrashPage /></RequireRole>
+                    },
+                    {
+                        path: ROUTE_SEGMENTS.app.trashFolderDetail,
+                        element: <RequireRole role="user"><FolderDetailPage scope="trash" /></RequireRole>
                     },
                     {
                         path: ROUTE_SEGMENTS.app.activity,

@@ -22,16 +22,14 @@ export function WorkspaceFolderCard({
 }: WorkspaceFolderCardProps): JSX.Element {
     return (
         <article
-            onClick={() => {
-                if (mode === "normal") handlers.onOpenFolder(folder.id);
-            }}
+            onClick={() => handlers.onOpenFolder(folder.id)}
             className={clsx(
-                "group relative overflow-hidden rounded-[1.4rem] bg-brand-sky/70 text-left shadow-soft ring-1 ring-brand-line/70 transition duration-200 hover:border-brand-logoYellow/45 hover:bg-white hover:shadow-deck",
-                mode === "normal" ? "cursor-pointer hover:-translate-y-0.5" : "cursor-default"
+                "group relative flex aspect-square min-h-0 flex-col overflow-hidden rounded-[1.4rem] bg-brand-sky/70 text-left shadow-soft ring-1 ring-brand-line/70 transition duration-200 hover:border-brand-logoYellow/45 hover:bg-white hover:shadow-deck",
+                "cursor-pointer hover:-translate-y-0.5"
             )}
         >
             <SelectionToggle selected={selected} label={`Pilih ${folder.name}`} onToggle={onToggleSelected} floating />
-            <div className="flex h-24 items-center justify-center bg-brand-logoYellow/10 text-brand-logoYellow transition group-hover:bg-brand-logoYellow/15">
+            <div className="flex min-h-0 flex-1 items-center justify-center bg-brand-logoYellow/10 text-brand-logoYellow transition group-hover:bg-brand-logoYellow/15">
                 <Folder className="h-10 w-10" aria-hidden="true" />
             </div>
             <div className="p-4">

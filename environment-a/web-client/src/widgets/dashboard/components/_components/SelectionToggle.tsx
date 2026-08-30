@@ -19,7 +19,7 @@ export function SelectionToggle({ selected, label, onToggle, floating = false }:
                 onToggle();
             }}
             className={clsx(
-                "inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border transition focus:outline-none focus:ring-2 focus:ring-brand-logoYellow/35",
+                "inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border transition focus:outline-none focus:ring-2 focus:ring-brand-logoYellow/35 sm:h-6 sm:w-6 sm:rounded-lg",
                 selected
                     ? "border-brand-ink bg-brand-logoBlue text-white shadow-sm"
                     : "border-brand-steel/20 bg-white/95 text-brand-steel hover:border-brand-logoYellow/50 hover:bg-brand-sky/70",
@@ -27,7 +27,7 @@ export function SelectionToggle({ selected, label, onToggle, floating = false }:
             )}
         >
             {selected ? (
-                <Check className="h-3 w-3 stroke-[3]" aria-hidden="true" />
+                <Check className="h-4 w-4 stroke-[3] sm:h-3 sm:w-3" aria-hidden="true" />
             ) : (
                 <span className="h-2 w-2 rounded-sm bg-brand-steel/15 transition" aria-hidden="true" />
             )}

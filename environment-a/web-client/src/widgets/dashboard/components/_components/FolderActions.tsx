@@ -6,10 +6,10 @@ import type { WorkspaceMode } from "../_types/workspace";
 type FolderActionsProps = {
     folder: DirectoryRecord;
     mode: WorkspaceMode;
-    onSoftDeleteFolder?: (directoryID: string, name: string) => Promise<void>;
-    onToggleFolderStarred?: (directoryID: string, name: string, starred: boolean) => Promise<void>;
-    onRestoreFolder?: (directoryID: string, name: string) => Promise<void>;
-    onPermanentDeleteFolder?: (directoryID: string, name: string) => Promise<void>;
+    onSoftDeleteFolder?: (directoryID: string, name: string) => Promise<boolean>;
+    onToggleFolderStarred?: (directoryID: string, name: string, starred: boolean) => Promise<boolean>;
+    onRestoreFolder?: (directoryID: string, name: string) => Promise<boolean>;
+    onPermanentDeleteFolder?: (directoryID: string, name: string) => Promise<boolean>;
     className?: string;
 };
 
@@ -23,12 +23,12 @@ export function FolderActions({
     className
 }: FolderActionsProps): JSX.Element {
     return (
-        <div className={clsx("flex min-w-[11rem] items-center justify-start gap-2", className)}>
+        <div className={clsx("flex min-w-0 items-center justify-start gap-2", className)}>
             {mode === "trash" ? (
                 <>
                     <button
                         type="button"
-                        className="inline-flex h-9 w-9 items-center justify-center rounded-xl text-brand-steel hover:bg-brand-sky hover:text-brand-logoBlue"
+                        className="inline-flex h-10 w-10 items-center justify-center rounded-xl text-brand-steel hover:bg-brand-sky hover:text-brand-logoBlue lg:h-9 lg:w-9"
                         aria-label={`Pulihkan ${folder.name}`}
                         title="Pulihkan"
                         onClick={(event) => {
@@ -40,7 +40,7 @@ export function FolderActions({
                     </button>
                     <button
                         type="button"
-                        className="inline-flex h-9 w-9 items-center justify-center rounded-xl text-brand-coral hover:bg-brand-coral/10"
+                        className="inline-flex h-10 w-10 items-center justify-center rounded-xl text-brand-coral hover:bg-brand-coral/10 lg:h-9 lg:w-9"
                         aria-label={`Hapus permanen ${folder.name}`}
                         title="Hapus permanen"
                         onClick={(event) => {
@@ -56,7 +56,7 @@ export function FolderActions({
                     <button
                         type="button"
                         className={clsx(
-                            "inline-flex h-9 w-9 items-center justify-center rounded-xl hover:bg-brand-sky",
+                            "inline-flex h-10 w-10 items-center justify-center rounded-xl hover:bg-brand-sky lg:h-9 lg:w-9",
                             folder.starred_at ? "text-brand-logoYellow" : "text-brand-steel hover:text-brand-logoBlue"
                         )}
                         aria-label={folder.starred_at ? `Hapus bintang ${folder.name}` : `Beri bintang ${folder.name}`}
@@ -72,7 +72,7 @@ export function FolderActions({
                     </button>
                     <button
                         type="button"
-                        className="inline-flex h-9 w-9 items-center justify-center rounded-xl text-brand-coral hover:bg-brand-coral/10"
+                        className="inline-flex h-10 w-10 items-center justify-center rounded-xl text-brand-coral hover:bg-brand-coral/10 lg:h-9 lg:w-9"
                         aria-label={`Hapus ${folder.name}`}
                         title="Pindahkan ke Sampah"
                         onClick={(event) => {

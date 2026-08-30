@@ -7,7 +7,7 @@ import { useInfiniteScroll } from "@/shared/hooks/useInfiniteScroll";
 import { usePagination } from "@/shared/hooks/usePagination";
 
 export function ActivityLogPanel(): JSX.Element {
-    const pagination = usePagination({ queryParam: "activity[page]", pageSize: ACTIVITY_PAGE_SIZE });
+    const pagination = usePagination({ queryParam: "activity.page", pageSize: ACTIVITY_PAGE_SIZE });
     const activity = useActivityLogs();
     const loadMore = useCallback(async () => {
         if (!activity.hasMore || activity.isFetchingNextPage) {

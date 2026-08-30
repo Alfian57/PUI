@@ -11,6 +11,7 @@ func TestIsUUID(t *testing.T) {
 		"11111111-1111-1111-8111-111111111111",
 		"550e8400-e29b-41d4-a716-446655440000",
 		"00000000-0000-1000-8000-000000000000",
+		"0eed1e41-bd3e-3ef2-c4c0-5c2a742122c3", // PostgreSQL UUID with non-RFC variant bits.
 	}
 	for _, v := range valid {
 		if !IsUUID(v) {
@@ -21,8 +22,8 @@ func TestIsUUID(t *testing.T) {
 	invalid := []string{
 		"",
 		"not-a-uuid",
-		"11111111-1111-1111-1111-111111111111", // variant bits not 8-b
-		"550e8400e29b41d4a716446655440000",     // no dashes
+		"11111111-1111-1111-1111-11111111111", // wrong final group length
+		"550e8400e29b41d4a716446655440000",    // no dashes
 		"   ",
 	}
 	for _, v := range invalid {

@@ -1,5 +1,5 @@
 import { http } from "@/shared/api/http";
-import type { DirectoryRecord } from "@/shared/types/directories";
+import type { DirectoryDetail, DirectoryDetailScope, DirectoryRecord } from "@/shared/types/directories";
 
 async function getTree(rootID?: string): Promise<DirectoryRecord[]> {
   const query = rootID ? `?root_id=${encodeURIComponent(rootID)}` : "";
@@ -70,4 +70,12 @@ export async function getBreadcrumb(directoryID: string): Promise<DirectoryRecor
     `/api/v1/directories/${encodeURIComponent(directoryID)}/breadcrumb`
   );
   return data.breadcrumb;
+}
+
+export async function getDirectoryDetail(directoryID: string, scope: DirectoryDetailScope): Promise<DirectoryDetail> {
+  const { data } = await http.get<DirectoryDetail>(
+    `/api/v1/directories/${encodeURIComponent(directoryID)}/detail`,
+    { params: { scope } }
+  );
+  return data;
 }

@@ -8,7 +8,7 @@ import { usePagination } from "@/shared/hooks/usePagination";
 export type WorkspaceCollectionMode = "trash" | "starred";
 
 export function useWorkspaceCollection(mode: WorkspaceCollectionMode) {
-    const pagination = usePagination({ queryParam: `${mode}[page]`, pageSize: WORKSPACE_PAGE_SIZE });
+    const pagination = usePagination({ queryParam: `${mode}.page`, pageSize: WORKSPACE_PAGE_SIZE });
     const query = useInfiniteQuery({
         queryKey: mode === "trash" ? queryKeys.workspace.trashPages : queryKeys.workspace.starredPages,
         initialPageParam: 0,

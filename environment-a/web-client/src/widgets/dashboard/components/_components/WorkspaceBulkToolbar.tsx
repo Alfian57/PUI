@@ -37,28 +37,28 @@ export function WorkspaceBulkToolbar({
 
     return (
         <div className={clsx(
-            "mb-3 flex flex-col gap-3 rounded-2xl bg-brand-sky/70 px-4 py-3 ring-1 ring-brand-line/70 sm:flex-row sm:items-center sm:justify-between",
+            "mb-3 flex flex-col gap-3 rounded-2xl bg-brand-sky/70 px-3 py-3 ring-1 ring-brand-line/70 sm:px-4 sm:flex-row sm:items-center sm:justify-between",
             "border-brand-logoYellow/40 bg-brand-logoYellow/10"
         )}>
             <div className="flex flex-wrap items-center gap-2">
                 <button
                     type="button"
                     onClick={onToggleSelectAll}
-                    className="rounded-xl border border-brand-steel/15 bg-white px-3 py-2 text-sm font-semibold text-brand-logoBlue transition hover:bg-brand-sky"
+                    className="min-h-10 rounded-xl border border-brand-steel/15 bg-white px-3 py-2 text-sm font-semibold text-brand-logoBlue transition hover:bg-brand-sky"
                 >
                     {selectedCount === totalCount ? "Batalkan semua" : "Pilih semua"}
                 </button>
                 <p className="text-sm font-medium text-brand-steel">{selectedCount} item dipilih</p>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:flex-wrap sm:items-center">
                 {mode === "trash" ? (
                     <>
                         {onBulkRestore ? (
                             <button
                                 type="button"
                                 onClick={() => void onRunBulkAction(onBulkRestore)}
-                                className="inline-flex items-center gap-2 rounded-xl bg-brand-logoBlue px-3 py-2 text-sm font-semibold text-white transition hover:bg-brand-ink"
+                                className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-brand-logoBlue px-3 py-2 text-sm font-semibold text-white transition hover:bg-brand-ink"
                             >
                                 <RotateCcw className="h-4 w-4" aria-hidden="true" />
                                 Pulihkan
@@ -68,7 +68,7 @@ export function WorkspaceBulkToolbar({
                             <button
                                 type="button"
                                 onClick={() => void onRunBulkAction(onBulkPermanentDelete)}
-                                className="inline-flex items-center gap-2 rounded-xl border border-brand-coral/25 bg-white px-3 py-2 text-sm font-semibold text-brand-coral transition hover:bg-brand-coral/10"
+                                className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-brand-coral/25 bg-white px-3 py-2 text-sm font-semibold text-brand-coral transition hover:bg-brand-coral/10"
                             >
                                 <Trash2 className="h-4 w-4" aria-hidden="true" />
                                 Hapus permanen
@@ -81,7 +81,7 @@ export function WorkspaceBulkToolbar({
                             <button
                                 type="button"
                                 onClick={() => void onRunBulkAction(onBulkStar)}
-                                className="inline-flex items-center gap-2 rounded-xl bg-brand-logoBlue px-3 py-2 text-sm font-semibold text-white transition hover:bg-brand-ink"
+                                className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-brand-logoBlue px-3 py-2 text-sm font-semibold text-white transition hover:bg-brand-ink"
                             >
                                 <Star className="h-4 w-4" aria-hidden="true" />
                                 Bintangi
@@ -91,7 +91,7 @@ export function WorkspaceBulkToolbar({
                             <button
                                 type="button"
                                 onClick={() => void onRunBulkAction(onBulkUnstar)}
-                                className="inline-flex items-center gap-2 rounded-xl border border-brand-steel/15 bg-white px-3 py-2 text-sm font-semibold text-brand-logoBlue transition hover:bg-brand-sky"
+                                className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-brand-steel/15 bg-white px-3 py-2 text-sm font-semibold text-brand-logoBlue transition hover:bg-brand-sky"
                             >
                                 <StarOff className="h-4 w-4" aria-hidden="true" />
                                 Hapus bintang
@@ -101,7 +101,7 @@ export function WorkspaceBulkToolbar({
                             <button
                                 type="button"
                                 onClick={() => void onRunBulkAction(onBulkSoftDelete)}
-                                className="inline-flex items-center gap-2 rounded-xl border border-brand-coral/25 bg-white px-3 py-2 text-sm font-semibold text-brand-coral transition hover:bg-brand-coral/10"
+                                className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-brand-coral/25 bg-white px-3 py-2 text-sm font-semibold text-brand-coral transition hover:bg-brand-coral/10"
                             >
                                 <Trash2 className="h-4 w-4" aria-hidden="true" />
                                 Hapus
@@ -112,7 +112,7 @@ export function WorkspaceBulkToolbar({
                 <button
                     type="button"
                     onClick={onClearSelection}
-                    className="rounded-xl px-3 py-2 text-sm font-semibold text-brand-steel transition hover:bg-white hover:text-brand-logoBlue"
+                    className="min-h-10 rounded-xl px-3 py-2 text-sm font-semibold text-brand-steel transition hover:bg-white hover:text-brand-logoBlue"
                 >
                     Batal
                 </button>

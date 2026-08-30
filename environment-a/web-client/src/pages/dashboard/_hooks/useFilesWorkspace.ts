@@ -22,26 +22,30 @@ import { usePagination } from "@/shared/hooks/usePagination";
 const SORT_OPTIONS = ["newest", "oldest", "name-asc", "name-desc", "type", "starred"] as const;
 const TIME_FILTER_OPTIONS = ["all", "today", "7d", "30d", "month", "year", "custom"] as const;
 
-export function useFilesWorkspace(enabled: boolean, selectedDirectoryID: string | null) {
+export function useFilesWorkspace(
+  enabled: boolean,
+  selectedDirectoryID: string | null,
+  detailEnabled: boolean = enabled
+) {
   const queryClient = useQueryClient();
-  const pagination = usePagination({ queryParam: "files[page]", pageSize: FILE_PAGE_SIZE });
+  const pagination = usePagination({ queryParam: "files.page", pageSize: FILE_PAGE_SIZE });
   const { value: sortOption, setValue: setSortOption } = useQueryParamState<WorkspaceSortOption>({
-    key: "files[sort]",
+    key: "files.sort",
     defaultValue: "newest",
     parse: parseEnumQueryParam(SORT_OPTIONS, "newest")
   });
   const { value: timeFilter, setValue: setTimeFilter } = useQueryParamState<WorkspaceTimeFilter>({
-    key: "files[time]",
+    key: "files.time",
     defaultValue: "all",
     parse: parseEnumQueryParam(TIME_FILTER_OPTIONS, "all")
   });
   const { value: customFrom, setValue: setCustomFrom } = useQueryParamState<string>({
-    key: "files[from]",
+    key: "files.from",
     defaultValue: "",
     serialize: serializeQueryParam
   });
   const { value: customTo, setValue: setCustomTo } = useQueryParamState<string>({
-    key: "files[to]",
+    key: "files.to",
     defaultValue: "",
     serialize: serializeQueryParam
   });
@@ -123,7 +127,7 @@ export function useFilesWorkspace(enabled: boolean, selectedDirectoryID: string 
   const detailQuery = useQuery({
     queryKey: queryKeys.files.detail(selectedFileID ?? "none"),
     queryFn: () => fileDetail(selectedFileID as string),
-    enabled: enabled && Boolean(selectedFileID)
+    enabled: detailEnabled && Boolean(selectedFileID)
   });
 
   const uploadMutation = useMutation({

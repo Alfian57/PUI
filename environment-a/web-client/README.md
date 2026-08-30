@@ -95,17 +95,29 @@ nested route.
 
 Filter, tab, dan pencarian lokal disimpan melalui query parameter menggunakan
 `src/shared/hooks/useQueryParamState.ts`. Setiap kontrol memakai key bernamespace
-dengan format bracket, seperti `security[source]`, agar perubahan beberapa
+dengan format titik, seperti `security.source`, agar perubahan beberapa
 kontrol pada halaman yang sama tetap aman. Global search di topbar merupakan
 pengecualian dan tetap menggunakan debounce 350 ms tanpa menulis query parameter.
 
 Pagination memakai `src/shared/hooks/usePagination.ts`, sehingga nomor halaman
-ditulis ke query parameter seperti `security[page]`. List panjang yang mendukung
+ditulis ke query parameter seperti `security.page`. URL lama dengan format bracket
+tetap dibaca, tetapi perubahan berikutnya ditulis memakai format titik. List panjang yang mendukung
 infinite scroll memakai `src/shared/hooks/useInfiniteScroll.ts`; riwayat aktivitas
-menggunakan `activity[page]`, Berkas Saya menggunakan `files[page]`, dan daftar
-Sampah/Berbintang menggunakan `trash[page]` atau `starred[page]` untuk melacak
+menggunakan `activity.page`, Berkas Saya menggunakan `files.page`, dan daftar
+Sampah/Berbintang menggunakan `trash.page` atau `starred.page` untuk melacak
 halaman terakhir yang sudah dimuat. Endpoint API terkait melakukan pagination di
 database dan mengembalikan total koleksi agar frontend tidak mengunduh seluruh data.
+
+Lokasi folder aktif pada halaman Berkas Saya disimpan sebagai `files.directory=<id>`.
+Membuka URL tersebut kembali akan memulihkan folder nested yang sama. Perpindahan
+folder membuat entry history baru dan browser back mengikuti riwayat tersebut.
+Breadcrumb menampilkan seluruh path folder dan setiap parent dapat dibuka kembali.
+
+Detail folder pada halaman Berbintang dan Sampah memakai route terpisah
+(`/app/starred/folders/:folderID` atau `/app/trash/folders/:folderID`) agar tidak
+mengubah lokasi atau query parameter pada Berkas Saya. Route detail dapat dibuka
+langsung dari bookmark dan menampilkan metadata, isi langsung, serta ringkasan
+seluruh subtree tanpa mencampur alur navigasi Berkas Saya.
 
 ## Integrasi API
 

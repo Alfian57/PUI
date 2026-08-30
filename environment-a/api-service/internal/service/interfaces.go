@@ -42,6 +42,7 @@ type directoryRepository interface {
 	Create(ctx context.Context, userID, name, parentID string) (domain.DirectoryRecord, error)
 	Tree(ctx context.Context, userID, rootID string) ([]domain.DirectoryRecord, error)
 	Breadcrumb(ctx context.Context, userID, directoryID string) ([]domain.DirectoryRecord, error)
+	Detail(ctx context.Context, userID, directoryID string, scope domain.DirectoryDetailScope) (domain.DirectoryDetail, error)
 	IsOwnedByUser(ctx context.Context, directoryID, userID string) (bool, error)
 	SoftDeleteSubtree(ctx context.Context, directoryID, userID string) (domain.DirectoryRecord, error)
 	RestoreSubtree(ctx context.Context, directoryID, userID string) (domain.DirectoryRecord, error)

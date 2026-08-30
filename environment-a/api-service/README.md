@@ -30,6 +30,7 @@ Base path: `/api/v1`
 - `GET /directories/tree`
 - `GET /directories/:id/files`
 - `GET /directories/:id/breadcrumb`
+- `GET /directories/:id/detail?scope=starred|trash`
 - `POST /files`
 - `GET /files/search`
 - `GET /files/:id/download`

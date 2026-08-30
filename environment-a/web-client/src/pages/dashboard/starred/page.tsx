@@ -1,16 +1,18 @@
 import { useCallback } from "react";
+import { generatePath, useNavigate } from "react-router-dom";
 import { Star } from "lucide-react";
 import { useWorkspaceCollection } from "@/pages/dashboard/_hooks/useWorkspaceCollection";
 import { WorkspaceItemsView } from "@/widgets/dashboard/components/WorkspaceItemsView";
 import { useDashboardWorkspace } from "@/widgets/dashboard/hooks/useDashboardWorkspace";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { useInfiniteScroll } from "@/shared/hooks/useInfiniteScroll";
+import { ROUTES } from "@/app/routes";
 
 export function StarredPage(): JSX.Element {
+    const navigate = useNavigate();
     const {
         files: workspaceFiles,
         viewMode,
-        onSelectDirectory,
         onSelectFile,
         onDownload,
         onSoftDelete,
@@ -22,6 +24,9 @@ export function StarredPage(): JSX.Element {
         onBulkUnstar
     } = useDashboardWorkspace();
     const starred = useWorkspaceCollection("starred");
+    const handleOpenFolder = useCallback((directoryID: string) => {
+        navigate(generatePath(ROUTES.app.starredFolderDetail, { folderID: directoryID }));
+    }, [navigate]);
     const loadMore = useCallback(() => {
         void starred.loadMore();
     }, [starred.loadMore]);
@@ -65,7 +70,7 @@ export function StarredPage(): JSX.Element {
                         selectedFileID={workspaceFiles.selectedFileID}
                         loading={starred.isLoading}
                         viewMode={viewMode}
-                        onOpenFolder={onSelectDirectory}
+                        onOpenFolder={handleOpenFolder}
                         onSelectFile={onSelectFile}
                         onDownload={onDownload}
                         onSoftDelete={onSoftDelete}

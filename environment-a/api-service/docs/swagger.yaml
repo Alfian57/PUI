@@ -178,6 +178,32 @@ definitions:
       starred_at:
         type: string
     type: object
+  dto.DirectoryDetailResponse:
+    properties:
+      directories:
+        items:
+          $ref: '#/definitions/dto.DirectoryDTO'
+        type: array
+      directory:
+        $ref: '#/definitions/dto.DirectoryDTO'
+      files:
+        items:
+          $ref: '#/definitions/dto.FileDTO'
+        type: array
+      status:
+        type: string
+      summary:
+        $ref: '#/definitions/dto.DirectoryDetailSummaryDTO'
+    type: object
+  dto.DirectoryDetailSummaryDTO:
+    properties:
+      directory_count:
+        type: integer
+      file_count:
+        type: integer
+      total_bytes:
+        type: integer
+    type: object
   dto.DirectoryMutationResponse:
     properties:
       directory:
@@ -1113,6 +1139,49 @@ paths:
       security:
       - BearerAuth: []
       summary: Breadcrumb direktori
+      tags:
+      - direktori
+  /directories/{id}/detail:
+    get:
+      description: Menampilkan metadata, isi langsung, dan ringkasan seluruh subtree
+        direktori pada konteks Berbintang atau Sampah
+      parameters:
+      - description: UUID direktori
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 'Konteks detail: starred atau trash'
+        in: query
+        name: scope
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.DirectoryDetailResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Detail direktori
       tags:
       - direktori
   /directories/{id}/files:

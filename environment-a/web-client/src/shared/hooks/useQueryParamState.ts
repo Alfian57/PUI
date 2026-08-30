@@ -25,6 +25,15 @@ export type QueryParamState<T> = {
 // snapshot so independent controls can update their own keys without collisions.
 let latestSearchParams = "";
 
+function getLegacyBracketKey(key: string): string | null {
+    const separatorIndex = key.indexOf(".");
+    if (separatorIndex <= 0 || separatorIndex === key.length - 1) {
+        return null;
+    }
+
+    return `${key.slice(0, separatorIndex)}[${key.slice(separatorIndex + 1)}]`;
+}
+
 export function parseEnumQueryParam<T extends string>(allowedValues: readonly T[], fallback: T): QueryParamParser<T> {
     return (rawValue) => rawValue && allowedValues.includes(rawValue as T) ? rawValue as T : fallback;
 }
@@ -42,7 +51,8 @@ export function useQueryParamState<T>({
     replace = true
 }: UseQueryParamStateOptions<T>): QueryParamState<T> {
     const [searchParams, setSearchParams] = useSearchParams();
-    const rawValue = searchParams.get(key);
+    const legacyKey = getLegacyBracketKey(key);
+    const rawValue = searchParams.get(key) ?? (legacyKey ? searchParams.get(legacyKey) : null);
     const [draftValue, setDraftValue] = useState<T>(() => parse(rawValue));
     const previousRawValue = useRef(rawValue);
 
@@ -67,9 +77,13 @@ export function useQueryParamState<T>({
             nextSearchParams.set(key, serializedValue);
         }
 
+        if (legacyKey) {
+            nextSearchParams.delete(legacyKey);
+        }
+
         latestSearchParams = nextSearchParams.toString();
         setSearchParams(nextSearchParams, { replace });
-    }, [key, replace, serialize, setSearchParams]);
+    }, [key, legacyKey, replace, serialize, setSearchParams]);
 
     const setValue = useCallback((value: T) => {
         setDraftValue(value);
@@ -88,10 +102,12 @@ export function useQueryParamState<T>({
         return () => window.clearTimeout(timeoutID);
     }, [commitValue, debounceMs, draftValue]);
 
+    const reset = useCallback(() => setValue(defaultValue), [defaultValue, setValue]);
+
     return {
         value: parse(rawValue),
         draftValue,
         setValue,
-        reset: () => setValue(defaultValue)
+        reset
     };
 }

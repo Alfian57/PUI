@@ -15,7 +15,7 @@ const INSIGHT_RANGE_OPTIONS = ["7d", "30d", "90d"] as const;
 
 export function InsightPage(): JSX.Element {
     const { value: range, setValue: setRange } = useQueryParamState<InsightRange>({
-        key: "insights[range]",
+        key: "insights.range",
         defaultValue: "30d",
         parse: parseEnumQueryParam(INSIGHT_RANGE_OPTIONS, "30d")
     });

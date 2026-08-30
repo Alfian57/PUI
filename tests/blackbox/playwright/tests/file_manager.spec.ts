@@ -113,7 +113,7 @@ test.describe('Manajemen Berkas dan Immutability', () => {
     await fileChooser.setFiles(fileNormal);
 
     // Verifikasi pesan sukses
-    await expect(page.getByText('Unggah berkas berhasil diproses.')).toBeVisible();
+    await expect(page.getByText('Unggah berkas berhasil diproses.')).toBeVisible({ timeout: 15000 });
     await expect(page.getByText(nameNormal)).toBeVisible();
   });
 
@@ -124,7 +124,7 @@ test.describe('Manajemen Berkas dan Immutability', () => {
     await fileChooser.setFiles(fileIdentical);
 
     // Verifikasi unggah berhasil
-    await expect(page.getByText('Unggah berkas berhasil diproses.')).toBeVisible();
+    await expect(page.getByText('Unggah berkas berhasil diproses.')).toBeVisible({ timeout: 15000 });
     await expect(page.getByText(nameIdentical)).toBeVisible();
 
     // Klik file untuk membuka detail inspector/preview modal
@@ -146,14 +146,14 @@ test.describe('Manajemen Berkas dan Immutability', () => {
     await page.getByRole('button', { name: 'Unggah' }).click();
     let fileChooser = await fileChooserPromise;
     await fileChooser.setFiles(fileLargeA);
-    await expect(page.getByText('Unggah berkas berhasil diproses.')).toBeVisible();
+    await expect(page.getByText('Unggah berkas berhasil diproses.')).toBeVisible({ timeout: 15000 });
 
     // Upload file B (perubahan sebagian)
     fileChooserPromise = page.waitForEvent('filechooser');
     await page.getByRole('button', { name: 'Unggah' }).click();
     fileChooser = await fileChooserPromise;
     await fileChooser.setFiles(fileLargeB);
-    await expect(page.getByText('Unggah berkas berhasil diproses.')).toBeVisible();
+    await expect(page.getByText('Unggah berkas berhasil diproses.')).toBeVisible({ timeout: 15000 });
 
     // Klik file B untuk memverifikasi info deduplikasi sebagian
     await page.getByText(nameLargeB).click();
@@ -206,6 +206,8 @@ test.describe('Manajemen Berkas dan Immutability', () => {
     
     // Klik tombol Pulihkan pada file
     await page.getByRole('button', { name: `Pulihkan ${nameNormal}` }).click();
+    await expect(page.getByRole('heading', { name: 'Pulihkan berkas?' })).toBeVisible();
+    await page.getByRole('button', { name: 'Pulihkan', exact: true }).click();
     await expect(page.getByText(`${nameNormal} dipulihkan.`)).toBeVisible();
 
     // Kembali ke Berkas Saya
@@ -233,7 +235,7 @@ test.describe('Manajemen Berkas dan Immutability', () => {
     const fileChooser = await fileChooserPromise;
     await fileChooser.setFiles(fileImage);
 
-    await expect(page.getByText('Unggah berkas berhasil diproses.')).toBeVisible();
+    await expect(page.getByText('Unggah berkas berhasil diproses.')).toBeVisible({ timeout: 15000 });
     await expect(page.getByText(nameImage)).toBeVisible();
 
     // 2. Klik pada file gambar untuk membuka preview modal

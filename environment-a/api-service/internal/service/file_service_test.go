@@ -243,6 +243,10 @@ func (fakeDirectoryRepo) IsOwnedByUser(ctx context.Context, directoryID, userID 
 	return true, nil
 }
 
+func (fakeDirectoryRepo) IsOwnedByUserIncludingDeleted(ctx context.Context, directoryID, userID string) (bool, error) {
+	return true, nil
+}
+
 type fakeActivityLogger struct {
 	actions []string
 }

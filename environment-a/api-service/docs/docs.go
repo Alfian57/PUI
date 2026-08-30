@@ -877,6 +877,71 @@ const docTemplate = `{
                 }
             }
         },
+        "/directories/{id}/detail": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Menampilkan metadata, isi langsung, dan ringkasan seluruh subtree direktori pada konteks Berbintang atau Sampah",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "direktori"
+                ],
+                "summary": "Detail direktori",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID direktori",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Konteks detail: starred atau trash",
+                        "name": "scope",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.DirectoryDetailResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/directories/{id}/files": {
             "get": {
                 "security": [
@@ -2371,6 +2436,46 @@ const docTemplate = `{
                 },
                 "starred_at": {
                     "type": "string"
+                }
+            }
+        },
+        "dto.DirectoryDetailResponse": {
+            "type": "object",
+            "properties": {
+                "directories": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.DirectoryDTO"
+                    }
+                },
+                "directory": {
+                    "$ref": "#/definitions/dto.DirectoryDTO"
+                },
+                "files": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.FileDTO"
+                    }
+                },
+                "status": {
+                    "type": "string"
+                },
+                "summary": {
+                    "$ref": "#/definitions/dto.DirectoryDetailSummaryDTO"
+                }
+            }
+        },
+        "dto.DirectoryDetailSummaryDTO": {
+            "type": "object",
+            "properties": {
+                "directory_count": {
+                    "type": "integer"
+                },
+                "file_count": {
+                    "type": "integer"
+                },
+                "total_bytes": {
+                    "type": "integer"
                 }
             }
         },

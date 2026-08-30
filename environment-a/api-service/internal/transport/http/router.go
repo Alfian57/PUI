@@ -81,6 +81,7 @@ func NewRouter(cfg config.Config, api *API, authService *service.AuthService, se
 				userRoutes.GET("/directories/tree", api.handleDirectoryTree)
 				userRoutes.GET("/directories/:id/files", api.handleDirectoryFiles)
 				userRoutes.GET("/directories/:id/breadcrumb", api.handleDirectoryBreadcrumb)
+				userRoutes.GET("/directories/:id/detail", api.handleDirectoryDetail)
 				userRoutes.POST("/directories/:id/restore", api.handleRestoreDirectory)
 				userRoutes.PUT("/directories/:id/star", api.handleStarDirectory)
 				userRoutes.DELETE("/directories/:id/star", api.handleUnstarDirectory)

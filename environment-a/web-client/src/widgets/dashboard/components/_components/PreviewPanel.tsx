@@ -72,7 +72,11 @@ export function PreviewPanel({
         case "video":
             return (
                 <div className="flex min-h-[28rem] items-center justify-center rounded-[1.5rem] bg-brand-ink p-4 shadow-soft">
-                    <video src={objectURL!} controls className="max-h-[65vh] max-w-full rounded-2xl" />
+                    <video
+                        src={objectURL!}
+                        controls
+                        className="block h-auto max-h-[65vh] w-full max-w-full rounded-2xl object-contain"
+                    />
                 </div>
             );
         case "audio":

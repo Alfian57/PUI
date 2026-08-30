@@ -19,16 +19,20 @@ export type PaginationState = {
     reset: () => void;
 };
 
-function parsePageQueryParam(rawValue: string | null): number {
+function parsePageQueryParam(rawValue: string | null, fallback: number): number {
+    if (rawValue === null || rawValue.trim() === "") {
+        return fallback;
+    }
+
     const page = Number(rawValue);
-    return Number.isInteger(page) && page >= 0 ? page : 0;
+    return Number.isInteger(page) && page >= 0 ? page : fallback;
 }
 
 export function usePagination({ queryParam, pageSize, defaultPage = 0 }: UsePaginationOptions): PaginationState {
     const { value: page, setValue, reset } = useQueryParamState<number>({
         key: queryParam,
         defaultValue: defaultPage,
-        parse: parsePageQueryParam,
+        parse: (rawValue) => parsePageQueryParam(rawValue, defaultPage),
         serialize: serializeQueryParam
     });
 

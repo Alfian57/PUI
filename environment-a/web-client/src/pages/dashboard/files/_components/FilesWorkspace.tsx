@@ -1,5 +1,4 @@
 import type { RefObject } from "react";
-import { FilePreviewModal } from "@/widgets/dashboard/components/FilePreviewModal";
 import { WorkspaceItemsView } from "@/widgets/dashboard/components/WorkspaceItemsView";
 import { DriveToolbar } from "@/widgets/dashboard/components/DriveToolbar";
 import { StorageSummary } from "@/widgets/dashboard/components/StorageSummary";
@@ -18,9 +17,7 @@ type FilesWorkspaceProps = Pick<
     DashboardWorkspace,
     | "directories"
     | "files"
-    | "detailsOpen"
     | "setDetailsOpen"
-    | "fileModalTab"
     | "setFileModalTab"
     | "viewMode"
     | "setViewMode"
@@ -61,9 +58,7 @@ type FilesWorkspaceProps = Pick<
 export function FilesWorkspace({
     directories,
     files,
-    detailsOpen,
     setDetailsOpen,
-    fileModalTab,
     setFileModalTab,
     viewMode,
     setViewMode,
@@ -119,6 +114,7 @@ export function FilesWorkspace({
                         <div data-tour="files-toolbar">
                             <DriveToolbar
                                 directoryID={directories.selectedDirectoryID}
+                                directories={directories.directories}
                                 uploadDisabled={files.uploadState.isPending}
                                 uploadProgress={files.uploadProgress}
                                 viewMode={viewMode}
@@ -200,16 +196,6 @@ export function FilesWorkspace({
                     </section>
                 </div>
 
-                <FilePreviewModal
-                    open={detailsOpen}
-                    tab={fileModalTab}
-                    file={files.fileDetail}
-                    lastUploadResult={files.lastUploadResult}
-                    loading={files.detailState.isLoading}
-                    onTabChange={setFileModalTab}
-                    onClose={() => setDetailsOpen(false)}
-                    onDownload={onDownload}
-                />
             </section>
         </>
     );

@@ -91,6 +91,13 @@ export function useDashboardFileActions({
     }
 
     async function onRestoreFile(file: FileRecord): Promise<void> {
+        const accepted = await confirm({
+            title: "Pulihkan berkas?",
+            description: `Berkas "${file.name}" akan dikembalikan ke Berkas Saya.`,
+            confirmLabel: "Pulihkan"
+        });
+        if (!accepted) return;
+
         try {
             await files.restore(file.id);
             notice.show({ variant: "success", message: `${file.name} dipulihkan.` });

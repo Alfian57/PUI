@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Outlet, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { CreateFolderModal } from "@/pages/dashboard/_components/CreateFolderModal";
 import { useDirectoryTree } from "@/pages/dashboard/_hooks/useDirectoryTree";
 import { useFilesWorkspace } from "@/pages/dashboard/_hooks/useFilesWorkspace";
@@ -10,6 +10,7 @@ import { DashboardShell } from "@/widgets/dashboard/components/DashboardShell";
 import { DashboardSidebar } from "@/widgets/dashboard/components/DashboardSidebar";
 import { DashboardTopbar } from "@/widgets/dashboard/components/DashboardTopbar";
 import { DashboardUtilityRail } from "@/widgets/dashboard/components/DashboardUtilityRail";
+import { FilePreviewModal } from "@/widgets/dashboard/components/FilePreviewModal";
 import { DashboardTour } from "@/widgets/dashboard/_components/DashboardTour";
 import { useDashboardTour } from "@/widgets/dashboard/hooks/useDashboardTour";
 import { useDashboardWorkspaceActions } from "@/widgets/dashboard/hooks/useDashboardWorkspaceActions";
@@ -19,6 +20,17 @@ import { ROUTES } from "@/app/routes";
 import { parseEnumQueryParam, useQueryParamState } from "@/shared/hooks/useQueryParamState";
 
 const FILE_MODAL_TAB_OPTIONS = ["preview", "detail"] as const;
+const DIRECTORY_QUERY_PARAM = "files.directory";
+
+type DirectoryNavigationOptions = {
+    replace?: boolean;
+    preserveSearch?: boolean;
+};
+
+function parseDirectoryQueryParam(rawValue: string | null): string | null {
+    const value = rawValue?.trim() ?? "";
+    return value || null;
+}
 
 export function UserDashboardLayout(): JSX.Element {
     const auth = useAuth();
@@ -28,15 +40,24 @@ export function UserDashboardLayout(): JSX.Element {
     const [createFolderOpen, setCreateFolderOpen] = useState(false);
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const location = useLocation();
+    const [searchParams] = useSearchParams();
     const [detailsOpen, setDetailsOpen] = useState(false);
     const { value: fileModalTab, setValue: setFileModalTab } = useQueryParamState<FileModalTab>({
-        key: "filePreview[tab]",
+        key: "filePreview.tab",
         defaultValue: "preview",
         parse: parseEnumQueryParam(FILE_MODAL_TAB_OPTIONS, "preview")
     });
     const [viewMode, setViewMode] = useState<"list" | "grid">("list");
-    const directories = useDirectoryTree(Boolean(auth.user));
-    const files = useFilesWorkspace(Boolean(auth.user), directories.selectedDirectoryID);
+    const isFilesRoute = location.pathname === ROUTES.app.files;
+    const requestedDirectoryID = isFilesRoute
+        ? parseDirectoryQueryParam(searchParams.get(DIRECTORY_QUERY_PARAM))
+        : null;
+    const directories = useDirectoryTree(Boolean(auth.user), requestedDirectoryID);
+    const files = useFilesWorkspace(
+        Boolean(auth.user) && isFilesRoute && directories.isDirectorySelectionReady,
+        directories.selectedDirectoryID,
+        Boolean(auth.user) && detailsOpen
+    );
     const {
         createFolder: handleCreateFolder,
         onUpload,
@@ -66,10 +87,52 @@ export function UserDashboardLayout(): JSX.Element {
         setSidebarOpen
     });
 
+    const navigateToDirectory = useCallback((
+        directoryID: string | null,
+        {
+            replace = false,
+            preserveSearch = true
+        }: DirectoryNavigationOptions = {}
+    ): void => {
+        const nextSearchParams = preserveSearch
+            ? new URLSearchParams(location.search)
+            : new URLSearchParams();
+        if (directoryID) {
+            nextSearchParams.set(DIRECTORY_QUERY_PARAM, directoryID);
+        } else {
+            nextSearchParams.delete(DIRECTORY_QUERY_PARAM);
+        }
+
+        const search = nextSearchParams.toString();
+        navigate(
+            {
+                pathname: ROUTES.app.files,
+                search: search ? `?${search}` : ""
+            },
+            { replace }
+        );
+    }, [location.search, navigate]);
+
+    useEffect(() => {
+        if (
+            location.pathname !== ROUTES.app.files
+            || !requestedDirectoryID
+            || !directories.isDirectorySelectionReady
+            || directories.selectedDirectoryID
+        ) {
+            return;
+        }
+
+        navigateToDirectory(null, { replace: true });
+    }, [directories.isDirectorySelectionReady, directories.selectedDirectoryID, location.pathname, navigateToDirectory, requestedDirectoryID]);
+
     function handleSelectDirectory(directoryID: string | null): void {
-        directories.setSelectedDirectoryID(directoryID);
+        if (directoryID === directories.selectedDirectoryID) {
+            return;
+        }
+
         setSidebarOpen(false);
-        navigate(ROUTES.app.files);
+        navigateToDirectory(directoryID);
     }
 
     function handleSelectFile(fileID: string): void {
@@ -79,11 +142,13 @@ export function UserDashboardLayout(): JSX.Element {
     }
 
     function handleSelectSearchResult(file: FileRecord): void {
-        directories.setSelectedDirectoryID(file.directory_id ?? null);
+        const directoryID = file.directory_id ?? null;
         files.setSelectedFileID(file.id);
         setFileModalTab("preview");
         setDetailsOpen(true);
-        navigate(ROUTES.app.files);
+        navigateToDirectory(directoryID, {
+            preserveSearch: false
+        });
     }
 
     async function handleLogout(): Promise<void> {
@@ -190,6 +255,17 @@ export function UserDashboardLayout(): JSX.Element {
                 <Outlet context={contextValue} />
                 <DashboardUtilityRail user={auth.user} onStartTour={tour.start} />
             </DashboardShell>
+
+            <FilePreviewModal
+                open={detailsOpen}
+                tab={fileModalTab}
+                file={files.fileDetail}
+                lastUploadResult={files.lastUploadResult}
+                loading={files.detailState.isLoading}
+                onTabChange={setFileModalTab}
+                onClose={() => setDetailsOpen(false)}
+                onDownload={onDownload}
+            />
 
             <CreateFolderModal
                 open={createFolderOpen}

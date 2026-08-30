@@ -182,6 +182,67 @@ func (a *API) handleDirectoryBreadcrumb(c *gin.Context) {
 	})
 }
 
+// handleDirectoryDetail godoc
+// @Summary Detail direktori
+// @Description Menampilkan metadata, isi langsung, dan ringkasan seluruh subtree direktori pada konteks Berbintang atau Sampah
+// @Tags direktori
+// @Security BearerAuth
+// @Produce json
+// @Param id path string true "UUID direktori"
+// @Param scope query string true "Konteks detail: starred atau trash"
+// @Success 200 {object} dto.DirectoryDetailResponse
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 401 {object} dto.ErrorResponse
+// @Failure 404 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /directories/{id}/detail [get]
+func (a *API) handleDirectoryDetail(c *gin.Context) {
+	user, ok := a.authUser(c)
+	if !ok {
+		return
+	}
+
+	directoryID := strings.TrimSpace(c.Param("id"))
+	scope := domain.DirectoryDetailScope(strings.TrimSpace(c.Query("scope")))
+	detail, err := a.directoryService.Detail(c.Request.Context(), user, directoryID, scope)
+	if err != nil {
+		writeError(c, statusFromError(err), err)
+		return
+	}
+
+	files, err := a.fileService.ListByDirectory(
+		c.Request.Context(),
+		user,
+		directoryID,
+		scope == domain.DirectoryDetailScopeTrash,
+	)
+	if err != nil {
+		writeError(c, statusFromError(err), err)
+		return
+	}
+	if scope == domain.DirectoryDetailScopeTrash {
+		deletedFiles := make([]domain.FileRecord, 0, len(files))
+		for _, file := range files {
+			if file.DeletedAt != nil {
+				deletedFiles = append(deletedFiles, file)
+			}
+		}
+		files = deletedFiles
+	}
+
+	c.JSON(http.StatusOK, dto.DirectoryDetailResponse{
+		Status:    "ok",
+		Directory: toDirectoryDTO(detail.Directory),
+		Summary: dto.DirectoryDetailSummaryDTO{
+			DirectoryCount: detail.Summary.DirectoryCount,
+			FileCount:      detail.Summary.FileCount,
+			TotalBytes:     detail.Summary.TotalBytes,
+		},
+		Directories: toDirectoryDTOs(detail.Directories),
+		Files:       toFileDTOs(files),
+	})
+}
+
 // handleSoftDeleteDirectory godoc
 // @Summary Pindahkan direktori ke Sampah
 // @Description Melakukan soft delete pada subtree direktori dan memindahkannya ke Sampah

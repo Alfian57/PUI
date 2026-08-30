@@ -37,63 +37,71 @@ export function useDashboardDirectoryActions({
         }
     }
 
-    async function onSoftDeleteFolder(directoryID: string, name: string): Promise<void> {
+    async function onSoftDeleteFolder(directoryID: string, name: string): Promise<boolean> {
         const accepted = await confirm({
             title: "Pindahkan direktori ke Sampah?",
             description: `Direktori "${name}" beserta isi di dalamnya akan dipindahkan ke Sampah.`,
             confirmLabel: "Pindahkan",
             variant: "danger"
         });
-        if (!accepted) return;
+        if (!accepted) return false;
 
         try {
             await directories.softDelete(directoryID);
             notice.show({ variant: "success", message: `${name} dipindahkan ke Sampah.` });
+            return true;
         } catch (cause) {
             notice.show({ variant: "error", message: cause instanceof Error ? cause.message : "Hapus direktori gagal." });
+            return false;
         }
     }
 
-    async function onToggleFolderStarred(directoryID: string, name: string, starred: boolean): Promise<void> {
+    async function onToggleFolderStarred(directoryID: string, name: string, starred: boolean): Promise<boolean> {
         const next = !starred;
         try {
             await directories.setStarred(directoryID, next);
             notice.show({ variant: "success", message: next ? `${name} ditambahkan ke Berbintang.` : `${name} dihapus dari Berbintang.` });
+            return true;
         } catch (cause) {
             notice.show({ variant: "error", message: cause instanceof Error ? cause.message : "Gagal mengubah bintang direktori." });
+            return false;
         }
     }
 
-    async function onRestoreFolder(directoryID: string, name: string): Promise<void> {
+    async function onRestoreFolder(directoryID: string, name: string): Promise<boolean> {
         const accepted = await confirm({
             title: "Pulihkan direktori?",
             description: `Direktori "${name}" beserta isi di dalamnya akan dikembalikan ke Berkas Saya.`,
             confirmLabel: "Pulihkan"
         });
-        if (!accepted) return;
+        if (!accepted) return false;
 
         try {
             await directories.restore(directoryID);
             notice.show({ variant: "success", message: `${name} dipulihkan.` });
+            return true;
         } catch (cause) {
             notice.show({ variant: "error", message: cause instanceof Error ? cause.message : "Pulihkan direktori gagal." });
+            return false;
         }
     }
 
-    async function onPermanentDeleteFolder(directoryID: string, name: string): Promise<void> {
+    async function onPermanentDeleteFolder(directoryID: string, name: string): Promise<boolean> {
         const accepted = await confirm({
             title: "Hapus direktori permanen?",
             description: `Direktori "${name}" beserta metadata isi di dalamnya akan dihapus permanen.`,
             confirmLabel: "Hapus permanen",
             variant: "danger"
         });
-        if (!accepted) return;
+        if (!accepted) return false;
 
         try {
             await directories.permanentDelete(directoryID);
             notice.show({ variant: "success", message: `${name} dihapus permanen.` });
+            return true;
         } catch (cause) {
             notice.show({ variant: "error", message: cause instanceof Error ? cause.message : "Hapus permanen direktori gagal." });
+            return false;
         }
     }
 

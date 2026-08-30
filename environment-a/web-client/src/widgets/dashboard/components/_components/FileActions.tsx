@@ -29,12 +29,12 @@ export function FileActions({
     className
 }: FileActionsProps): JSX.Element {
     return (
-        <div className={clsx("flex min-w-[11rem] items-center justify-start gap-2", className)}>
+        <div className={clsx("flex min-w-0 items-center justify-start gap-2", className)}>
             {mode === "trash" ? (
                 <>
                     <button
                         type="button"
-                        className="inline-flex h-9 w-9 items-center justify-center rounded-xl text-brand-steel hover:bg-brand-sky hover:text-brand-logoBlue"
+                        className="inline-flex h-10 w-10 items-center justify-center rounded-xl text-brand-steel hover:bg-brand-sky hover:text-brand-logoBlue lg:h-9 lg:w-9"
                         aria-label={`Pulihkan ${file.name}`}
                         title="Pulihkan"
                         onClick={(event) => {
@@ -46,7 +46,7 @@ export function FileActions({
                     </button>
                     <button
                         type="button"
-                        className="inline-flex h-9 w-9 items-center justify-center rounded-xl text-brand-coral hover:bg-brand-coral/10"
+                        className="inline-flex h-10 w-10 items-center justify-center rounded-xl text-brand-coral hover:bg-brand-coral/10 lg:h-9 lg:w-9"
                         aria-label={`Hapus permanen ${file.name}`}
                         title="Hapus permanen"
                         onClick={(event) => {
@@ -62,7 +62,7 @@ export function FileActions({
                     <button
                         type="button"
                         className={clsx(
-                            "inline-flex h-9 w-9 items-center justify-center rounded-xl hover:bg-brand-sky",
+                            "inline-flex h-10 w-10 items-center justify-center rounded-xl hover:bg-brand-sky lg:h-9 lg:w-9",
                             file.starred_at ? "text-brand-logoYellow" : "text-brand-steel hover:text-brand-logoBlue"
                         )}
                         aria-label={file.starred_at ? `Hapus bintang ${file.name}` : `Beri bintang ${file.name}`}
@@ -76,7 +76,7 @@ export function FileActions({
                     </button>
                     <button
                         type="button"
-                        className="inline-flex h-9 w-9 items-center justify-center rounded-xl text-brand-steel hover:bg-brand-sky hover:text-brand-logoBlue"
+                        className="inline-flex h-10 w-10 items-center justify-center rounded-xl text-brand-steel hover:bg-brand-sky hover:text-brand-logoBlue lg:h-9 lg:w-9"
                         aria-label={`Lihat detail ${file.name}`}
                         title="Detail"
                         onClick={(event) => {
@@ -89,7 +89,7 @@ export function FileActions({
                     </button>
                     <button
                         type="button"
-                        className="inline-flex h-9 w-9 items-center justify-center rounded-xl text-brand-steel hover:bg-brand-sky hover:text-brand-logoBlue"
+                        className="inline-flex h-10 w-10 items-center justify-center rounded-xl text-brand-steel hover:bg-brand-sky hover:text-brand-logoBlue lg:h-9 lg:w-9"
                         aria-label={`Unduh ${file.name}`}
                         title="Unduh"
                         onClick={(event) => {
@@ -101,7 +101,7 @@ export function FileActions({
                     </button>
                     <button
                         type="button"
-                        className="inline-flex h-9 w-9 items-center justify-center rounded-xl text-brand-coral hover:bg-brand-coral/10"
+                        className="inline-flex h-10 w-10 items-center justify-center rounded-xl text-brand-coral hover:bg-brand-coral/10 lg:h-9 lg:w-9"
                         aria-label={`Hapus ${file.name}`}
                         title="Pindahkan ke Sampah"
                         onClick={(event) => {

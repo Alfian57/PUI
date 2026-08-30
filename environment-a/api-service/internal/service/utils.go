@@ -8,7 +8,9 @@ import (
 	"strings"
 )
 
-var uuidPattern = regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$`)
+// PostgreSQL accepts any 128-bit UUID value, including identifiers whose
+// version or variant bits do not follow RFC 4122.
+var uuidPattern = regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`)
 
 func IsUUID(value string) bool {
 	return uuidPattern.MatchString(strings.TrimSpace(value))

@@ -25,15 +25,15 @@ export function WorkspaceFileCard({
     return (
         <article
             className={clsx(
-                "group relative cursor-pointer overflow-hidden rounded-[1.4rem] border bg-white shadow-soft transition duration-200 hover:-translate-y-0.5 hover:shadow-deck",
+                "group relative flex aspect-square min-h-0 cursor-pointer flex-col overflow-hidden rounded-[1.4rem] border bg-white shadow-soft transition duration-200 hover:-translate-y-0.5 hover:shadow-deck",
                 selectedFileID === file.id ? "border-brand-ink" : "border-brand-steel/10"
             )}
             onClick={() => {
-                if (mode === "normal") handlers.onSelectFile(file.id);
+                handlers.onSelectFile(file.id);
             }}
         >
             <SelectionToggle selected={selected} label={`Pilih ${file.name}`} onToggle={onToggleSelected} floating />
-            <div className="flex h-24 items-center justify-center bg-brand-sky/75 text-brand-steel">
+            <div className="flex min-h-0 flex-1 items-center justify-center bg-brand-sky/75 text-brand-steel">
                 <FileText className="h-10 w-10" aria-hidden="true" />
             </div>
             <div className="p-4">

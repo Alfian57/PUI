@@ -3,7 +3,7 @@ import type { SecurityEventList, SecurityEventSummary } from "@/shared/types/sec
 
 export type SecurityMonitorRange = "24h" | "7d" | "30d";
 
-export const SECURITY_EVENT_PAGE_SIZE = 25;
+export const SECURITY_EVENT_PAGE_SIZE = 5;
 
 export type SecurityEventFilters = {
   range: SecurityMonitorRange;
